@@ -9,6 +9,7 @@ import { documentService } from '../services/documentService';
 import { isValidDoc, isValidCEP } from '../utils/validators';
 import { applyMask } from '../utils/masks';
 import DocumentPreview from './DocumentPreview';
+import { Clock, Send } from 'lucide-react';
 
 export default function ProcessDetails({ processId, onBack, camaraConfig: propCamaraConfig }: { processId: string, onBack: () => void, camaraConfig?: any }) {
   const currentUser = useAuthStore((state) => state.currentUser);
@@ -21,6 +22,9 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   const [isAssigning, setIsAssigning] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
   const [novaDescricao, setNovaDescricao] = useState('');
+  const [novoAndamento, setNovoAndamento] = useState('');
+  const [loadingAndamentos, setLoadingAndamentos] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const { showToast, showModal, showPrompt, showConfirm } = useModal();
 
   const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'owner';
@@ -31,7 +35,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
 
   useEffect(() => {
     carregarProcesso();
-    carregarHistorico();
+    carregarAndamentos();
     carregarAnexos();
     carregarArbitros();
   }, [processId]);
@@ -107,27 +111,30 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
     }
   };
 
-  const carregarHistorico = async () => {
-    try {
-      const data = await historyService.getAndamentosPorProcesso(processId);
-      setAndamentos(data);
-    } catch (e) {
-      console.error(e);
-    }
+  const carregarAndamentos = async () => {
+    setLoadingAndamentos(true);
+    const data = await historyService.getByProcesso(processId);
+    setAndamentos(data);
+    setLoadingAndamentos(false);
   };
 
-  const handleAdicionarAndamento = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!novaDescricao.trim()) return;
-    
+  const handleAddAndamento = async () => {
+    if (!novoAndamento.trim() || !currentUser) return;
+    setSubmitting(true);
     try {
-      await historyService.addAndamento(processId, novaDescricao, 'atualizacao');
-      setNovaDescricao('');
-      carregarHistorico();
+      await historyService.addAndamento({
+        processo_id: processId,
+        descricao: novoAndamento,
+        usuario_id: currentUser.id,
+        tipo: 'Atualizacao'
+      });
+      setNovoAndamento('');
+      await carregarAndamentos();
       showToast('Andamento registrado com sucesso!', 'success');
-    } catch (e) {
-      console.error(e);
-      showToast('Erro ao registrar andamento', 'error');
+    } catch (error) {
+      showToast('Erro ao registrar andamento.', 'error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -465,59 +472,56 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
           )}
 
           {activeTab === 'historico' && (
-            <div className="space-y-8">
-              {canEditProcess && (
-                <form onSubmit={handleAdicionarAndamento} className="bg-slate-50 p-6 rounded-xl border border-slate-100 space-y-4">
-                  <h5 className="font-bold text-slate-800 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                    Nova Atualização
-                  </h5>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Descrição do Andamento</label>
-                    <textarea 
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]" 
-                      value={novaDescricao} 
-                      onChange={(e) => setNovaDescricao(e.target.value)} 
-                      required 
-                      placeholder="Descreva o que aconteceu neste processo..."
-                    />
-                  </div>
-                  <button type="submit" className="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                    Adicionar Atualização
+            <div className="mt-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm w-full max-w-full overflow-hidden">
+              <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
+                <Clock size={20} className="text-blue-600" />
+                <h3 className="text-lg font-bold text-slate-800">Linha do Tempo e Despachos</h3>
+              </div>
+
+              {/* Formulário de Inserção (Visível apenas se houver usuário autenticado) */}
+              {currentUser && (
+                <div className="mb-8 flex gap-3">
+                  <input
+                    type="text"
+                    value={novoAndamento}
+                    onChange={(e) => setNovoAndamento(e.target.value)}
+                    placeholder="Registrar novo andamento ou despacho..."
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    disabled={submitting}
+                  />
+                  <button
+                    onClick={handleAddAndamento}
+                    disabled={submitting || !novoAndamento.trim()}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50 transition-all"
+                  >
+                    <Send size={16} />
+                    {submitting ? 'Enviando...' : 'Registrar'}
                   </button>
-                </form>
+                </div>
               )}
 
-              <div className="relative pl-6 border-l-2 border-slate-200 ml-4 space-y-8">
-                {andamentos.map((a) => (
-                  <div key={a.id} className="relative">
-                    <div className="absolute -left-[35px] top-1 w-4 h-4 rounded-full bg-white border-4 border-blue-500 shadow-sm"></div>
-                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded">
-                            {a.tipo}
-                          </span>
-                          <span className="text-xs font-medium text-slate-400">por {a.perfis?.nome || 'Usuário'}</span>
-                        </div>
-                        <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md flex items-center gap-1">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                          {new Date(a.created_at).toLocaleString('pt-BR')}
-                        </span>
+              {/* Lista Cronológica */}
+              {loadingAndamentos ? (
+                <p className="text-sm text-slate-500 animate-pulse">Carregando histórico...</p>
+              ) : andamentos.length === 0 ? (
+                <p className="text-sm text-slate-500 italic">Nenhum andamento registrado até o momento.</p>
+              ) : (
+                <div className="relative border-l-2 border-slate-100 ml-3 space-y-6">
+                  {andamentos.map((item) => (
+                    <div key={item.id} className="relative pl-6">
+                      <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-white bg-blue-500" />
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <p className="text-xs text-slate-400 font-medium mb-1">
+                          {new Date(item.data_registro).toLocaleString('pt-BR')}
+                        </p>
+                        <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap">
+                          {item.descricao}
+                        </p>
                       </div>
-                      <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
-                        {a.descricao}
-                      </p>
                     </div>
-                  </div>
-                ))}
-                {andamentos.length === 0 && (
-                  <div className="text-center py-12 text-slate-400 italic">
-                    Nenhum andamento registrado.
-                  </div>
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

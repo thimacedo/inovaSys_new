@@ -3,59 +3,42 @@ import { supabase } from '../lib/supabase';
 export interface Andamento {
   id: string;
   processo_id: string;
-  usuario_id: string;
   descricao: string;
-  tipo: string;
-  created_at: string;
-  perfis?: {
-    nome: string;
-  };
+  data_registro: string;
+  usuario_id: string;
+  tipo: 'Despacho' | 'Atualizacao' | 'Mudanca_Status' | 'Outro';
 }
 
 export const historyService = {
-  async getAndamentosPorProcesso(processoId: string) {
-    const { data, error } = await supabase
-      .from('andamentos_processo')
-      .select(`
-        id, processo_id, usuario_id, descricao, tipo, created_at,
-        perfis ( nome )
-      `)
-      .eq('processo_id', processoId)
-      .order('created_at', { ascending: false });
+  async getByProcesso(processoId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('andamentos_processo')
+        .select('*')
+        .eq('processo_id', processoId)
+        .order('data_registro', { ascending: false });
 
-    if (error) {
-      console.error('[HistoryService] Erro ao buscar andamentos:', error);
-      throw error;
+      if (error) throw error;
+      return data as Andamento[];
+    } catch (error: any) {
+      console.error('[HistoryService:GET] Erro ao buscar andamentos:', error.message);
+      return [];
     }
-
-    // Normalizar o retorno do join (Supabase pode retornar array ou objeto dependendo da relação)
-    const normalizedData = (data as any[]).map(item => ({
-      ...item,
-      perfis: Array.isArray(item.perfis) ? item.perfis[0] : item.perfis
-    }));
-
-    return normalizedData as Andamento[];
   },
 
-  async addAndamento(processoId: string, descricao: string, tipo: string = 'atualizacao') {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) throw new Error("Sessão não encontrada.");
+  async addAndamento(payload: Omit<Andamento, 'id' | 'data_registro'>) {
+    try {
+      const { data, error } = await supabase
+        .from('andamentos_processo')
+        .insert([payload])
+        .select()
+        .single();
 
-    const { data, error } = await supabase
-      .from('andamentos_processo')
-      .insert([{
-        processo_id: processoId,
-        usuario_id: session.user.id,
-        descricao,
-        tipo
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('[HistoryService] Erro ao inserir andamento:', error);
+      if (error) throw error;
+      return data as Andamento;
+    } catch (error: any) {
+      console.error('[HistoryService:ADD] Erro ao inserir andamento:', error.message);
       throw error;
     }
-    return data;
   }
 };
