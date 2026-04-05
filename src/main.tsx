@@ -5,6 +5,12 @@ import './index.css';
 import { QueryProvider } from './presentation/providers/QueryProvider';
 import { ModalProvider } from './context/ModalContext.tsx';
 
+// Auto-recuperação contra cache zumbi e 404 em Chunks dinâmicos
+window.addEventListener('vite:preloadError', (event) => {
+  console.warn('Vite: Módulo desatualizado detectado. Forçando Hard Reload para buscar nova versão no Vercel...');
+  window.location.reload();
+});
+
 // Rotina de expurgo de Service Workers legados (Evita cache zumbi)
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {
