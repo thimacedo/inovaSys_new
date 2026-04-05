@@ -1,0 +1,78 @@
+:root {
+  --topbar-height: 72px;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc;
+  min-height: 100dvh; /* Otimização SRE: Viewport dinâmico para mobile */
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+#layout-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+#topbar {
+  /* Otimização SRE: Sticky mantém o elemento no fluxo, evitando sobreposição */
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: var(--topbar-height);
+  z-index: 1000;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+}
+
+#main-content {
+  flex: 1;
+  width: 100%;
+}
+
+.view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Otimização SRE: Garantir visibilidade de elementos críticos no Desktop */
+#main-content h2 {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: #0f172a;
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#main-content button {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 10;
+}
+
+#main-content svg rect {
+  fill: currentColor;
+  display: block !important;
+}
+
+/* 
+  AVISO SRE: Não adicione 'overflow: hidden' no #layout-shell ou body. 
+  Isso desabilita o 'position: sticky' do #topbar.
+*/
