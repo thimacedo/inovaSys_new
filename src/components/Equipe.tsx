@@ -26,7 +26,7 @@ import { useModal } from '../context/ModalContext';
 import { applyMask } from '../utils/masks';
 import { isValidCPF } from '../utils/validators';
 
-function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: () => void, camaraId?: string }) {
+function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: (password?: string) => void, camaraId?: string }) {
   const [email, setEmail] = useState('');
   const [nome, setNome] = useState('');
   const [tipoUsuario, setTipoUsuario] = useState('user');
@@ -119,13 +119,13 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: () => voi
 
       if (json.user) {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const updateData: any = { 
+
+        const updateData: any = {
           tipo_usuario: tipoUsuario,
           nome: nome.trim() || email.trim().split('@')[0],
           camara_id: targetCamaraId
         };
-        
+
         if (tipoUsuario === 'arbitro') {
           updateData.cpf = cpf.replace(/\D/g, "");
           updateData.endereco = endereco;
@@ -135,11 +135,11 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: () => voi
           .from('perfis')
           .update(updateData)
           .eq('id', json.user.id);
-        
+
         if (updateError) {
           await supabase.from('perfis').upsert({ id: json.user.id, ...updateData });
         }
-        
+
         await auditService.log('ADICIONAR_MEMBRO', {
           novo_usuario_id: json.user.id,
           email: email.trim(),
@@ -148,8 +148,8 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: () => voi
         });
       }
 
-      showToast('Sucesso: Membro adicionado à equipe! Senha temporária foi registrada.', 'success');
-      onAdded();
+      showToast('Sucesso: Membro adicionado à equipe! Senha temporária gerada.', 'success');
+      onAdded(tempPassword);
     } catch (err: any) {
       console.error(err);
       showToast('Erro ao adicionar membro: ' + err.message, 'error');
@@ -426,10 +426,51 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const handleAddMemberClick = () => {
     showModal(
       "Novo Membro na Equipe",
-      <AddMemberForm onAdded={() => {
+      <AddMemberForm onAdded={(generatedPassword?: string) => {
         carregarEquipe();
         const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');
         if (closeBtn instanceof HTMLElement) closeBtn.click();
+
+        // Show the generated password so admin can share it
+        if (generatedPassword) {
+          setTimeout(() => {
+            showModal(
+              "Senha Temporária Gerada",
+              <div className="space-y-4 p-2 text-center">
+                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 size={32} />
+                </div>
+                <p className="text-sm text-slate-600">
+                  O membro foi criado com sucesso. Compartilhe a senha temporária abaixo de forma segura:
+                </p>
+                <div className="bg-slate-900 text-white p-4 rounded-xl font-mono text-lg select-all">
+                  {generatedPassword}
+                </div>
+                <p className="text-xs text-slate-400">
+                  Recomende ao membro alterar a senha no primeiro acesso.
+                </p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(generatedPassword);
+                    showToast('Senha copiada!', 'success');
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700"
+                >
+                  Copiar Senha
+                </button>
+                <button
+                  onClick={() => {
+                    const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');
+                    if (closeBtn instanceof HTMLElement) closeBtn.click();
+                  }}
+                  className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg text-sm font-bold"
+                >
+                  Fechar
+                </button>
+              </div>
+            );
+          }, 300);
+        }
       }} />
     );
   };
