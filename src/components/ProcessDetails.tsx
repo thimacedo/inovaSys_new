@@ -161,8 +161,16 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
 
   const handleEditField = async (field: keyof Processo, label: string, currentValue: any) => {
     let inputType: 'text' | 'date' | 'time' | 'number' | 'textarea' | 'select' = 'text';
+    let maskType: 'doc' | 'money' | 'phone' | 'cep' | undefined = undefined;
+
     if (field === 'resumo_fatos') inputType = 'textarea';
-    if (field.startsWith('valor_')) inputType = 'number';
+    if (field.startsWith('valor_')) {
+      inputType = 'text'; // Change to text for money mask
+      maskType = 'money';
+    }
+    if (field === 'requerente_doc' || field === 'requerido_doc') {
+      maskType = 'doc';
+    }
 
     let initialVal = currentValue?.toString() || '';
 
@@ -176,7 +184,11 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
           }
           finalValue = newValue.replace(/\D/g, '');
         }
-        if (inputType === 'number') {
+        if (maskType === 'money') {
+          // Parse money string back to number
+          let vRaw = newValue.replace('R$ ', '').replace(/\./g, '').replace(',', '.').trim();
+          finalValue = vRaw ? parseFloat(vRaw) : 0;
+        } else if (inputType === 'number') {
           finalValue = Number(newValue);
         }
         try {
@@ -187,7 +199,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
           showToast(`Erro ao atualizar ${label}: ` + (e as Error).message, 'error');
         }
       }
-    }, inputType);
+    }, inputType as any, maskType);
   };
 
   if (loading) return <div>Carregando detalhes do processo...</div>;
@@ -311,7 +323,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
                   <div className="grid grid-cols-1 gap-y-3">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Documento</p>
-                      <p className="text-sm text-slate-700 font-medium hover:text-blue-600 transition-colors" onClick={(e) => { e.stopPropagation(); handleEditField('requerente_doc', 'CPF/CNPJ Requerente', processo.requerente_doc); }}>{processo.requerente_doc}</p>
+                      <p className="text-sm text-slate-700 font-medium hover:text-blue-600 transition-colors" onClick={(e) => { e.stopPropagation(); handleEditField('requerente_doc', 'CPF/CNPJ Requerente', processo.requerente_doc); }}>{processo.requerente_doc ? applyMask(processo.requerente_doc, 'doc') : '---'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Endereço</p>
@@ -330,7 +342,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
                   <div className="grid grid-cols-1 gap-y-3">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Documento</p>
-                      <p className="text-sm text-slate-700 font-medium hover:text-blue-600 transition-colors" onClick={(e) => { e.stopPropagation(); handleEditField('requerido_doc', 'CPF/CNPJ Requerido', processo.requerido_doc); }}>{processo.requerido_doc || '---'}</p>
+                      <p className="text-sm text-slate-700 font-medium hover:text-blue-600 transition-colors" onClick={(e) => { e.stopPropagation(); handleEditField('requerido_doc', 'CPF/CNPJ Requerido', processo.requerido_doc); }}>{processo.requerido_doc ? applyMask(processo.requerido_doc, 'doc') : '---'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Endereço</p>

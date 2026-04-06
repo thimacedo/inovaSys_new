@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { applyMask } from '../utils/masks';
 
 interface OnboardingProps {
   session: any;
@@ -18,7 +19,15 @@ export default function Onboarding({ session, onComplete, onSignOut }: Onboardin
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let maskedValue = value;
+
+    if (name === 'documento') {
+      maskedValue = applyMask(value, 'doc');
+    } else if (name === 'telefone') {
+      maskedValue = applyMask(value, 'phone');
+    }
+
+    setFormData(prev => ({ ...prev, [name]: maskedValue }));
   };
 
   const handleSave = async (e: React.FormEvent) => {

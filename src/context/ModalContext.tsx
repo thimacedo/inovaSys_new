@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import Modal from '../components/Modal';
 import Toast from '../components/Toast';
+import { applyMask } from '../utils/masks';
 
 type ModalContextType = {
   showModal: (title: string, content: ReactNode, size?: 'small' | 'large') => void;
   showConfirm: (title: string, message: string, onConfirm: () => void, confirmText?: string) => void;
-  showPrompt: (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type?: 'text' | 'date' | 'time' | 'number' | 'textarea') => void;
+  showPrompt: (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type?: 'text' | 'date' | 'time' | 'number' | 'textarea', maskType?: 'doc' | 'money' | 'phone' | 'cep') => void;
   hideModal: () => void;
   showToast: (message: string, type?: 'success' | 'error' | 'attention') => void;
 };
@@ -74,12 +75,21 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     setModal({ isOpen: true, title: fullTitle, content, size: 'small' });
   };
 
-  const showPrompt = (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type: 'text' | 'date' | 'time' | 'number' | 'textarea' = 'textarea') => {
+  const showPrompt = (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type: 'text' | 'date' | 'time' | 'number' | 'textarea' = 'textarea', maskType?: 'doc' | 'money' | 'phone' | 'cep') => {
     const camaraName = getCamaraName();
     const fullTitle = `${camaraName} | ${title}`;
     
     const PromptContent = () => {
-      const [value, setValue] = useState(initialValue);
+      const [value, setValue] = useState(maskType ? applyMask(initialValue, maskType) : initialValue);
+      
+      const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        let val = e.target.value;
+        if (maskType) {
+          val = applyMask(val, maskType);
+        }
+        setValue(val);
+      };
+
       return (
         <div className="space-y-6">
           <div className="space-y-2">
@@ -88,15 +98,15 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
               <textarea 
                 className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px]" 
                 value={value} 
-                onChange={(e) => setValue(e.target.value)}
+                onChange={handleChange}
                 autoFocus
               />
             ) : (
               <input 
-                type={type}
+                type={maskType ? 'text' : type}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" 
                 value={value} 
-                onChange={(e) => setValue(e.target.value)}
+                onChange={handleChange}
                 autoFocus
               />
             )}

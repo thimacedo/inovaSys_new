@@ -21,6 +21,7 @@ import { useModal } from '../context/ModalContext';
 import { auditService } from '../services/auditService';
 import { isValidDoc } from '../utils/validators';
 import { supabase } from '../lib/supabase';
+import { applyMask } from '../utils/masks';
 
 export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
   const [nome, setNome] = useState('');
@@ -82,18 +83,6 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
 
     loadInitial();
   }, [camaraId]);
-
-  const applyMask = (value: string, maskType: 'doc' | 'phone') => {
-    let v = value.replace(/\D/g, "");
-    if (maskType === 'doc') {
-      if (v.length <= 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-      return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
-    } else if (maskType === 'phone') {
-      if (v.length <= 10) return v.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-      return v.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-    }
-    return value;
-  };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -359,7 +348,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
                     type="text" 
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" 
                     value={cep} 
-                    onChange={e => setCep(e.target.value.replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2"))} 
+                    onChange={e => setCep(applyMask(e.target.value, 'cep'))} 
                     required 
                     placeholder="00000-000"
                   />
