@@ -80,10 +80,20 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: () => voi
         }
       }
 
-      // 2. Criar Usuário no Auth
+      // 2. Criar Usuário no Auth via Supabase direct API (server-side proxy recomendado)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
+
+      // Senha segura gerada via Web Crypto API (24 chars, alfanum+symbols)
+      const generateSecurePassword = (): string => {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=';
+        const array = new Uint8Array(24);
+        crypto.getRandomValues(array);
+        return Array.from(array, n => chars[n % chars.length]).join('');
+      };
+
+      const tempPassword = generateSecurePassword();
+
       const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
         method: 'POST',
         headers: {
@@ -92,7 +102,7 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: () => voi
         },
         body: JSON.stringify({
           email: email.trim(),
-          password: Math.random().toString(36).slice(-12) + 'A1!'
+          password: tempPassword
         })
       });
       
@@ -138,7 +148,7 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: () => voi
         });
       }
 
-      showToast('Sucesso: Membro adicionado à equipe!', 'success');
+      showToast('Sucesso: Membro adicionado à equipe! Senha temporária foi registrada.', 'success');
       onAdded();
     } catch (err: any) {
       console.error(err);
