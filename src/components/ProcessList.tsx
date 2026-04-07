@@ -1,16 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processService, Processo } from '../services/processService';
 import { useModal } from '../context/ModalContext';
-import { 
-  BarChart3, 
-  FileText, 
-  DollarSign, 
-  Clock, 
-  CheckCircle2, 
-  Search, 
-  Filter, 
-  Download, 
+import { useAuthStore } from '../presentation/state/useAuthStore';
+import {
+  BarChart3,
+  Search,
   Plus,
   LayoutList,
   LayoutGrid,
@@ -26,20 +21,36 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const { showToast, showModal, hideModal, showConfirm } = useModal();
+  const { showToast, showConfirm } = useModal();
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const currentUser = useAuthStore(state => state.currentUser);
+  const isAdmin = ['god', 'admin', 'gestor'].includes(currentUser?.tipo_usuario || '');
 
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
+  // Debounce: aguarda 400ms antes de disparar consulta ao servidor
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setCurrentPage(1);
+      setDebouncedSearch(searchTerm);
+    }, 400);
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, [searchTerm]);
+
   useEffect(() => {
     carregarProcessos();
-  }, [currentPage]);
+  }, [currentPage, debouncedSearch]);
 
   const carregarProcessos = async () => {
     setLoading(true);
     try {
-      const { data, count } = await processService.getAll(currentPage, pageSize);
-      // Mapeamento dinâmico: Converte registros legados "novo" para "Protocolado" visualmente
+      const { data, count } = await processService.getAll(currentPage, pageSize, debouncedSearch);
       const processosMapeados = data.map(p => ({
         ...p,
         status: p.status?.toLowerCase() === 'novo' ? 'Protocolado' : p.status
@@ -76,7 +87,6 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
       showToast('Não há dados para exportar.', 'attention');
       return;
     }
-
     const headers = ['Nº Processo', 'Requerente', 'Requerido', 'Status', 'Valor da Causa', 'Data de Criação'];
     const rows = processos.map(p => [
       p.numero_processo,
@@ -86,12 +96,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
       p.valor_causa || 0,
       new Date(p.created_at).toLocaleDateString('pt-BR')
     ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(e => e.join(','))
-    ].join('\n');
-
+    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -103,20 +108,19 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
     showToast('Relatório exportado com sucesso!', 'success');
   };
 
-  const filteredProcessos = processos.filter(p => 
-    p.numero_processo.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.requerente_nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.requerido_nome?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const totalProcessos = processos.length;
   const valorTotal = processos.reduce((acc, curr) => acc + (curr.valor_causa || 0), 0);
   const processosAtivos = processos.filter(p => p.status !== 'Concluído' && p.status !== 'Arquivado').length;
   const processosConcluidos = processos.filter(p => p.status === 'Concluído').length;
 
+  const statusBadge = (status: string) => {
+    if (status === 'Concluído') return 'bg-green-50 text-green-700 border-green-100';
+    if (status === 'Suspenso') return 'bg-red-50 text-red-700 border-red-100';
+    return 'bg-blue-50 text-blue-700 border-blue-100';
+  };
+
   return (
     <div className="space-y-4 animate-in fade-in duration-500 w-full max-w-full overflow-hidden">
-      {/* Compact Top Bar Otimizada */}
+      {/* Top Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3 shrink-0">
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -128,7 +132,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
           </div>
         </div>
 
-        {/* Stats Summary */}
+        {/* Stats (desktop) */}
         <div className="hidden xl:flex items-center gap-6 px-6 border-x border-slate-100 flex-1 justify-center">
           {[
             { label: 'Total', value: totalCount, color: 'bg-blue-500' },
@@ -146,36 +150,36 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
           ))}
         </div>
 
-        {/* Search Bar & Actions */}
+        {/* Search & Actions */}
         <div className="flex flex-1 xl:flex-none items-center gap-3 justify-end shrink-0">
-          <div className="relative w-full max-w-[200px]">
+          <div className="relative w-full max-w-[230px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-            <input 
-              type="text" 
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400" 
-              placeholder="Buscar..." 
+            <input
+              type="text"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400"
+              placeholder="Buscar em todos os processos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
-            <button 
+            <button
               className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => setViewMode('list')} title="Visualização em Lista"
+              onClick={() => setViewMode('list')} title="Lista"
             >
               <LayoutList size={16} />
             </button>
-            <button 
+            <button
               className={`p-1.5 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => setViewMode('kanban')} title="Visualização Kanban"
+              onClick={() => setViewMode('kanban')} title="Kanban"
             >
               <LayoutGrid size={16} />
             </button>
           </div>
 
           {onNewProcess && (
-            <button 
+            <button
               className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-all shadow-md flex items-center gap-2 uppercase tracking-wider shrink-0"
               onClick={onNewProcess}
             >
@@ -188,11 +192,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
 
       <AnimatePresence mode="wait">
         {viewMode === 'list' ? (
-          <motion.div 
-            key="list"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col"
           >
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -201,7 +201,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                 {totalCount} REGISTROS
               </span>
             </div>
-            
+
             {loading ? (
               <div className="p-20 text-center flex flex-col items-center gap-4">
                 <div className="w-10 h-10 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin"></div>
@@ -209,19 +209,20 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
               </div>
             ) : (
               <>
+                {/* Desktop table */}
                 <div className="hidden md:block overflow-x-auto w-full">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50/50 border-b border-slate-200">
                         <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Processo</th>
                         <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quem participa</th>
-                        <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valor do Processo</th>
+                        <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valor</th>
                         <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Situação</th>
                         <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {filteredProcessos.length === 0 ? (
+                      {processos.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="px-6 py-20 text-center">
                             <div className="flex flex-col items-center gap-4 text-slate-300">
@@ -234,7 +235,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                           </td>
                         </tr>
                       ) : (
-                        filteredProcessos.map(p => (
+                        processos.map(p => (
                           <tr key={p.id} className="hover:bg-slate-50/80 transition-colors group">
                             <td className="px-6 py-5">
                               <span className="text-sm font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-xl border border-blue-100 shadow-sm">
@@ -256,30 +257,28 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                               </span>
                             </td>
                             <td className="px-6 py-5">
-                              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${
-                                p.status === 'Concluído' ? 'bg-green-50 text-green-700 border-green-100' : 
-                                p.status === 'Suspenso' ? 'bg-red-50 text-red-700 border-red-100' :
-                                'bg-blue-50 text-blue-700 border-blue-100'
-                              }`}>
+                              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${statusBadge(p.status)}`}>
                                 {p.status}
                               </span>
                             </td>
                             <td className="px-6 py-5 text-right">
                               <div className="flex justify-end gap-2">
-                                <button 
+                                <button
                                   className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                                   onClick={() => onProcessSelect(p.id)}
                                   title="Visualizar Detalhes"
                                 >
                                   <Eye size={18} />
                                 </button>
-                                <button 
-                                  className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" 
-                                  onClick={() => excluirProcesso(p.id)}
-                                  title="Excluir Processo"
-                                >
-                                  <Trash2 size={18} />
-                                </button>
+                                {isAdmin && (
+                                  <button
+                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                    onClick={() => excluirProcesso(p.id)}
+                                    title="Excluir Processo"
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -289,28 +288,21 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                   </table>
                 </div>
 
+                {/* Mobile cards */}
                 <div className="md:hidden divide-y divide-slate-100 w-full">
-                  {filteredProcessos.length === 0 ? (
+                  {processos.length === 0 ? (
                     <div className="px-6 py-20 text-center">
-                      <div className="flex flex-col items-center gap-4 text-slate-300">
-                        <AlertCircle size={48} strokeWidth={1} />
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-slate-500">Nenhum processo localizado</p>
-                        </div>
-                      </div>
+                      <AlertCircle size={48} strokeWidth={1} className="mx-auto text-slate-300 mb-3" />
+                      <p className="text-sm font-bold text-slate-500">Nenhum processo localizado</p>
                     </div>
                   ) : (
-                    filteredProcessos.map(p => (
+                    processos.map(p => (
                       <div key={p.id} className="p-4 space-y-4 hover:bg-slate-50 transition-colors" onClick={() => onProcessSelect(p.id)}>
                         <div className="flex justify-between items-start">
                           <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">
                             {p.numero_processo}
                           </span>
-                          <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${
-                            p.status === 'Concluído' ? 'bg-green-50 text-green-700 border-green-100' : 
-                            p.status === 'Suspenso' ? 'bg-red-50 text-red-700 border-red-100' :
-                            'bg-blue-50 text-blue-700 border-blue-100'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${statusBadge(p.status)}`}>
                             {p.status}
                           </span>
                         </div>
@@ -330,12 +322,14 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                             </p>
                           </div>
                           <div className="flex gap-2">
-                            <button 
-                              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" 
-                              onClick={(e) => { e.stopPropagation(); excluirProcesso(p.id); }}
-                            >
-                              <Trash2 size={18} />
-                            </button>
+                            {isAdmin && (
+                              <button
+                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                onClick={(e) => { e.stopPropagation(); excluirProcesso(p.id); }}
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            )}
                             <div className="p-2 text-blue-600 bg-blue-50 rounded-xl">
                               <Eye size={18} />
                             </div>
@@ -346,19 +340,20 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                   )}
                 </div>
 
+                {/* Pagination */}
                 <div className="p-6 border-t border-slate-100 bg-slate-50/30 flex items-center justify-between w-full">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    Página {currentPage} • Mostrando {filteredProcessos.length} de {totalCount} processos
+                    Página {currentPage} • {processos.length} de {totalCount} processos
                   </p>
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       disabled={currentPage === 1 || loading}
                       onClick={() => setCurrentPage(prev => prev - 1)}
                       className="px-4 py-2 text-xs font-bold bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50 transition-all shadow-sm"
                     >
                       Anterior
                     </button>
-                    <button 
+                    <button
                       disabled={currentPage * pageSize >= totalCount || loading}
                       onClick={() => setCurrentPage(prev => prev + 1)}
                       className="px-4 py-2 text-xs font-bold bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50 transition-all shadow-sm"
@@ -371,11 +366,8 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
             )}
           </motion.div>
         ) : (
-          <motion.div 
-            key="kanban"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          /* Kanban View */
+          <motion.div key="kanban" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="flex gap-6 overflow-x-auto pb-6 min-h-[600px] w-full max-w-full snap-x"
           >
             {['Protocolado', 'Em Andamento', 'Concluído', 'Arquivado'].map(status => (
@@ -383,13 +375,12 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                 <div className="flex justify-between items-center px-2">
                   <h5 className="text-xs font-bold text-slate-500 uppercase tracking-widest">{status}</h5>
                   <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200">
-                    {filteredProcessos.filter(p => p.status === status).length}
+                    {processos.filter(p => p.status === status).length}
                   </span>
                 </div>
-                
                 <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-                  {filteredProcessos.filter(p => p.status === status).map(p => (
-                    <motion.div 
+                  {processos.filter(p => p.status === status).map(p => (
+                    <motion.div
                       key={p.id}
                       layoutId={p.id}
                       className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
@@ -405,13 +396,13 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-3 line-clamp-1">{p.requerido_nome}</p>
                       <div className="pt-3 border-t border-slate-50 flex justify-between items-center">
                         <span className="text-xs font-bold text-slate-700">
-                          R$ {p.valor_causa?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.valor_causa ?? 0)}
                         </span>
                         <span className="text-[10px] text-slate-400">{new Date(p.created_at).toLocaleDateString('pt-BR')}</span>
                       </div>
                     </motion.div>
                   ))}
-                  {filteredProcessos.filter(p => p.status === status).length === 0 && (
+                  {processos.filter(p => p.status === status).length === 0 && (
                     <div className="py-12 text-center border-2 border-dashed border-slate-200 rounded-xl">
                       <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Vazio</p>
                     </div>
