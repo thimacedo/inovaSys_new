@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 150">
-  <!-- Ícone Escudo -->
-  <path d="M70 15 C70 15 110 5 150 15 C150 50 150 90 110 135 C70 90 70 50 70 15 Z" fill="none" stroke="#2563eb" stroke-width="8" stroke-linejoin="round" />
-  <path d="M110 35 L110 115 M85 55 L110 75 L135 55 M85 85 L110 105 L135 85" fill="none" stroke="#2563eb" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
-  <circle cx="110" cy="35" r="6" fill="#2563eb" />
-  <!-- Texto -->
-  <text x="180" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="76" font-weight="800" fill="#0f172a">inova<tspan fill="#2563eb">Sys</tspan></text>
-</svg>
