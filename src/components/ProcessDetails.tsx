@@ -21,7 +21,6 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   const [uploading, setUploading] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
-  const [novaDescricao, setNovaDescricao] = useState('');
   const [novoAndamento, setNovoAndamento] = useState('');
   const [loadingAndamentos, setLoadingAndamentos] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +36,6 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
     carregarProcesso();
     carregarAndamentos();
     carregarAnexos();
-    carregarArbitros();
   }, [processId]);
 
   const carregarArbitros = async (orgId?: string) => {

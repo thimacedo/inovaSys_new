@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import Modal from '../components/Modal';
 import Toast from '../components/Toast';
 import { applyMask } from '../utils/masks';
@@ -20,7 +20,11 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     content: null, 
     size: 'large' 
   });
-  const [toast, setToast] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' | 'attention' }>({ 
+    isOpen: false, 
+    message: '',
+    type: 'success'
+  });
 
   const getCamaraName = () => {
     const config = localStorage.getItem('camara_config');
@@ -174,7 +178,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     const prefix = prefixes[finalType];
     const fullMessage = alreadyHasPrefix ? message : `${prefix}${message}`;
     
-    setToast({ isOpen: true, message: fullMessage });
+    setToast({ isOpen: true, message: fullMessage, type: finalType as 'success' | 'error' | 'attention' });
   };
 
   return (
@@ -190,8 +194,9 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
       </Modal>
       <Toast 
         isOpen={toast.isOpen} 
-        message={toast.message} 
-        onClose={() => setToast({ isOpen: false, message: '' })} 
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ isOpen: false, message: '', type: 'success' })} 
       />
     </ModalContext.Provider>
   );

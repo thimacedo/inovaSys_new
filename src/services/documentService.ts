@@ -103,7 +103,7 @@ export const documentService = {
             <p style="margin: 5px 0; white-space:pre-wrap; text-align: justify;">${mkEdit(p.resumo_fatos, 'resumo_fatos')}</p>
 
             <div style="border: 1px solid #000; text-align: center; font-weight: bold; padding: 5px; margin: 15px 0;">
-                Valor da causa: <span style="color: #d00;">R$ ${Number(p.valor_causa).toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${mkEdit('valor por extenso', 'campo_livre_valor_extenso')})</span>.
+                Valor da causa: <span style="color: #d00;">R$ ${Number(p.valor_causa ?? 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${mkEdit('valor por extenso', 'campo_livre_valor_extenso')})</span>.
             </div>
 
             <p style="font-size: 13px; text-align: justify;">Pelo que foi explicado acima, peço que esta <strong>${cam.nome || 'Câmara'}</strong> envie uma <strong>NOTIFICAÇÃO</strong> para a parte acionada. Isso serve para dar início ao processo de solução do conflito. Se a parte acionada comparecer à reunião (audiência) que será marcada, tentaremos chegar a um acordo amigável. Caso não haja acordo, seguiremos com o processo conforme as regras da Câmara e a Lei de Arbitragem (Lei 9.307/96). Eu me comprometo a entregar todos os documentos pedidos pela Câmara nos prazos definidos, sob pena de o processo ser cancelado.</p>
@@ -214,7 +214,7 @@ export const documentService = {
             <p style="white-space: pre-wrap;">${mkEdit(p.resumo_fatos, 'resumo_fatos')}</p>
             
             <p><strong>3. Estimativa do Pedido:</strong></p>
-            <p>3.1 – O valor de <span style="color: #d00;">R$ ${Number(p.valor_causa).toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${mkEdit('quatrocentos reais', 'campo_livre_valor_extenso')})</span>.</p>
+            <p>3.1 – O valor de <span style="color: #d00;">R$ ${Number(p.valor_causa ?? 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${mkEdit('quatrocentos reais', 'campo_livre_valor_extenso')})</span>.</p>
             
             <p><strong>4. Do Árbitro:</strong></p>
             <p>4.1 – De comum acordo, as partes que compõem o presente Compromisso Arbitral, escolhem como Árbitro (s) o (s) senhor (ES). <strong><span style="color: #d00;">${mkEdit('GAMALIEL ALICIO DE SOUZA CARDOSO', 'campo_livre_arb_nome')}</span></strong>, Bacharel em Teologia, residente e domiciliado nesta cidade de, Macapá/AP, e ficam cientes de sua ABSOLUTA RESPONSABILIDADE ante esse feito, em acordo ao que prescreve as leis do país, estando cientes, por serem MAIORES E CAPAZES e por isso, outorgam plenos poderes à Câmara de Arbitragem, Mediação e Conciliação do Amapá-CAMCAP, com Sede provisória na Rua: Odilardo Silva, nº 304/B - Bairro Jesus de Nazaré, CEP 68.908-153 na Cidade de Macapá/AP, onde será proferida a Sentença para esse Procedimento.</p>
@@ -326,7 +326,7 @@ export const documentService = {
             
             <p>EU, <strong><span style="color: #d00;">${p.requerente_nome}</span></strong>, ${mkEdit('brasileira, casada, Profissão: XXXXX', 'campo_livre_req_qualificacao')} RG: ${mkEdit('XXXXX/AP', 'campo_livre_req_rg')} e CPF: <span style="color: #d00;">${Masks.doc(p.requerente_doc)}</span>, residente e domiciliado no Município de Macapá/AP, à ${p.requerente_end}. <strong>RECEBEU</strong> do(a) Sr(a). <strong><span style="color: #d00;">${p.requerido_nome}</span></strong>, ${mkEdit('brasileira, casada, Profissão: XXXXX', 'campo_livre_reqd_qualificacao')} RG: ${mkEdit('XXXXX/AP', 'campo_livre_reqd_rg')} e CPF: <span style="color: #d00;">${Masks.doc(p.requerido_doc)}</span>.</p>
             
-            <p>O Valor de <strong>R$ <span style="color: #d00;">${Number(extraData.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${mkEdit('valor por extenso', 'campo_livre_valor_extenso')})</span></strong>, referente à parcela de pagamento acordado entre as partes mediante Cláusula ${mkEdit('13', 'campo_livre_clausula')} do TERMO DE ACORDO com Sentença Arbitral do processo Nº <span style="color: #d00;">${p.numero_processo}</span>.</p>
+            <p>O Valor de <strong>R$ <span style="color: #d00;">${Number(extraData.valor ?? 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${mkEdit('valor por extenso', 'campo_livre_valor_extenso')})</span></strong>, referente à parcela de pagamento acordado entre as partes mediante Cláusula ${mkEdit('13', 'campo_livre_clausula')} do TERMO DE ACORDO com Sentença Arbitral do processo Nº <span style="color: #d00;">${p.numero_processo}</span>.</p>
             
             <p style="margin-top:20px;"><strong>Forma de pagamento:</strong> (x) Dinheiro ( ) Cheque ( ) Cartão ( ) Transferência Bancaria</p>
             
@@ -353,7 +353,7 @@ export const documentService = {
             </p>
 
             <p style="text-indent: 0; margin-bottom: 20px;">
-                O valor de <strong>R$ <span style="color: #d00;">${Number(p.valor_causa * 0.1).toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${mkEdit('valor por extenso', 'campo_livre_valor_extenso')})</span></strong>, 
+                O valor de <strong>R$ <span style="color: #d00;">${Number((p.valor_causa ?? 0) * 0.1).toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${mkEdit('valor por extenso', 'campo_livre_valor_extenso')})</span></strong>, 
                 referente ao pagamento dos <strong>Honorários Arbitrais da ${cam.nome || 'CAMCAP'}</strong>.
             </p>
 

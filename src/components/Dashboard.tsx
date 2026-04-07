@@ -49,9 +49,8 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
   useEffect(() => {
     const loadConfig = async () => {
       const impersonatedId = localStorage.getItem('impersonated_camara_id');
-      
+
       if (impersonatedId) {
-        // Se estiver em modo impersonação, buscar dados da câmara alvo
         const { data } = await supabase.from('camaras').select('*').eq('id', impersonatedId).maybeSingle();
         if (data) {
           setCamaraConfig(data);
@@ -70,12 +69,20 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
         }
       }
     };
+
     loadConfig();
-    
-    // Listen for storage changes (in case config is updated in another tab or component)
-    window.addEventListener('storage', loadConfig);
-    return () => window.removeEventListener('storage', loadConfig);
-  }, [currentView]);
+  }, [userProfile]);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const config = localStorage.getItem('camara_config');
+      if (config) {
+        setCamaraConfig(JSON.parse(config));
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const handleProcessSelect = (id: string) => {
     setSelectedProcessId(id);
