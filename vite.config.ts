@@ -16,11 +16,18 @@ export default defineConfig(({mode}) => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
+      // Configuração para lidar com exports do @tanstack/react-query
+      conditions: ['require', 'node', 'default'],
+      mainFields: ['module', 'main'],
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
+    },
+    // Desabilitar escaneamento de dependências para evitar erro com @tanstack/react-query
+    optimizeDeps: {
+      exclude: ['@tanstack/react-query'],
     },
   };
 });
