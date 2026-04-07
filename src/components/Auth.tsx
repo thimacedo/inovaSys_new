@@ -51,7 +51,12 @@ export default function Auth({ onPublicView }: { onPublicView: () => void }) {
     <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle,_#f8fafc_0%,_#e2e8f0_100%)] p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-8 md:p-12 space-y-8">
         <div className="flex flex-col items-center space-y-4 text-center">
-          <img src={logoImg} alt="InovaSys" className="w-48 h-auto mb-2 object-contain" />
+          <img 
+            src={logoImg} 
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            alt="InovaSys" 
+            className="w-48 h-auto mb-2 object-contain" 
+          />
           <div className="space-y-1">
             <h1 className="text-2xl font-bold text-slate-900">
               {hasInvite ? "Aceitar Convite" : isSignUp ? "Criar Conta" : "Acessar Painel"}

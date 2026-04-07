@@ -163,7 +163,13 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
             </svg>
           </button>
           <div className="flex items-center gap-3">
-            <img src={camaraConfig?.logo || logoImg} className="h-8 w-auto object-contain" alt="Logo" referrerPolicy="no-referrer" />
+            <img 
+              src={camaraConfig?.logo || logoImg} 
+              onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }}
+              className="h-8 w-auto object-contain" 
+              alt="Logo" 
+              referrerPolicy="no-referrer" 
+            />
             <span className="font-bold text-slate-900 truncate max-w-[200px] hidden sm:inline-block">{camaraConfig?.nome || 'InovaSys'}</span>
           </div>
         </div>
