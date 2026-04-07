@@ -31,6 +31,9 @@ export const userService = {
   },
 
   async getProfile(userId: string) {
+    if (!userId || userId === "SEU_USER_ID_AQUI") {
+      throw new Error("Sessão inválida: ID do usuário ausente ou incorreto.");
+    }
     const { data, error } = await supabase
       .from('perfis')
       .select('*')
@@ -42,6 +45,9 @@ export const userService = {
   },
 
   async getTipoUsuario(userId: string) {
+    if (!userId || userId === "SEU_USER_ID_AQUI") {
+      throw new Error("Sessão inválida: ID do usuário ausente ou incorreto.");
+    }
     const { data, error } = await supabase
       .from('perfis')
       .select('tipo_usuario')
@@ -53,6 +59,9 @@ export const userService = {
   },
 
   async update(id: string, updates: Partial<Perfil>) {
+    if (!id || id === "SEU_USER_ID_AQUI") {
+      throw new Error("Sessão inválida: ID do usuário ausente ou incorreto.");
+    }
     const { data, error } = await supabase
       .from('perfis')
       .update(updates)
@@ -96,7 +105,9 @@ export const userService = {
   },
 
   async delete(id: string) {
-    if (!id) throw new Error("ID do usuário é obrigatório para exclusão.");
+    if (!id || id === "SEU_USER_ID_AQUI") {
+      throw new Error("Sessão inválida: ID do usuário ausente ou incorreto.");
+    }
     
     console.log('Iniciando tentativa de exclusão do ID:', id);
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { processService } from '../services/processService';
 import { isValidDoc } from '../utils/validators';
+import { applyMask } from '../utils/masks';
 
 export default function PublicConsultation({ onBack }: { onBack: () => void }) {
   const [doc, setDoc] = useState('');
@@ -35,15 +36,6 @@ export default function PublicConsultation({ onBack }: { onBack: () => void }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const applyMask = (value: string, maskType: 'doc') => {
-    let v = value.replace(/\D/g, "");
-    if (maskType === 'doc') {
-      if (v.length <= 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-      return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
-    }
-    return value;
   };
 
   return (

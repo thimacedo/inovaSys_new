@@ -1,8 +1,18 @@
 export const Masks = {
   doc: (v: string) => {
     v = v.replace(/\D/g, "");
-    if (v.length <= 11) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-    return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+    if (v.length <= 11) {
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+      return v;
+    } else {
+      v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+      v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+      v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+      v = v.replace(/(\d{4})(\d)/, "$1-$2");
+      return v.substring(0, 18);
+    }
   },
   money: (v: string | number) => {
     if (typeof v === 'number') v = (v * 100).toFixed(0);
@@ -11,12 +21,18 @@ export const Masks = {
   },
   phone: (v: string) => {
     v = v.replace(/\D/g, "");
-    if (v.length <= 10) return v.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-    return v.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+    v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+    if (v.length <= 13) {
+      v = v.replace(/(\d{4})(\d)/, "$1-$2");
+    } else {
+      v = v.replace(/(\d{5})(\d)/, "$1-$2");
+    }
+    return v.substring(0, 15);
   },
   cep: (v: string) => {
     v = v.replace(/\D/g, "");
-    return v.replace(/(\d{5})(\d{3})/, "$1-$2");
+    v = v.replace(/(\d{5})(\d)/, "$1-$2");
+    return v.substring(0, 9);
   }
 };
 

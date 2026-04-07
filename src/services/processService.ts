@@ -57,7 +57,12 @@ export const processService = {
   },
 
   async create(payload: any) {
-    if (!payload?.user_id || !payload?.organization_id) throw new Error("Falha de sessão ou tenant.");
+    if (!payload?.user_id || payload.user_id === "SEU_USER_ID_AQUI") {
+      throw new Error("Sessão inválida: ID do usuário ausente ou incorreto.");
+    }
+    if (!payload?.organization_id || payload.organization_id === "SEU_ORG_ID_AQUI") {
+      throw new Error("Sessão inválida: ID da organização ausente ou incorreto.");
+    }
     const dbPayload = {
       numero_processo: String(payload.numero_processo || ''),
       requerente_nome: String(payload.requerente_nome || ''),

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { processService } from '../services/processService';
 import { useAuthStore } from '../presentation/state/useAuthStore';
+import { applyMask, parseMoney } from '../utils/masks';
 
 interface NewProcessProps {
   onProcessCreated?: () => void;
@@ -19,7 +20,7 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
     requerido_nome: '',
     requerido_doc: '',
     requerido_end: '',
-    valor_causa: 0,
+    valor_causa: '',
     resumo_fatos: ''
   });
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,15 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let maskedValue = value;
+
+    if (name === 'requerente_doc' || name === 'requerido_doc') {
+      maskedValue = applyMask(value, 'doc');
+    } else if (name === 'valor_causa') {
+      maskedValue = applyMask(value, 'money');
+    }
+
+    setFormData(prev => ({ ...prev, [name]: maskedValue }));
   };
 
   const handleProtocolar = async (e: React.FormEvent) => {
@@ -54,6 +63,7 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
 
       const payloadCompleto = {
         ...formData,
+        valor_causa: parseMoney(formData.valor_causa),
         user_id: session.user.id,
         camara_id: camaraId,
         organization_id: currentUser.organization_id
@@ -74,7 +84,7 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
         requerido_nome: '',
         requerido_doc: '',
         requerido_end: '',
-        valor_causa: 0,
+        valor_causa: '',
         resumo_fatos: ''
       });
     } catch (err: any) {
@@ -119,9 +129,9 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Valor da Causa (R$)</label>
               <input 
-                type="number" 
+                type="text" 
                 name="valor_causa" 
-                placeholder="0,00" 
+                placeholder="R$ 0,00" 
                 value={formData.valor_causa} 
                 onChange={handleChange} 
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
