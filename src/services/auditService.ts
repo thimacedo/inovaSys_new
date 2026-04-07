@@ -10,25 +10,22 @@ export interface AuditLog {
 }
 
 export const auditService = {
-  async log(acao: string, detalhes: any = {}) {
+  async log(acao: string, detalhes: any = {}, nomeOverride?: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      let usuarioNome = user.email || 'Desconhecido';
-      
-      try {
-        const { data: perfil } = await supabase
-          .from('perfis')
-          .select('nome')
-          .eq('id', user.id)
-          .single();
-        
-        if (perfil?.nome) {
-          usuarioNome = perfil.nome;
-        }
-      } catch (e) {
-        // Ignorar erro se não conseguir buscar o perfil
+      let usuarioNome = nomeOverride || user.email || 'Desconhecido';
+
+      if (!nomeOverride) {
+        try {
+          const { data: perfil } = await supabase
+            .from('perfis')
+            .select('nome')
+            .eq('id', user.id)
+            .single();
+          if (perfil?.nome) usuarioNome = perfil.nome;
+        } catch (_) { /* perfil não encontrado, mantém email */ }
       }
 
       const { error } = await supabase
@@ -42,7 +39,7 @@ export const auditService = {
         }]);
 
       if (error) {
-        console.warn('Aviso: Falha ao registrar auditoria. A tabela "auditoria" pode não existir.', error.message);
+        console.warn('Aviso: Falha ao registrar auditoria.', error.message);
       }
     } catch (e) {
       console.error('Erro no serviço de auditoria:', e);

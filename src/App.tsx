@@ -11,6 +11,7 @@ import Pricing from './components/Pricing';
 import Onboarding from './components/Onboarding';
 
 export default function App() {
+  const devLog = (...args: unknown[]) => { if (import.meta.env.DEV) console.log(...args); };
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'auth' | 'public' | 'app' | 'pricing' | 'onboarding'>('auth');
@@ -62,7 +63,7 @@ export default function App() {
     // 2. Verificar sessão inicial
     const initSession = async () => {
       try {
-        console.log("[App] Iniciando initSession...");
+        devLog("[App] Iniciando initSession...");
         
         // Timeout para evitar travamento infinito
         const sessionPromise = supabase.auth.getSession();
@@ -72,7 +73,7 @@ export default function App() {
         
         const { data: { session: initialSession }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
         
-        console.log("[App] getSession concluído. Erro:", error);
+        devLog("[App] getSession concluído. Erro:", error);
 
         if (error) {
           if (error.message?.toLowerCase().includes('refresh token')) {
@@ -82,16 +83,16 @@ export default function App() {
         }
         
         if (!mounted) {
-          console.log("[App] Componente desmontado, abortando.");
+          devLog("[App] Componente desmontado, abortando.");
           return;
         }
         setSession(initialSession);
         
         if (initialSession?.user) {
-          console.log("[App] Usuário encontrado, chamando handlePostAuthFlow...");
+          devLog("[App] Usuário encontrado, chamando handlePostAuthFlow...");
           await handlePostAuthFlow(initialSession.user.id);
         } else {
-          console.log("[App] Nenhum usuário, indo para auth.");
+          devLog("[App] Nenhum usuário, indo para auth.");
           setView('auth');
           setLoading(false);
         }
@@ -114,7 +115,7 @@ export default function App() {
     const { data: { subscription } } = authService.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
       
-      console.log("[App] onAuthStateChange event:", event);
+      devLog("[App] onAuthStateChange event:", event);
 
       if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         setSession(null);
@@ -132,7 +133,7 @@ export default function App() {
           await handlePostAuthFlow(newSession.user.id);
         }
       } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Token atualizado com sucesso');
+        devLog('Token atualizado com sucesso');
       }
     });
 
@@ -144,14 +145,14 @@ export default function App() {
 
   const handlePostAuthFlow = async (userId: string) => {
     try {
-      console.log("[App] Iniciando handlePostAuthFlow para o usuário:", userId);
+      devLog("[App] Iniciando handlePostAuthFlow para o usuário:", userId);
       // Tentar consumir token de convite, se existir
       const pendingToken = localStorage.getItem('pending_invite_token');
       if (pendingToken) {
         try {
-          console.log("[App] Consumindo convite...");
+          devLog("[App] Consumindo convite...");
           await inviteService.acceptInvite(pendingToken);
-          console.log("[App] Convite consumido com sucesso!");
+          devLog("[App] Convite consumido com sucesso!");
         } catch (inviteErr) {
           console.error("[App] Falha ao consumir convite:", inviteErr);
         } finally {
@@ -159,7 +160,7 @@ export default function App() {
         }
       }
 
-      console.log("[App] Chamando fetchUserProfile...");
+      devLog("[App] Chamando fetchUserProfile...");
       await fetchUserProfile(userId);
     } catch (error) {
       console.error("[App] Erro fatal no fluxo pós-auth:", error);
@@ -170,9 +171,9 @@ export default function App() {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log("[App] Buscando perfil do usuário...");
+      devLog("[App] Buscando perfil do usuário...");
       const profile = await userService.getProfile(userId);
-      console.log("[App] Perfil recebido:", profile);
+      devLog("[App] Perfil recebido:", profile);
       setUserProfile(profile);
 
       if (profile) {
@@ -186,28 +187,28 @@ export default function App() {
 
       // Regras de roteamento baseadas no perfil
       if (!profile || !profile.nome || !profile.cpf) {
-        console.log("[App] Perfil incompleto, indo para onboarding.");
+        devLog("[App] Perfil incompleto, indo para onboarding.");
         setView('onboarding');
       } else if (profile.tipo_usuario === 'operador') {
-        console.log("[App] Usuário operador, indo para pricing.");
+        devLog("[App] Usuário operador, indo para pricing.");
         setView('pricing'); 
       } else {
-        console.log("[App] Perfil completo, indo para app.");
+        devLog("[App] Perfil completo, indo para app.");
         setView('app');
       }
     } catch (error: any) {
       console.error('[App] Error fetching profile:', error);
       // PGRST116 significa que a query .single() não retornou resultados (Perfil não existe ainda)
       if (error?.code === 'PGRST116') {
-        console.log("[App] Perfil não encontrado (PGRST116), indo para onboarding.");
+        devLog("[App] Perfil não encontrado (PGRST116), indo para onboarding.");
         setView('onboarding');
       } else {
         // Outros erros de banco, manda pro onboarding como segurança para não travar
-        console.log("[App] Erro desconhecido, indo para onboarding por segurança.");
+        devLog("[App] Erro desconhecido, indo para onboarding por segurança.");
         setView('onboarding');
       }
     } finally {
-      console.log("[App] Finalizando loading.");
+      devLog("[App] Finalizando loading.");
       setLoading(false); // GARANTIA DE SAIR DA TELA DE LOADING
     }
   };

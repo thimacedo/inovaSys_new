@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { 
   Settings, 
@@ -40,49 +40,44 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
   const [testingWebhook, setTestingWebhook] = useState(false);
   const { showToast } = useModal();
 
-  useEffect(() => {
-    const loadInitial = async () => {
-      // Try to load from database if camaraId is available
-      if (camaraId) {
-        const { data } = await supabase.from('camaras').select('*').eq('id', camaraId).maybeSingle();
-        if (data) {
-          setNome(data.nome || '');
-          setCnpj(data.cnpj || '');
-          setLogradouro(data.logradouro || '');
-          setBairro(data.bairro || '');
-          setCidade(data.cidade || '');
-          setEstado(data.estado || '');
-          setCep(data.cep || '');
-          setFone(data.fone || '');
-          setPresidenteNome(data.presidente_nome || '');
-          setWebhookUrl(data.webhook_url || '');
-          setWebhookToken(data.webhook_token || '');
-          setLogo(data.logo || '');
-          
-          // Also sync to localStorage
-          localStorage.setItem('camara_config', JSON.stringify(data));
-          return;
-        }
+  const loadInitial = useCallback(async () => {
+    if (camaraId) {
+      const { data } = await supabase.from('camaras').select('*').eq('id', camaraId).maybeSingle();
+      if (data) {
+        setNome(data.nome || '');
+        setCnpj(data.cnpj || '');
+        setLogradouro(data.logradouro || '');
+        setBairro(data.bairro || '');
+        setCidade(data.cidade || '');
+        setEstado(data.estado || '');
+        setCep(data.cep || '');
+        setFone(data.fone || '');
+        setPresidenteNome(data.presidente_nome || '');
+        setWebhookUrl(data.webhook_url || '');
+        setWebhookToken(data.webhook_token || '');
+        setLogo(data.logo || '');
+        localStorage.setItem('camara_config', JSON.stringify(data));
+        return;
       }
-
-      // Fallback to localStorage
-      const conf = JSON.parse(localStorage.getItem('camara_config') || '{}');
-      setNome(conf.nome || '');
-      setCnpj(conf.cnpj || '');
-      setLogradouro(conf.logradouro || '');
-      setBairro(conf.bairro || '');
-      setCidade(conf.cidade || '');
-      setEstado(conf.estado || '');
-      setCep(conf.cep || '');
-      setFone(conf.fone || '');
-      setPresidenteNome(conf.presidente_nome || '');
-      setWebhookUrl(conf.webhook_url || '');
-      setWebhookToken(conf.webhook_token || '');
-      setLogo(conf.logo || '');
-    };
-
-    loadInitial();
+    }
+    const conf = JSON.parse(localStorage.getItem('camara_config') || '{}');
+    setNome(conf.nome || '');
+    setCnpj(conf.cnpj || '');
+    setLogradouro(conf.logradouro || '');
+    setBairro(conf.bairro || '');
+    setCidade(conf.cidade || '');
+    setEstado(conf.estado || '');
+    setCep(conf.cep || '');
+    setFone(conf.fone || '');
+    setPresidenteNome(conf.presidente_nome || '');
+    setWebhookUrl(conf.webhook_url || '');
+    setWebhookToken(conf.webhook_token || '');
+    setLogo(conf.logo || '');
   }, [camaraId]);
+
+  useEffect(() => {
+    loadInitial();
+  }, [loadInitial]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -492,8 +487,9 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
           </div>
 
           <div className="p-8 md:p-10 bg-slate-50 flex justify-end gap-4">
-            <button 
+            <button
               type="button"
+              onClick={loadInitial}
               className="px-8 py-3 text-slate-500 font-bold text-xs uppercase tracking-widest hover:bg-slate-200 rounded-xl transition-all"
             >
               Descartar

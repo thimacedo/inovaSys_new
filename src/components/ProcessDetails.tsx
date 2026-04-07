@@ -158,7 +158,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   };
 
   const handleEditField = async (field: keyof Processo, label: string, currentValue: any) => {
-    let inputType: 'text' | 'date' | 'time' | 'number' | 'textarea' | 'select' = 'text';
+    let inputType: 'text' | 'date' | 'time' | 'textarea' = 'text';
     let maskType: 'doc' | 'money' | 'phone' | 'cep' | undefined = undefined;
 
     if (field === 'resumo_fatos') inputType = 'textarea';
@@ -183,11 +183,8 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
           finalValue = newValue.replace(/\D/g, '');
         }
         if (maskType === 'money') {
-          // Parse money string back to number
-          let vRaw = newValue.replace('R$ ', '').replace(/\./g, '').replace(',', '.').trim();
+          const vRaw = newValue.replace('R$ ', '').replace(/\./g, '').replace(',', '.').trim();
           finalValue = vRaw ? parseFloat(vRaw) : 0;
-        } else if (inputType === 'number') {
-          finalValue = Number(newValue);
         }
         try {
           await processService.update(processo!.id, { [field]: finalValue });
@@ -197,7 +194,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
           showToast(`Erro ao atualizar ${label}: ` + (e as Error).message, 'error');
         }
       }
-    }, inputType as any, maskType);
+    }, inputType as 'text' | 'date' | 'time' | 'textarea', maskType);
   };
 
   if (loading) return <div>Carregando detalhes do processo...</div>;
