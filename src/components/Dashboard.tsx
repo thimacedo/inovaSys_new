@@ -2,7 +2,7 @@ import { useState, lazy, Suspense, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { BaseSupabaseRepository } from '../infrastructure/database/BaseSupabaseRepository';
-import logoImg from '../assets/logo-inovasys.svg';
+import logoImg from '../assets/logo-inovasys.png';
 import { 
   LayoutDashboard, 
   PlusCircle, 

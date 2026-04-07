@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { authService } from '../services/authService';
 import { supabase } from '../lib/supabase';
-import logoImg from '../assets/logo-inovasys.svg';
+import logoImg from '../assets/logo-inovasys.png';
 
 export default function Auth({ onPublicView }: { onPublicView: () => void }) {
   const [isSignUp, setIsSignUp] = useState(false);
