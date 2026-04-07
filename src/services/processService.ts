@@ -26,21 +26,28 @@ const SELECT_FIELDS = `
 `;
 
 export const processService = {
-  async getAll(page = 1, pageSize = 10) {
+  async getAll(page = 1, pageSize = 10, searchTerm = '') {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
     try {
-      const { data, error, count } = await supabase
+      let query = supabase
         .from('processos')
         .select(SELECT_FIELDS, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
 
+      if (searchTerm.trim()) {
+        const term = searchTerm.trim();
+        query = query.or(
+          `numero_processo.ilike.%${term}%,requerente_nome.ilike.%${term}%,requerido_nome.ilike.%${term}%`
+        );
+      }
+
+      const { data, error, count } = await query;
       if (error) throw error;
       return { data: (data as Processo[]) || [], count: count || 0 };
     } catch (error: any) {
       this.logError('GET_ALL', error);
-      // BLINDAGEM: Retorna vazio em vez de quebrar a tela
       return { data: [], count: 0 };
     }
   },

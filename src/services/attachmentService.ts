@@ -16,7 +16,7 @@ export const attachmentService = {
     try {
       // 1. Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const fileName = `${crypto.randomUUID().replace(/-/g, '')}_${Date.now()}.${fileExt}`;
       const filePath = `processos/${processoId}/${fileName}`;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
