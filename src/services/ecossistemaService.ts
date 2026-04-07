@@ -65,11 +65,16 @@ export const ecossistemaService = {
 
   async createCamara(nome: string, planoId: string, gestorEmail: string, diasBonus: number = 0) {
     try {
-      // 1. Gerar senha temporária: INOVA_ + Nome da Câmara sem espaços
-      const sanitizedNome = nome.replace(/\s+/g, '').toUpperCase();
-      const tempPassword = `INOVA_${sanitizedNome}`;
+      // Generate a secure temporary password
+      const generateSecurePassword = (): string => {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=';
+        const array = new Uint8Array(24);
+        crypto.getRandomValues(array);
+        return Array.from(array, n => chars[n % chars.length]).join('');
+      };
+      const tempPassword = generateSecurePassword();
 
-      // 2. Criar a Câmara
+      // 1. Criar a Câmara
       const dataExpiracao = new Date();
       dataExpiracao.setMonth(dataExpiracao.getMonth() + 1);
       dataExpiracao.setDate(dataExpiracao.getDate() + diasBonus);

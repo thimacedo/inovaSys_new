@@ -4,16 +4,42 @@ import path from "path";
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-  app.use(express.json());
+  // Security headers
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+  });
+
+  app.use(express.json({ limit: '10mb' }));
+
+  // Rate limiting for API routes
+  const requestCounts: Map<string, { count: number; resetAt: number }> = new Map();
+  app.use('/api/', (req, res, next) => {
+    const ip = req.ip || 'unknown';
+    const now = Date.now();
+    const record = requestCounts.get(ip);
+    if (record && now < record.resetAt) {
+      if (record.count > 200) { // 200 requests per minute
+        return res.status(429).json({ error: 'Rate limit exceeded' });
+      }
+      record.count++;
+    } else {
+      requestCounts.set(ip, { count: 1, resetAt: now + 60000 });
+    }
+    next();
+  });
 
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
 
-  // Vercel API routes
+  // Vercel API routes - Server-side only, keys never exposed to client
   app.get("/api/vercel/deployments", async (req, res) => {
     try {
       const apiKey = process.env.VERCEL_API_KEY;
@@ -21,6 +47,11 @@ async function startServer() {
 
       if (!apiKey || !projectId) {
         return res.status(400).json({ error: "Vercel API Key or Project ID missing in environment variables." });
+      }
+
+      // Validate projectId is a valid identifier (alphanumeric + underscore only)
+      if (!/^[a-zA-Z0-9_]+$/.test(projectId)) {
+        return res.status(400).json({ error: "Invalid project ID format." });
       }
 
       const response = await fetch(`https://api.vercel.com/v6/deployments?projectId=${projectId}&limit=5`, {
@@ -86,7 +117,11 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      setHeaders: (res) => {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+      }
+    }));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
