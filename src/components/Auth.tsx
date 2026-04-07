@@ -53,7 +53,9 @@ export default function Auth({ onPublicView }: { onPublicView: () => void }) {
         <div className="flex flex-col items-center space-y-4 text-center">
           <img 
             src={logoImg} 
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            onError={(e) => { 
+              e.currentTarget.style.opacity = '0.5'; 
+            }}
             alt="InovaSys" 
             className="w-48 h-auto mb-2 object-contain" 
           />

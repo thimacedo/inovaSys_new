@@ -165,7 +165,13 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
           <div className="flex items-center gap-3">
             <img 
               src={camaraConfig?.logo || logoImg} 
-              onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }}
+              onError={(e) => { 
+                if (e.currentTarget.src.includes(logoImg)) {
+                  e.currentTarget.style.display = 'none'; 
+                } else {
+                  e.currentTarget.src = logoImg;
+                }
+              }}
               className="h-8 w-auto object-contain" 
               alt="Logo" 
               referrerPolicy="no-referrer" 
