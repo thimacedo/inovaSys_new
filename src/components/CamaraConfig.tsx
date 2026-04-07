@@ -79,32 +79,58 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
     loadInitial();
   }, [loadInitial]);
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width; let height = img.height;
-        const MAX_WIDTH = 500; const MAX_HEIGHT = 200;
-        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-          width = width * ratio; height = height * ratio;
-        }
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          setLogo(canvas.toDataURL(file.type));
+
+    try {
+      showToast('Processando logo...', 'attention');
+      
+      // Upload para Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `logo_camara_${crypto.randomUUID().replace(/-/g, '')}_${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('anexos')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.warn('Falha no upload pro Storage (bucket "anexos" possivelmente ausente). Usando fallback para Base64:', uploadError);
+        throw new Error('Fallback Base64');
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('anexos').getPublicUrl(filePath);
+      
+      setLogo(publicUrl);
+      showToast('Upload do logo concluído com sucesso!', 'success');
+      
+    } catch (err) {
+      // Fallback para Base64 se o Storage falhar ou não estiver configurado
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width; let height = img.height;
+          const MAX_WIDTH = 500; const MAX_HEIGHT = 200;
+          if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+            const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+            width = width * ratio; height = height * ratio;
+          }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            setLogo(canvas.toDataURL(file.type));
+          }
+        };
+        if (ev.target?.result) {
+          img.src = ev.target.result as string;
         }
       };
-      if (ev.target?.result) {
-        img.src = ev.target.result as string;
-      }
-    };
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
