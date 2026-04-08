@@ -4,17 +4,27 @@ import { ProcessEntity } from '../../infrastructure/database/repositories/Proces
 
 export const PROCESSOS_QUERY_KEY = 'processos';
 
-export function useProcessos(camaraId: string | undefined) {
+export function useProcessos(
+  camaraId: string | undefined, 
+  params?: { page: number, pageSize: number, search: string }
+) {
   return useQuery({
-    queryKey: [PROCESSOS_QUERY_KEY, camaraId],
+    queryKey: [PROCESSOS_QUERY_KEY, camaraId, params],
     queryFn: async () => {
-      if (!camaraId) return [];
-      // Suporte para o nome de método legado (listByCamara ou getProcessosByCamara)
+      if (!camaraId) return { data: [], count: 0 };
+      
+      // Se houver parâmetros de paginação/busca, usar getAll
+      if (params) {
+        return await processService.getAll(params.page, params.pageSize, params.search);
+      }
+      
+      // Caso contrário, usar listByCamara legado (para casos de uso simples)
       const listFn = processService.listByCamara || (processService as any).getProcessosByCamara;
-      return await listFn(camaraId);
+      const data = await listFn(camaraId);
+      return { data, count: data.length };
     },
     enabled: !!camaraId,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 }
 
