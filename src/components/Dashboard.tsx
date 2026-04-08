@@ -384,5 +384,6 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
         </Suspense>
       </main>
     </div>
+  </div>
   );
 }
