@@ -3,13 +3,13 @@ import { UserRepository } from '../database/repositories/UserRepository';
 import { GetUserByEmailUseCase } from '../../core/usecases/GetUserByEmailUseCase';
 
 /**
- * Registry de Dependências adaptado para Vite/React.
- * Como não temos Server Components aqui, sempre usamos o cliente de Browser.
+ * Registry de Dependências (IoC Container) adaptado para a SPA.
+ * Utiliza o Singleton do SupabaseClientFactory para instanciar repositórios.
  */
 export class DependencyRegistry {
   private static userRepository: UserRepository | null = null;
 
-  private static getUserRepository(): UserRepository {
+  public static getUserRepository(): UserRepository {
     if (!this.userRepository) {
       const client = SupabaseClientFactory.createBrowser();
       this.userRepository = new UserRepository(client);

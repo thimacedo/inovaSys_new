@@ -1,46 +1,55 @@
-import { SupabaseClient } from '@supabase/supabase-js';
 import { BaseSupabaseRepository } from '../BaseSupabaseRepository';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 export interface ProcessEntity {
   id: string;
-  numero_processo: string;
-  requerente_nome: string;
-  requerente_doc: string;
-  requerente_end?: string;
-  requerido_nome?: string;
-  requerido_doc?: string;
-  requerido_end?: string;
-  status: string;
-  valor_causa: number;
-  resumo_fatos?: string;
-  created_at: string;
-  user_id: string;
+  numero_processo?: string;
+  status?: string;
   camara_id?: string;
-  organization_id?: string;
   arbitro_id?: string;
+  requerente_id?: string;
+  requerido_id?: string;
+  [key: string]: any;
 }
 
-export type ProcessInsertDTO = Omit<ProcessEntity, 'id' | 'created_at'>;
-export type ProcessUpdateDTO = Partial<ProcessInsertDTO>;
+export class ProcessRepository extends BaseSupabaseRepository<ProcessEntity> {
+  protected readonly tableName = 'processos';
 
-export class ProcessRepository extends BaseSupabaseRepository<ProcessEntity, ProcessInsertDTO, ProcessUpdateDTO> {
   constructor(client: SupabaseClient) {
-    super('processos', client);
+    super(client);
   }
 
-  // Adicionar método de exclusão respeitando o contrato de segurança
-  public async delete(id: string): Promise<boolean> {
-    const { error, count } = await this.client
-      .from(this.tableName)
-      .delete({ count: 'exact' })
-      .eq('id', id);
+  public async getById(id: string): Promise<ProcessEntity | null> {
+    try {
+      const { data, error } = await this.client
+        .from(this.tableName)
+        .select('*')
+        .eq('id', id)
+        .single();
 
-    if (error) {
-      this.handlePostgrestError(error);
-      return false;
+      if (error) {
+        if (error.code === 'PGRST116') return null;
+        throw error;
+      }
+
+      return data as ProcessEntity;
+    } catch (error) {
+      return this.handleError(error, 'getById');
     }
+  }
 
-    // Se count for 0, o RLS impediu a deleção (usuário não é admin/owner ou ID não existe)
-    return count !== null && count > 0;
+  public async listByCamara(camaraId: string): Promise<ProcessEntity[]> {
+    try {
+      const { data, error } = await this.client
+        .from(this.tableName)
+        .select('*')
+        .eq('camara_id', camaraId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as ProcessEntity[];
+    } catch (error) {
+      return this.handleError(error, 'listByCamara');
+    }
   }
 }

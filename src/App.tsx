@@ -15,7 +15,7 @@ function AppContent() {
   // Inicializa o listener de sincronização do Supabase -> Zustand
   useAuthSync();
 
-  const { currentUser, logout } = useAuthStore();
+  const { currentUser, setCurrentUser, logout } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'auth' | 'public' | 'app' | 'pricing' | 'onboarding'>('auth');
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -71,6 +71,7 @@ function AppContent() {
           const profile = await userService.getProfile(currentUser.id);
           if (mounted) {
             setUserProfile(profile);
+            setCurrentUser(profile);
             
             // Regras de Roteamento
             if (!profile || !profile.nome || !profile.cpf) {

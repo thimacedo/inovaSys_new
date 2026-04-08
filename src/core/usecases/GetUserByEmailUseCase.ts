@@ -14,6 +14,6 @@ export class GetUserByEmailUseCase implements IUseCase<string, any | null> {
       throw new Error('Formato de e-mail inválido fornecido ao Use Case.');
     }
 
-    return this.userRepository.findByEmail(email);
+    return this.userRepository.getByEmail(email);
   }
 }
