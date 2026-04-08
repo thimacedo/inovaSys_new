@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { processService } from '../services/processService';
 import { useAuthStore } from '../presentation/state/useAuthStore';
+import { useCreateProcess } from '../presentation/hooks/useProcessos';
 import { applyMask, parseMoney } from '../utils/masks';
 
 interface NewProcessProps {
@@ -11,6 +11,7 @@ interface NewProcessProps {
 
 const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) => {
   const currentUser = useAuthStore((state) => state.currentUser);
+  const createMutation = useCreateProcess();
   
   const [formData, setFormData] = useState({
     numero_processo: '',
@@ -23,7 +24,6 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
     valor_causa: '',
     resumo_fatos: ''
   });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -42,7 +42,6 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
 
   const handleProtocolar = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setSuccess(false);
 
@@ -51,13 +50,11 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
 
       if (sessionError || !session?.user?.id) {
         setError("Sessão inválida ou expirada. Faça login novamente.");
-        setLoading(false);
         return;
       }
 
       if (!currentUser?.organization_id) {
         setError("O usuário não possui vínculo com uma organização ativa. Operação bloqueada.");
-        setLoading(false);
         return;
       }
 
@@ -65,11 +62,11 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
         ...formData,
         valor_causa: parseMoney(formData.valor_causa),
         user_id: session.user.id,
-        camara_id: camaraId,
+        camara_id: camaraId || undefined,
         organization_id: currentUser.organization_id
       };
 
-      await processService.create(payloadCompleto);
+      await createMutation.mutateAsync(payloadCompleto);
 
       setSuccess(true);
       if (onProcessCreated) {
@@ -90,7 +87,6 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
     } catch (err: any) {
       console.error('[SUBMIT ERROR]', err);
       
-      // Proteção Anti-Crash do React: Garante que o erro seja sempre uma string primitiva
       const errorMessage = typeof err === 'string' 
         ? err 
         : err?.message 
@@ -98,8 +94,6 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
           : "Falha de comunicação com o servidor. Verifique o log.";
           
       setError(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -238,10 +232,10 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
         <div className="flex justify-end">
           <button 
             type="submit" 
-            disabled={loading}
+            disabled={createMutation.isPending}
             className="px-10 py-4 bg-blue-600 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50"
           >
-            {loading ? 'Processando...' : 'Protocolar'}
+            {createMutation.isPending ? 'Processando...' : 'Protocolar'}
           </button>
         </div>
       </form>
