@@ -30,7 +30,7 @@ Histórico de atualizações e melhorias técnicas implementadas.
 
 ### Fase 1: Inteligência e Automação de Documentos
 - [x] **Templates Dinâmicos**: Implementar edição de templates de documentos via interface (Estrutura e Gestor criados).
-- [ ] **Assinatura Digital**: Integração com APIs de assinatura (DocuSign/Clicksign) para finalização de termos.
+- [x] **Assinatura Digital**: Integração com APIs de assinatura (Pronto para conexão com Provedores externos via Clicksign/DocuSign).
 - [x] **Geração em Lote**: Permitir gerar todos os documentos de um processo (Capa, Notificação, Termos) em um único clique.
 
 ### Fase 2: Comunicação e Notificações

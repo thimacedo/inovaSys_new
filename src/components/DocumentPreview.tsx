@@ -1,15 +1,17 @@
 import React, { useRef, useEffect } from 'react';
 import * as html2pdfModule from 'html2pdf.js';
 import { useModal } from '../context/ModalContext';
+import { signatureService } from '../services/signatureService';
 
 const html2pdf = (html2pdfModule as any).default || html2pdfModule;
 
 interface DocumentPreviewProps {
   html: string;
   fileName: string;
+  onSignatureRequest?: (html: string) => void;
 }
 
-const DocumentPreview: React.FC<DocumentPreviewProps> = ({ html, fileName }) => {
+const DocumentPreview: React.FC<DocumentPreviewProps> = ({ html, fileName, onSignatureRequest }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const { showPrompt } = useModal();
   const [isGenerating, setIsGenerating] = React.useState(false);
@@ -117,6 +119,16 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ html, fileName }) => 
             </>
           )}
         </button>
+
+        {onSignatureRequest && (
+           <button 
+             onClick={() => onSignatureRequest(contentRef.current?.innerHTML || html)}
+             className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors flex items-center gap-2 font-semibold"
+           >
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"/><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/></svg>
+             Enviar para Assinatura
+           </button>
+        )}
       </div>
     </div>
   );

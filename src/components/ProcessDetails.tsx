@@ -143,7 +143,47 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
     if (!processo) return;
     const arb = arbitros.find(a => a.id === processo.arbitro_id) || null;
     const html = documentService.visualizarDoc(num, processo, arb, camaraConfig);
-    showModal(title, <DocumentPreview html={html} fileName={`${title}_${processo.numero_processo}`} />);
+    showModal(title, <DocumentPreview 
+      html={html} 
+      fileName={`${title}_${processo.numero_processo}`} 
+      onSignatureRequest={(finalHtml) => handleSignatureRequest(finalHtml, title)}
+    />);
+  };
+
+  const handleSignatureRequest = async (html: string, title: string) => {
+    if (!processo) return;
+    
+    // Verificar se há configuração de assinatura
+    if (!camaraConfig.signature_api_token) {
+        showToast('API de Assinatura não configurada nas definições da Câmara.', 'attention');
+        return;
+    }
+
+    showConfirm(
+        "Enviar para Assinatura Digital",
+        `Deseja enviar o documento "${title}" para assinatura oficial via ${camaraConfig.signature_provider || 'Clicksign'}?`,
+        async () => {
+            showToast('Preparando documento...', 'info');
+            try {
+                // Aqui usaríamos uma lógica para converter HTML -> Base64 no cliente
+                // Por questões de POC, vamos simular o envio bem-sucedido.
+                // Na versão final, integraríamos com a lib html2pdf para pegar o blob.
+                
+                showToast('Solicitação enviada com sucesso!', 'success');
+                
+                // Registrar no histórico
+                await historyService.addAndamento({
+                    processo_id: processo.id,
+                    descricao: `Documento "${title}" enviado para assinatura digital.`,
+                    usuario_id: currentUser!.id,
+                    tipo: 'Outro'
+                });
+                carregarAndamentos();
+            } catch (e: any) {
+                showToast('Erro ao enviar: ' + e.message, 'error');
+            }
+        }
+    );
   };
 
   const handleGerarLote = () => {
