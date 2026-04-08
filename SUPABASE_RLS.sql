@@ -1,121 +1,150 @@
 -- ===============================================================
--- SUPABASE RLS POLICIES - MULTI-TENANT ARCHITECTURE
+-- SUPABASE RLS POLICIES V2 - INOVASYS (Gestor, Controle, Admin, Árbitro, Assistente)
 -- ===============================================================
--- Este arquivo contém as políticas de Row Level Security (RLS)
--- para implementar o isolamento entre organizações (tenants)
--- e o controle de acesso baseado em funções (RBAC).
+-- Este arquivo substitui as políticas antigas para implementar o isolamento 
+-- rigoroso exigido por ambientes Enterprise com o novo RBAC de 5 níveis.
 
--- ===============================================================
--- Modelo de Dados Assumido
--- ===============================================================
--- 
--- Tabela: processos
---   - id: uuid (primary key)
---   - numero_processo: text (required)
---   - requerente_nome: text (required)
---   - status: text (required)
---   - org_id: uuid (required) - ID da organização (tenant)
---   - camara_id: uuid (optional) - ID da câmara vinculada
---   - arbitro_id: uuid (optional) - ID do árbitro responsável
---   - user_id: uuid (required) - ID do criador
---
--- Tabela: perfis
---   - id: uuid (primary key) - Corresponde ao auth.uid()
---   - email: text (required)
---   - tipo_usuario: text (required) - ['member', 'admin', 'owner', 'gestor', 'arbitro', 'god']
---   - org_id: uuid (required) - ID da organização (tenant)
---
--- ===============================================================
-
--- 1. Habilitar RLS nas tabelas
+-- 1. Habilitar RLS estrito em todas as tabelas sensíveis
 ALTER TABLE processos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE camaras ENABLE ROW LEVEL SECURITY;
 ALTER TABLE perfis ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notificacoes ENABLE ROW LEVEL SECURITY;
 
--- 2. Funções Auxiliares de Segurança
-CREATE OR REPLACE FUNCTION get_user_org_id()
-RETURNS uuid AS $$
-  SELECT org_id FROM perfis WHERE id = auth.uid();
-$$ LANGUAGE sql STABLE;
-
+-- 2. Recriar Funções Auxiliares (Otimizadas para Cache / STABLE)
 CREATE OR REPLACE FUNCTION get_user_role()
 RETURNS text AS $$
   SELECT tipo_usuario FROM perfis WHERE id = auth.uid();
 $$ LANGUAGE sql STABLE;
 
+CREATE OR REPLACE FUNCTION get_user_organization()
+RETURNS uuid AS $$
+  SELECT organization_id FROM perfis WHERE id = auth.uid();
+$$ LANGUAGE sql STABLE;
+
+CREATE OR REPLACE FUNCTION get_user_camara()
+RETURNS uuid AS $$
+  SELECT camara_id FROM perfis WHERE id = auth.uid();
+$$ LANGUAGE sql STABLE;
+
+-- 3. Limpar políticas obsoletas antigas (Prevenção de conflito)
+DO $$ 
+DECLARE
+    pol record;
+BEGIN
+    FOR pol IN SELECT policyname, tablename FROM pg_policies WHERE schemaname = 'public' 
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', pol.policyname, pol.tablename);
+    END LOOP;
+END $$;
+
 -- ===============================================================
--- POLÍTICAS PARA A TABELA 'processos'
+-- VERDADEIRAS POLÍTICAS PARA: TABELA 'processos'
 -- ===============================================================
 
--- SELECT: Todos os membros da organização podem ver os processos dela
-CREATE POLICY "Visualização por Organização" ON processos
+-- SELECT: 
+-- Gestor e Controle veem TUDO.
+-- Admin e Assistente veem os processos de sua própria Câmara (ou Organização).
+-- Árbitro vê os processos de sua Câmara APENAS SE ele for o arbitro_id designado (Isolamento Máximo).
+CREATE POLICY "Processos: Leitura Restrita" ON public.processos
   FOR SELECT
-  USING (org_id = get_user_org_id());
+  USING (
+    get_user_role() IN ('gestor', 'controle')
+    OR
+    (get_user_role() IN ('admin', 'assistente') AND camara_id = get_user_camara())
+    OR
+    (get_user_role() = 'arbitro' AND arbitro_id = auth.uid())
+  );
 
--- INSERT: Membros, Admins e Owners podem criar processos na sua organização
-CREATE POLICY "Criação por Organização" ON processos
+-- INSERT:
+-- Gestor e Controle podem criar em qualquer lugar.
+-- Admin e Assistente podem criar apenas dentro da sua própria Câmara.
+-- Árbitro NÃO pode criar novos processos do zero.
+CREATE POLICY "Processos: Inserção" ON public.processos
   FOR INSERT
   WITH CHECK (
-    org_id = get_user_org_id() AND
-    get_user_role() IN ('member', 'admin', 'owner', 'gestor', 'arbitro')
+    get_user_role() IN ('gestor', 'controle')
+    OR
+    (get_user_role() IN ('admin', 'assistente') AND camara_id = get_user_camara())
   );
 
--- UPDATE: Regras de Estado (State Machine)
--- Membros só editam se não estiver 'published'
-CREATE POLICY "Edição Restrita (Membros)" ON processos
+-- UPDATE (Edição / Andamento):
+-- Gestor pode alterar qualquer coisa TUDO.
+-- Admin altera qualquer coisa na sua Câmara.
+-- Árbitro só altera dados do processo SE ele for designado ao processo.
+-- Assistente NÃO altera processo. Controle NÃO altera processo.
+CREATE POLICY "Processos: Atualização" ON public.processos
   FOR UPDATE
   USING (
-    org_id = get_user_org_id() AND
-    get_user_role() IN ('member', 'arbitro') AND
-    status NOT IN ('published', 'Concluído')
+    get_user_role() = 'gestor'
+    OR
+    (get_user_role() = 'admin' AND camara_id = get_user_camara())
+    OR
+    (get_user_role() = 'arbitro' AND arbitro_id = auth.uid())
   )
   WITH CHECK (
-    status NOT IN ('published', 'Concluído')
+    get_user_role() = 'gestor'
+    OR
+    (get_user_role() = 'admin' AND camara_id = get_user_camara())
+    OR
+    (get_user_role() = 'arbitro' AND arbitro_id = auth.uid())
   );
 
--- Admins e Owners podem editar qualquer processo da organização (Bypass)
-CREATE POLICY "Edição Total (Admin/Owner)" ON processos
-  FOR UPDATE
-  USING (
-    org_id = get_user_org_id() AND
-    get_user_role() IN ('admin', 'owner', 'gestor', 'god')
-  );
-
--- DELETE: Apenas Admins e Owners podem deletar
-CREATE POLICY "Exclusão Restrita (Admin/Owner)" ON processos
+-- DELETE:
+-- Apenas Gestor pode deletar qualquer coisa.
+-- Admin pode deletar na sua Câmara.
+-- Ninguém mais deleta processos legais.
+CREATE POLICY "Processos: Exclusão" ON public.processos
   FOR DELETE
   USING (
-    org_id = get_user_org_id() AND
-    get_user_role() IN ('admin', 'owner', 'gestor', 'god')
+    get_user_role() = 'gestor'
+    OR
+    (get_user_role() = 'admin' AND camara_id = get_user_camara())
   );
 
 -- ===============================================================
--- POLÍTICAS PARA A TABELA 'camaras'
+-- POLÍTICAS PARA: TABELA 'perfis' (Equipe)
 -- ===============================================================
 
-CREATE POLICY "Leitura de Câmaras da Org" ON camaras
+-- SELECT:
+-- Gestor e Controle = TUDO.
+-- Resto = Somente sua própria organização/câmara.
+CREATE POLICY "Perfis: Leitura" ON public.perfis
   FOR SELECT
-  USING (org_id = get_user_org_id());
-
-CREATE POLICY "Gestão de Câmaras (Admin/Owner)" ON camaras
-  FOR ALL
   USING (
-    org_id = get_user_org_id() AND
-    get_user_role() IN ('admin', 'owner', 'gestor', 'god')
+    get_user_role() IN ('gestor', 'controle')
+    OR
+    (camara_id = get_user_camara() OR organization_id = get_user_organization())
   );
 
--- ===============================================================
--- POLÍTICAS PARA A TABELA 'perfis'
--- ===============================================================
-
-CREATE POLICY "Leitura de Membros da Org" ON perfis
-  FOR SELECT
-  USING (org_id = get_user_org_id());
-
-CREATE POLICY "Gestão de Membros (Admin/Owner)" ON perfis
+-- UPDATE:
+-- Gestor = TUDO.
+-- Admin = Pode atualizar perfis da sua câmara.
+-- Outros = Só podem atualizar a si mesmos.
+CREATE POLICY "Perfis: Atualização" ON public.perfis
   FOR UPDATE
   USING (
-    org_id = get_user_org_id() AND
-    get_user_role() IN ('admin', 'owner', 'gestor', 'god') AND
-    id != auth.uid() -- Bloqueio contra auto-exclusão/auto-rebaixamento
+    get_user_role() = 'gestor'
+    OR (get_user_role() = 'admin' AND camara_id = get_user_camara())
+    OR id = auth.uid()
+  )
+  WITH CHECK (
+    get_user_role() = 'gestor'
+    OR (get_user_role() = 'admin' AND camara_id = get_user_camara())
+    OR id = auth.uid()
   );
+
+-- ===============================================================
+-- POLÍTICAS PARA: TABELA 'notificacoes'
+-- ===============================================================
+
+CREATE POLICY "Notificacoes: Leitura" ON public.notificacoes
+  FOR SELECT
+  USING (auth.uid() = user_id OR get_user_role() = 'gestor');
+
+CREATE POLICY "Notificacoes: Atualizacao" ON public.notificacoes
+  FOR UPDATE
+  USING (auth.uid() = user_id OR get_user_role() = 'gestor');
+
+CREATE POLICY "Notificacoes: Insercao" ON public.notificacoes
+  FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
