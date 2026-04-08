@@ -7,12 +7,13 @@ import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useModal } from '../context/ModalContext';
 import { documentService } from '../services/documentService';
 import { whatsappService } from '../services/whatsappService';
+import { calendarService } from '../services/calendarService';
 import { isValidDoc, isValidCEP } from '../utils/validators';
 import { applyMask } from '../utils/masks';
 import DocumentPreview from './DocumentPreview';
 import BatchDocumentPreview from './BatchDocumentPreview';
 import FinanceiroTab from './FinanceiroTab';
-import { Clock, Send, DollarSign } from 'lucide-react';
+import { Clock, Send, DollarSign, Calendar as CalendarIcon, ExternalLink } from 'lucide-react';
 
 export default function ProcessDetails({ processId, onBack, camaraConfig: propCamaraConfig }: { processId: string, onBack: () => void, camaraConfig?: any }) {
   const currentUser = useAuthStore((state) => state.currentUser);
@@ -627,15 +628,35 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
                 <p className="text-sm text-slate-500 italic">Nenhum andamento registrado até o momento.</p>
               ) : (
                 <div className="relative border-l-2 border-slate-100 ml-3 space-y-6">
-                  {andamentos.map((item) => (
-                    <div key={item.id} className="relative pl-6">
+                  {andamentos.map((and) => (
+                    <div key={and.id} className="relative pl-6">
                       <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-white bg-blue-500" />
                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-400 font-medium mb-1">
-                          {new Date(item.data_registro).toLocaleString('pt-BR')}
-                        </p>
-                        <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap">
-                          {item.descricao}
+                        <span className="text-[10px] font-bold text-slate-400">
+                          {new Date(and.data_registro).toLocaleDateString('pt-BR')} às {new Date(and.data_registro).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+
+                        {/* Calendar Sync Buttons */}
+                        <div className="flex items-center gap-2 mt-2">
+                           <a 
+                             href={calendarService.generateGoogleLink(`InovaSys: ${and.tipo} - Proc. ${processo.numero_processo}`, and.data_registro, and.descricao)}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             className="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-all flex items-center gap-1"
+                           >
+                             <CalendarIcon size={10} /> + Google
+                           </a>
+                           <a 
+                             href={calendarService.generateOutlookLink(`InovaSys: ${and.tipo} - Proc. ${processo.numero_processo}`, and.data_registro, and.descricao)}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             className="text-[9px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 transition-all flex items-center gap-1"
+                           >
+                             <CalendarIcon size={10} /> + Outlook
+                           </a>
+                        </div>
+                        <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap mt-2">
+                          {and.descricao}
                         </p>
                       </div>
                     </div>
