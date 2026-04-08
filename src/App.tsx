@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from './lib/supabase';
 import { authService } from './services/authService';
 import { userService } from './services/userService';
@@ -13,6 +13,7 @@ import Onboarding from './components/Onboarding';
 export default function App() {
   const devLog = (...args: unknown[]) => { if (import.meta.env.DEV) console.log(...args); };
   const [session, setSession] = useState<any>(null);
+  const sessionRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'auth' | 'public' | 'app' | 'pricing' | 'onboarding'>('auth');
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -67,11 +68,13 @@ export default function App() {
         
         // Timeout para evitar travamento infinito
         const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Timeout ao buscar sessão")), 10000)
-        );
+        let timeoutId: ReturnType<typeof setTimeout>;
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error("Timeout ao buscar sessão")), 10000);
+        });
         
         const { data: { session: initialSession }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        clearTimeout(timeoutId!);
         
         devLog("[App] getSession concluído. Erro:", error);
 
@@ -87,6 +90,7 @@ export default function App() {
           return;
         }
         setSession(initialSession);
+        sessionRef.current = initialSession;
         
         if (initialSession?.user) {
           devLog("[App] Usuário encontrado, chamando handlePostAuthFlow...");
@@ -126,11 +130,18 @@ export default function App() {
       }
 
       setSession(newSession);
+      sessionRef.current = newSession;
       
       if (event === 'SIGNED_IN') {
         if (newSession?.user) {
-          setLoading(true);
-          await handlePostAuthFlow(newSession.user.id);
+          // Só levanta a tela de carregamento se for uma autenticação 'nova' (ainda não tínhamos sessão ativa rastreada)
+          // Isso evita que o Supabase roube a tela e trave o painel num 'loading eterno' caso sincronize abas ou reemita SIGNED_IN.
+          const isContextSwitch = !sessionRef.current || sessionRef.current?.user?.id !== newSession.user.id; 
+          
+          if (isContextSwitch) {
+            setLoading(true);
+            await handlePostAuthFlow(newSession.user.id);
+          }
         }
       } else if (event === 'TOKEN_REFRESHED') {
         devLog('Token atualizado com sucesso');
