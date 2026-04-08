@@ -18,7 +18,8 @@ import {
   Files,
   Moon,
   Sun,
-  DollarSign
+  DollarSign,
+  Activity
 } from 'lucide-react';
 import Notifications from './Notifications';
 
