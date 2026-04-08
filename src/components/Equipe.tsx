@@ -23,6 +23,7 @@ import { authService } from '../services/authService';
 import { auditService } from '../services/auditService';
 import { supabase } from '../lib/supabase';
 import { useModal } from '../context/ModalContext';
+import { useAuthStore } from '../presentation/state/useAuthStore';
 import { applyMask } from '../utils/masks';
 import { isValidCPF } from '../utils/validators';
 
@@ -288,6 +289,9 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const [loading, setLoading] = useState(true);
   const { showToast, showConfirm, showPrompt, showModal } = useModal();
 
+  const currentUser = useAuthStore(state => state.currentUser);
+  const isAdmin = ['gestor', 'admin', 'GOD'].includes(currentUser?.tipo_usuario || '');
+
   const [currentUserRole, setCurrentUserRole] = useState('user');
   const [currentUserId, setCurrentUserId] = useState('');
 
@@ -316,13 +320,13 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
         const r = role?.toLowerCase();
         const mRole = m.tipo_usuario?.toLowerCase();
         
-        // Gestor Global vê tudo
-        if (r === 'gestor') return true;
+        // Gestor Global e GOD vêem tudo
+        if (r === 'gestor' || r === 'GOD') return true;
         
         // Outros vêem apenas membros da mesma câmara
         if (myCamaraId && m.camara_id !== myCamaraId) return false;
         
-        if (r === 'admin') return mRole !== 'gestor' && mRole !== 'controle';
+        if (r === 'admin') return mRole !== 'gestor' && mRole !== 'controle' && mRole !== 'GOD';
         return m.id === user?.id;
       });
 
@@ -343,7 +347,8 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
     
     // Níveis permitidos para o usuário logado atribuir
     const rolesPermitidas = [];
-    if (currentUserRole === 'gestor') {
+    if (currentUserRole === 'gestor' || currentUserRole === 'GOD') {
+      rolesPermitidas.push({ value: 'GOD', label: 'Super Admin (GOD)' });
       rolesPermitidas.push({ value: 'gestor', label: 'Gestor Global' });
       rolesPermitidas.push({ value: 'controle', label: 'Controle Global' });
       rolesPermitidas.push({ value: 'admin', label: 'Administrador (Câmara)' });

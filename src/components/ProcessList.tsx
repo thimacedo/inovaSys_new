@@ -27,7 +27,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const currentUser = useAuthStore(state => state.currentUser);
-  const isAdmin = ['gestor', 'admin'].includes(currentUser?.tipo_usuario || '');
+  const isAdmin = ['gestor', 'admin', 'GOD'].includes(currentUser?.tipo_usuario || '');
 
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 

@@ -122,6 +122,7 @@ export default function App() {
       devLog("[App] onAuthStateChange event:", event);
 
       if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        sessionRef.current = null;
         setSession(null);
         setUserProfile(null);
         setView('auth');
@@ -129,19 +130,16 @@ export default function App() {
         return;
       }
 
-      setSession(newSession);
-      sessionRef.current = newSession;
+      // IMPORTANTE: Verificar mudança de contexto ANTES de atualizar a ref
+      const isContextSwitch = !sessionRef.current || (newSession?.user && sessionRef.current?.user?.id !== newSession.user.id); 
       
-      if (event === 'SIGNED_IN') {
-        if (newSession?.user) {
-          // Só levanta a tela de carregamento se for uma autenticação 'nova' (ainda não tínhamos sessão ativa rastreada)
-          // Isso evita que o Supabase roube a tela e trave o painel num 'loading eterno' caso sincronize abas ou reemita SIGNED_IN.
-          const isContextSwitch = !sessionRef.current || sessionRef.current?.user?.id !== newSession.user.id; 
-          
-          if (isContextSwitch) {
-            setLoading(true);
-            await handlePostAuthFlow(newSession.user.id);
-          }
+      sessionRef.current = newSession;
+      setSession(newSession);
+      
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (newSession?.user && isContextSwitch) {
+          setLoading(true);
+          await handlePostAuthFlow(newSession.user.id);
         }
       } else if (event === 'TOKEN_REFRESHED') {
         devLog('Token atualizado com sucesso');

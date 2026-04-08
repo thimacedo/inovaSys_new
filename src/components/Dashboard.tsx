@@ -28,7 +28,7 @@ const Auditoria = lazy(() => import('./Auditoria'));
 const VercelManager = lazy(() => import('./VercelManager'));
 
 export default function Dashboard({ session, userProfile, onSignOut }: { session: any, userProfile: any, onSignOut: () => void }) {
-  const userTipoUsuario = userProfile?.tipo_usuario || 'arbitro';
+  const userTipoUsuario = (userProfile?.tipo_usuario || 'arbitro').toLowerCase();
   const [currentView, setCurrentView] = useState('dash');
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
   const [camaraConfig, setCamaraConfig] = useState<any>(null);
@@ -102,7 +102,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
       case 'dash':
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'novo':
-        if (['gestor', 'controle', 'admin', 'assistente'].includes(userTipoUsuario)) {
+        if (['gestor', 'controle', 'admin', 'assistente', 'god'].includes(userTipoUsuario)) {
           const camaraId = localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id;
           return <NewProcess onProcessCreated={() => setCurrentView('dash')} camaraId={camaraId} />;
         }
@@ -116,30 +116,30 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
           />
         ) : <div>Selecione um processo</div>;
       case 'equipe':
-        // Apenas Gestor e Admin acessam gestão da equipe da câmara
-        if (['gestor', 'admin'].includes(userTipoUsuario)) {
+        // Apenas Gestor, Admin e god acessam gestão da equipe da câmara
+        if (['gestor', 'admin', 'god'].includes(userTipoUsuario)) {
           const camaraId = localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id;
           return <Equipe camaraId={camaraId} />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'camara':
-        if (['gestor', 'admin'].includes(userTipoUsuario)) {
+        if (['gestor', 'admin', 'god'].includes(userTipoUsuario)) {
           const camaraId = localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id;
           return <CamaraConfig camaraId={camaraId} />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'vendas':
-        if (['gestor', 'controle'].includes(userTipoUsuario)) {
+        if (['gestor', 'controle', 'god'].includes(userTipoUsuario)) {
           return <Ecossistema />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'auditoria':
-        if (['gestor'].includes(userTipoUsuario)) {
+        if (['gestor', 'god'].includes(userTipoUsuario)) {
           return <Auditoria />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'vercel':
-        if (['gestor'].includes(userTipoUsuario)) {
+        if (['gestor', 'god'].includes(userTipoUsuario)) {
           return <VercelManager />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
@@ -150,7 +150,6 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
 
   return (
     <div id="layout-shell" className="flex flex-col min-h-screen bg-slate-50 overflow-x-hidden">
-      {/* Topbar Header (Always visible for control) */}
       <header id="topbar" className="sticky top-0 left-0 right-0 h-[72px] bg-white border-b border-slate-200 z-50 flex items-center justify-between px-4 md:px-8 shadow-sm">
         <div className="flex items-center gap-4">
           <button 
@@ -184,7 +183,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
           <Notifications onSelectProcess={handleProcessSelect} />
           <div className="hidden md:flex flex-col items-end">
             <span className="text-xs font-bold text-slate-900">{session?.user?.email}</span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-widest">{userTipoUsuario}</span>
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{userTipoUsuario}</span>
           </div>
           <button 
             onClick={onSignOut}
@@ -197,7 +196,6 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
       </header>
 
       <div className="flex flex-1 relative">
-        {/* Overlay for mobile sidebar */}
         <AnimatePresence>
           {isSidebarOpen && (
             <motion.div 
@@ -214,7 +212,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
         <div className="flex-1 px-4 py-6 space-y-2">
           <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">MENU PRINCIPAL</p>
           
-          {['gestor', 'controle', 'admin', 'assistente'].includes(userTipoUsuario) && (
+          {['gestor', 'controle', 'admin', 'assistente', 'god'].includes(userTipoUsuario) && (
             <motion.button 
               whileHover={{ x: 4 }}
               aria-label="Painel de Controle"
@@ -229,7 +227,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
             </motion.button>
           )}
           
-          {['gestor', 'admin'].includes(userTipoUsuario) && (
+          {['gestor', 'admin', 'god'].includes(userTipoUsuario) && (
             <>
               <motion.button 
                 whileHover={{ x: 4 }}
@@ -273,8 +271,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
             </>
           )}
           
-          {/* Menus Ecossistema (Controle / Gestor) */}
-          {['gestor', 'controle'].includes(userTipoUsuario) && (
+          {['gestor', 'controle', 'god'].includes(userTipoUsuario) && (
             <>
               <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">CORPORATIVO</p>
               <motion.button 
@@ -291,7 +288,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
               </motion.button>
             </>
           )}
-          {userTipoUsuario === 'gestor' && (
+          {['gestor', 'god'].includes(userTipoUsuario) && (
             <motion.button 
               whileHover={{ x: 4 }}
               aria-label="Histórico de Ações"
@@ -305,7 +302,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
               <span className="text-sm">Histórico de Ações</span>
             </motion.button>
           )}
-          {userTipoUsuario === 'gestor' && (
+          {['gestor', 'god'].includes(userTipoUsuario) && (
             <motion.button 
               whileHover={{ x: 4 }}
               aria-label="Status do Sistema"
@@ -387,6 +384,5 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
         </Suspense>
       </main>
     </div>
-  </div>
   );
 }
