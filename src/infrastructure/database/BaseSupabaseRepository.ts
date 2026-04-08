@@ -14,7 +14,7 @@ export abstract class BaseSupabaseRepository<T, InsertDTO, UpdateDTO>
   }
 
   /**
-   * Define o org_id global para ser injetado em todas as inserções.
+   * Define o organization_id global para ser injetado em todas as inserções.
    * Deve ser chamado após o login/carregamento do perfil.
    */
   public static setOrgId(id: string | null): void {
@@ -94,7 +94,7 @@ export abstract class BaseSupabaseRepository<T, InsertDTO, UpdateDTO>
   }
 
   public async create(data: InsertDTO): Promise<T> {
-    // Injeção automática de org_id se disponível e não fornecido
+    // Injeção automática de organization_id se disponível e não fornecido
     const payload = { ...data } as any;
     if (!payload.organization_id && BaseSupabaseRepository.currentOrgId) {
       payload.organization_id = BaseSupabaseRepository.currentOrgId;

@@ -16,7 +16,7 @@ export interface CamaraEntity {
   logo?: string;
   webhook_url?: string;
   webhook_token?: string;
-  org_id: string;
+  organization_id: string;
   created_at: string;
 }
 

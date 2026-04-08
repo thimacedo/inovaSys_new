@@ -16,7 +16,7 @@ export interface ProcessEntity {
   created_at: string;
   user_id: string;
   camara_id?: string;
-  org_id?: string; // Adicionado org_id conforme nova arquitetura
+  organization_id?: string;
   arbitro_id?: string;
 }
 

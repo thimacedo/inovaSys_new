@@ -15,7 +15,10 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+import { usePermissions } from '../hooks/usePermissions';
+
 export default function ProcessList({ onProcessSelect, onNewProcess }: { onProcessSelect: (id: string) => void, onNewProcess?: () => void }) {
+  const { isAtLeastAdmin, canCreateProcess } = usePermissions();
   const [processos, setProcessos] = useState<Processo[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,9 +28,6 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
   const [loading, setLoading] = useState(true);
   const { showToast, showConfirm } = useModal();
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
-
-  const currentUser = useAuthStore(state => state.currentUser);
-  const isAdmin = ['gestor', 'admin', 'GOD'].includes(currentUser?.tipo_usuario || '');
 
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
@@ -270,7 +270,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                                 >
                                   <Eye size={18} />
                                 </button>
-                                {isAdmin && (
+                                {isAtLeastAdmin && (
                                   <button
                                     className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                                     onClick={() => excluirProcesso(p.id)}
@@ -322,7 +322,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                             </p>
                           </div>
                           <div className="flex gap-2">
-                            {isAdmin && (
+                            {isAtLeastAdmin && (
                               <button
                                 className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                                 onClick={(e) => { e.stopPropagation(); excluirProcesso(p.id); }}

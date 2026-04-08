@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usePermissions } from '../hooks/usePermissions';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Users, 
@@ -288,12 +289,8 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const [equipe, setEquipe] = useState<Perfil[]>([]);
   const [loading, setLoading] = useState(true);
   const { showToast, showConfirm, showPrompt, showModal } = useModal();
-
+  const { isGod, isGestor, isAdmin: isLocalAdmin, isGlobalAdmin, canManageTeam } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
-  const isAdmin = ['gestor', 'admin', 'GOD'].includes(currentUser?.tipo_usuario || '');
-
-  const [currentUserRole, setCurrentUserRole] = useState('user');
-  const [currentUserId, setCurrentUserId] = useState('');
 
   useEffect(() => {
     carregarEquipe();
@@ -302,32 +299,26 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const carregarEquipe = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      let role = 'user';
-      let myCamaraId = propCamaraId;
-
-      if (user) {
-        setCurrentUserId(user.id);
-        const profile = await userService.getProfile(user.id);
-        role = profile.tipo_usuario;
-        setCurrentUserRole(role);
-        if (!myCamaraId) myCamaraId = profile.camara_id;
-      }
-
       const data = await userService.getAll();
+      const myCamaraId = propCamaraId || currentUser?.camara_id;
       
       const filteredData = data.filter(m => {
-        const r = role?.toLowerCase();
-        const mRole = m.tipo_usuario?.toLowerCase();
-        
-        // Gestor Global e GOD vêem tudo
-        if (r === 'gestor' || r === 'GOD') return true;
+        // Super Admin e Gestor Global vêem tudo
+        if (isGlobalAdmin) return true;
         
         // Outros vêem apenas membros da mesma câmara
         if (myCamaraId && m.camara_id !== myCamaraId) return false;
         
-        if (r === 'admin') return mRole !== 'gestor' && mRole !== 'controle' && mRole !== 'GOD';
-        return m.id === user?.id;
+        // Membros só vêem a si mesmos se não forem admins da câmara
+        if (!isLocalAdmin && m.id !== currentUser?.id) return false;
+
+        // Admins da câmara não vêem gestores globais ou super admins
+        const mRole = m.tipo_usuario?.toLowerCase();
+        if (isLocalAdmin && !isGlobalAdmin) {
+           return !['gestor', 'controle', 'god'].includes(mRole);
+        }
+
+        return true;
       });
 
       setEquipe(filteredData);
@@ -412,7 +403,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   };
 
   const handleDeleteMembro = async (id: string) => {
-    if (id === currentUserId) {
+    if (id === currentUser?.id) {
       showToast("Atenção: Você não pode remover seu próprio acesso.", 'attention');
       return;
     }
@@ -438,7 +429,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const handleAddMemberClick = () => {
     showModal(
       "Novo Membro na Equipe",
-      <AddMemberForm currentUserRole={currentUserRole} onAdded={(generatedPassword?: string) => {
+      <AddMemberForm currentUserRole={currentUser?.tipo_usuario || ''} onAdded={(generatedPassword?: string) => {
         carregarEquipe();
         const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');
         if (closeBtn instanceof HTMLElement) closeBtn.click();

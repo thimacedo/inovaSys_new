@@ -4,7 +4,7 @@ import { BaseSupabaseRepository } from '../BaseSupabaseRepository';
 export interface UserEntity {
   id: string;
   email: string;
-  org_id?: string;
+  organization_id?: string;
   created_at: string;
 }
 
