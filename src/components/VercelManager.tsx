@@ -16,7 +16,7 @@ interface Deployment {
   };
 }
 
-export function VercelManager() {
+export default function VercelManager() {
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeploying, setIsDeploying] = useState(false);
