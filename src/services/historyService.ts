@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { auditService } from './auditService';
 
 export interface Andamento {
   id: string;
@@ -35,6 +36,13 @@ export const historyService = {
         .single();
 
       if (error) throw error;
+      
+      await auditService.log('CRIAR_ANDAMENTO', { 
+        processo_id: payload.processo_id, 
+        tipo: payload.tipo,
+        descricao: payload.descricao 
+      });
+
       return data as Andamento;
     } catch (error: any) {
       console.error('[HistoryService:ADD] Erro ao inserir andamento:', error.message);

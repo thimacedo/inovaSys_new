@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { auditService } from './auditService';
 
 export interface Processo {
   id: string;
@@ -112,6 +113,7 @@ export const processService = {
         }
       }
       
+      await auditService.log('CRIAR_PROCESSO', { processo_id: data.id, numero_processo: data.numero_processo });
       return data;
     } catch (error: any) {
       this.logError('CREATE', error);
@@ -161,6 +163,7 @@ export const processService = {
         }
       }
       
+      await auditService.log('ATUALIZAR_PROCESSO', { processo_id: data.id, alteracoes: payload });
       return data as Processo;
     } catch (error: any) {
       this.logError('UPDATE', error);
@@ -184,6 +187,7 @@ export const processService = {
     try {
       const { error } = await supabase.from('processos').delete().eq('id', id);
       if (error) throw error;
+      await auditService.log('DELETAR_PROCESSO', { processo_id: id });
       return true;
     } catch (error: any) {
       this.logError('DELETE', error);
