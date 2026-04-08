@@ -61,10 +61,36 @@ export default function Auditoria() {
 
   const groupLogsByDate = (logs: AuditLog[]) => {
     const groups: { [key: string]: AuditLog[] } = {};
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfToday.getDate() - startOfToday.getDay());
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
     logs.forEach(log => {
-      const date = new Date(log.data_hora).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(log);
+      const logDate = new Date(log.data_hora);
+      let groupKey = '';
+
+      if (logDate >= startOfToday) {
+        groupKey = 'Hoje';
+      } else if (logDate >= startOfYesterday) {
+        groupKey = 'Ontem';
+      } else if (logDate >= startOfWeek) {
+        groupKey = 'Esta Semana';
+      } else if (logDate >= startOfMonth) {
+        groupKey = 'Este Mês';
+      } else {
+        groupKey = logDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        // Capitalize month
+        groupKey = groupKey.charAt(0).toUpperCase() + groupKey.slice(1);
+      }
+
+      if (!groups[groupKey]) groups[groupKey] = [];
+      groups[groupKey].push(log);
     });
     return groups;
   };
@@ -149,8 +175,13 @@ export default function Auditoria() {
                 <div className="flex items-center gap-4 mb-8">
                    <div className="w-20 h-20 bg-white border-2 border-slate-100 shadow-sm rounded-full flex flex-col items-center justify-center z-10 sticky top-4">
                       <Calendar size={14} className="text-purple-600 mb-1" />
-                      <span className="text-[10px] font-black text-slate-400 uppercase text-center leading-tight">
-                        {date.split(' de ')[0]}<br/>{date.split(' de ')[1].substring(0, 3)}
+                      <span className="text-[10px] font-black text-slate-400 uppercase text-center leading-tight px-2">
+                        {date.includes(' ') ? (
+                          <>
+                            {date.split(' ')[0]}<br/>
+                            <span className="text-[8px] text-slate-300">{date.split(' ').slice(1).join(' ')}</span>
+                          </>
+                        ) : date}
                       </span>
                    </div>
                    <div className="h-px bg-slate-100 flex-1"></div>
