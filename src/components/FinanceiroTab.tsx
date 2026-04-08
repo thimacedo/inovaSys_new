@@ -35,7 +35,13 @@ export default function FinanceiroTab({ processoId, organizationId }: { processo
       if (!desc) return;
       showPrompt("Valor", "Valor (R$):", "0,00", async (valStr) => {
           if (!valStr) return;
-          const valor = parseFloat(valStr.replace(',', '.'));
+          const valor = parseFloat(valStr.replace(/\./g, '').replace(',', '.'));
+          
+          if (isNaN(valor)) {
+            showToast('Valor inválido. Use o formato 0.000,00', 'attention');
+            return;
+          }
+
           try {
             await financeiroService.create({
               processo_id: processoId,

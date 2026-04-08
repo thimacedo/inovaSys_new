@@ -303,6 +303,18 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
                   <Files size={18} className={currentView === 'process_list' ? 'text-blue-500' : ''} />
                   <span className="text-sm">Processos</span>
                 </motion.button>
+
+                <motion.button 
+                  whileHover={{ x: 4 }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'vendas' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                  onClick={() => {
+                    setCurrentView('vendas');
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <Globe size={18} className={currentView === 'vendas' ? 'text-blue-500' : ''} />
+                  <span className="text-sm">Rede de Câmaras</span>
+                </motion.button>
               </>
             )}
 
