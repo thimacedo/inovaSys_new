@@ -23,3 +23,20 @@ Histórico de atualizações e melhorias técnicas implementadas.
 
 ---
 *Log gerado automaticamente pelo assistente de codificação.*
+
+## 🗺️ Planejamento de Próximas Fases (Roadmap)
+
+### Fase 1: Inteligência e Automação de Documentos
+- [ ] **Templates Dinâmicos**: Implementar edição de templates de documentos via interface (CKEditor/TinyMCE).
+- [ ] **Assinatura Digital**: Integração com APIs de assinatura (DocuSign/Clicksign) para finalização de termos.
+- [ ] **Geração em Lote**: Permitir gerar todos os documentos de um processo (Capa, Notificação, Termos) em um único clique.
+
+### Fase 2: Comunicação e Notificações
+- [ ] **WhatsApp Integration**: Disparo automático de notificações de andamento via WhatsApp para as partes.
+- [ ] **E-mail Service 2.0**: Templates de e-mail personalizados com a logo da câmara em todas as comunicações.
+- [ ] **Central de Ajuda**: Wiki baseada em IA para tirar dúvidas de árbitros sobre o sistema.
+
+### Fase 3: Expansão e Enterprise
+- [ ] **Multi-Chamber Sync**: Dashboard para gestores de rede visualizarem estatísticas de múltiplas câmaras simultaneamente.
+- [ ] **Financeiro**: Módulo de controle de custas e honorários arbitrais com geração de boletos/PIX.
+- [ ] **App Mobile**: Versão PWA para acesso rápido de árbitros via celular.
