@@ -228,158 +228,125 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
 
         <nav className={`w-64 bg-white border-r border-slate-200 h-[calc(100vh-72px)] flex flex-col fixed lg:sticky left-0 top-[72px] z-40 transition-all duration-300 overflow-y-auto ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full lg:w-0 opacity-0'}`}>
           <div className="flex-1 px-4 py-6 space-y-2">
-            <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">MENU PRINCIPAL</p>
-            
+            {/* GERAL */}
+            <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">PRINCIPAL</p>
             <motion.button 
               whileHover={{ x: 4 }}
               className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'dash' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-              onClick={() => {
-                setCurrentView('dash');
-                setIsSidebarOpen(false);
-              }}
+              onClick={() => { setCurrentView('dash'); setIsSidebarOpen(false); }}
             >
               <LayoutDashboard size={18} className={currentView === 'dash' ? 'text-red-500' : ''} />
-              <span className="text-sm">Painel de Controle</span>
+              <span className="text-sm">Início</span>
+            </motion.button>
+
+            {/* OPERACIONAL */}
+            <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">OPERACIONAL</p>
+            <motion.button 
+              whileHover={{ x: 4 }}
+              className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'process_list' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+              onClick={() => { setCurrentView('process_list'); setIsSidebarOpen(false); }}
+            >
+              <Files size={18} className={currentView === 'process_list' ? 'text-blue-500' : ''} />
+              <span className="text-sm">Meus Processos</span>
             </motion.button>
             
             {canCreateProcess && (
               <motion.button 
                 whileHover={{ x: 4 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'novo' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                onClick={() => {
-                  setCurrentView('novo');
-                  setIsSidebarOpen(false);
-                }}
+                onClick={() => { setCurrentView('novo'); setIsSidebarOpen(false); }}
               >
-                <PlusCircle size={18} className={currentView === 'novo' ? 'text-red-500' : ''} />
-                <span className="text-sm">Novo Processo</span>
+                <PlusCircle size={18} className={currentView === 'novo' ? 'text-blue-500' : ''} />
+                <span className="text-sm">Iniciar Arbitragem</span>
               </motion.button>
             )}
-            
-            {canManageTeam && (
-              <>
-                <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">ADMINISTRAÇÃO</p>
-                
-                <motion.button 
-                  whileHover={{ x: 4 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'equipe' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                  onClick={() => {
-                    setCurrentView('equipe');
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <Users size={18} className={currentView === 'equipe' ? 'text-red-500' : ''} />
-                  <span className="text-sm">Equipe da Câmara</span>
-                </motion.button>
 
-                <motion.button 
-                  whileHover={{ x: 4 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'camara' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                  onClick={() => {
-                    setCurrentView('camara');
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <Settings size={18} className={currentView === 'camara' ? 'text-red-500' : ''} />
-                  <span className="text-sm">Configurações</span>
-                </motion.button>
+            {/* GESTÃO E BI */}
+            {(isAtLeastAdmin || canManageTeam) && (
+              <>
+                <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">GESTÃO & NEGÓCIOS</p>
+                {isAtLeastAdmin && (
+                  <motion.button 
+                    whileHover={{ x: 4 }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'fin_bi' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                    onClick={() => { setCurrentView('fin_bi'); setIsSidebarOpen(false); }}
+                  >
+                    <DollarSign size={18} className={currentView === 'fin_bi' ? 'text-emerald-500' : ''} />
+                    <span className="text-sm">BI Financeiro</span>
+                  </motion.button>
+                )}
+                
+                {canManageTeam && (
+                  <motion.button 
+                    whileHover={{ x: 4 }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'equipe' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                    onClick={() => { setCurrentView('equipe'); setIsSidebarOpen(false); }}
+                  >
+                    <Users size={18} className={currentView === 'equipe' ? 'text-green-500' : ''} />
+                    <span className="text-sm">Minha Equipe</span>
+                  </motion.button>
+                )}
+
+                {isGlobalAdmin && (
+                  <motion.button 
+                    whileHover={{ x: 4 }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'templates' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                    onClick={() => { setCurrentView('templates'); setIsSidebarOpen(false); }}
+                  >
+                    <FileText size={18} className={currentView === 'templates' ? 'text-purple-500' : ''} />
+                    <span className="text-sm">Modelos de Docs</span>
+                  </motion.button>
+                )}
               </>
             )}
-            
+
+            {/* CORPORATIVO (GOD ONLY) */}
             {isGlobalAdmin && (
               <>
-                <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">CORPORATIVO</p>
-                <motion.button 
-                  whileHover={{ x: 4 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'dash' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                  onClick={() => {
-                    setCurrentView('dash');
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <LayoutDashboard size={18} className={currentView === 'dash' ? 'text-blue-500' : ''} />
-                  <span className="text-sm">Início</span>
-                </motion.button>
-
-                <motion.button 
-                  whileHover={{ x: 4 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'process_list' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                  onClick={() => {
-                    setCurrentView('process_list');
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <Files size={18} className={currentView === 'process_list' ? 'text-blue-500' : ''} />
-                  <span className="text-sm">Processos</span>
-                </motion.button>
-
+                <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">REDE INOVASYS</p>
                 <motion.button 
                   whileHover={{ x: 4 }}
                   className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'vendas' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                  onClick={() => {
-                    setCurrentView('vendas');
-                    setIsSidebarOpen(false);
-                  }}
+                  onClick={() => { setCurrentView('vendas'); setIsSidebarOpen(false); }}
                 >
-                  <Globe size={18} className={currentView === 'vendas' ? 'text-blue-500' : ''} />
-                  <span className="text-sm">Rede de Câmaras</span>
+                  <Globe size={18} className={currentView === 'vendas' ? 'text-orange-500' : ''} />
+                  <span className="text-sm">Plataforma & Câmaras</span>
                 </motion.button>
               </>
             )}
 
-            {(canSeeAudit || isGlobalAdmin || isAtLeastAdmin) && (
+            {/* SISTEMA */}
+            {(canSeeAudit || isGlobalAdmin || canManageTeam) && (
               <>
-                <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">SISTEMA</p>
+                <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">SISTEMA</p>
+                {canManageTeam && (
+                  <motion.button 
+                    whileHover={{ x: 4 }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'camara' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                    onClick={() => { setCurrentView('camara'); setIsSidebarOpen(false); }}
+                  >
+                    <Settings size={18} className={currentView === 'camara' ? 'text-slate-500' : ''} />
+                    <span className="text-sm">Configurações</span>
+                  </motion.button>
+                )}
                 {canSeeAudit && (
                   <motion.button 
                     whileHover={{ x: 4 }}
                     className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'auditoria' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                    onClick={() => {
-                      setCurrentView('auditoria');
-                      setIsSidebarOpen(false);
-                    }}
+                    onClick={() => { setCurrentView('auditoria'); setIsSidebarOpen(false); }}
                   >
-                    <Activity size={18} className={currentView === 'auditoria' ? 'text-red-500' : ''} />
-                    <span className="text-sm">Histórico de Ações</span>
+                    <Activity size={18} className={currentView === 'auditoria' ? 'text-slate-500' : ''} />
+                    <span className="text-sm">Trilha de Auditoria</span>
                   </motion.button>
                 )}
                 {isGlobalAdmin && (
                   <motion.button 
                     whileHover={{ x: 4 }}
                     className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'vercel' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                    onClick={() => {
-                      setCurrentView('vercel');
-                      setIsSidebarOpen(false);
-                    }}
+                    onClick={() => { setCurrentView('vercel'); setIsSidebarOpen(false); }}
                   >
-                    <Server size={18} className={currentView === 'vercel' ? 'text-red-500' : ''} />
-                    <span className="text-sm">Status do Sistema</span>
-                  </motion.button>
-                )}
-                {isGlobalAdmin && (
-                  <motion.button 
-                    whileHover={{ x: 4 }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'templates' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                    onClick={() => {
-                      setCurrentView('templates');
-                      setIsSidebarOpen(false);
-                    }}
-                  >
-                    <FileText size={18} className={currentView === 'templates' ? 'text-red-500' : ''} />
-                    <span className="text-sm">Modelos de Documentos</span>
-                  </motion.button>
-                )}
-                {isAtLeastAdmin && (
-                  <motion.button 
-                    whileHover={{ x: 4 }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'fin_bi' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                    onClick={() => {
-                      setCurrentView('fin_bi');
-                      setIsSidebarOpen(false);
-                    }}
-                  >
-                    <DollarSign size={18} className={currentView === 'fin_bi' ? 'text-emerald-500' : ''} />
-                    <span className="text-sm">BI Financeiro</span>
+                    <Server size={18} className={currentView === 'vercel' ? 'text-slate-500' : ''} />
+                    <span className="text-sm">Console Cloud (Vercel)</span>
                   </motion.button>
                 )}
               </>
