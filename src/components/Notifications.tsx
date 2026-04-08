@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bell, Check, Info } from 'lucide-react';
+import { Bell, Check, Info, Smartphone } from 'lucide-react';
+import { pushService } from '../services/pushService';
 import { notificationService, Notificacao } from '../services/notificationService';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 
@@ -8,13 +9,15 @@ export default function Notifications({ onSelectProcess }: { onSelectProcess: (p
   const [open, setOpen] = useState(false);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showPwaPrompt, setShowPwaPrompt] = useState(false);
   const currentUser = useAuthStore(state => state.currentUser);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (currentUser?.id) {
       carregarNotificacoes();
-      // Polling básico (pode ser substituído por Supabase Realtime depois)
+      setShowPwaPrompt(Notification.permission === 'default');
+      // Polling básico
       const interval = setInterval(carregarNotificacoes, 30000);
       return () => clearInterval(interval);
     }
@@ -57,6 +60,14 @@ export default function Notifications({ onSelectProcess }: { onSelectProcess: (p
     setOpen(false);
     if (notificacao.processo_id) {
       onSelectProcess(notificacao.processo_id);
+    }
+  };
+
+  const handleEnablePush = async () => {
+    const granted = await pushService.requestPermission();
+    if (granted) {
+      setShowPwaPrompt(false);
+      pushService.sendLocalTest('InovaSys Ativado!', 'Você agora receberá alertas processuais em tempo real.');
     }
   };
 
@@ -151,6 +162,35 @@ export default function Notifications({ onSelectProcess }: { onSelectProcess: (p
                 </div>
               )}
             </div>
+
+            {/* PWA Prompt */}
+            {showPwaPrompt && (
+              <div className="p-4 bg-blue-600">
+                <div className="flex gap-3 items-start">
+                   <div className="p-2 bg-white/20 rounded-lg text-white">
+                      <Smartphone size={16} />
+                   </div>
+                   <div className="flex-1">
+                      <p className="text-xs font-bold text-white mb-1">Alertas em tempo real</p>
+                      <p className="text-[10px] text-blue-100 leading-tight mb-3">Deseja receber notificações no seu celular ou desktop mesmo com o InovaSys fechado?</p>
+                      <div className="flex gap-2">
+                         <button 
+                           onClick={handleEnablePush}
+                           className="bg-white text-blue-600 px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-blue-50 transition-colors"
+                         >
+                           Habilitar Agora
+                         </button>
+                         <button 
+                           onClick={() => setShowPwaPrompt(false)}
+                           className="text-white/60 px-3 py-1.5 rounded-lg text-[10px] font-bold hover:text-white transition-colors"
+                         >
+                           Depois
+                         </button>
+                      </div>
+                   </div>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
