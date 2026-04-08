@@ -142,6 +142,16 @@ export default function VercelManager() {
           <div>
             <h3 className="font-bold">Erro na comunicação com a Vercel</h3>
             <p className="text-sm mt-1">{error}</p>
+            {error.includes("missing in environment variables") && (
+              <div className="mt-3 p-3 bg-white/50 rounded-lg text-xs space-y-2">
+                <p className="font-bold uppercase tracking-wider text-[10px]">Ação Necessária:</p>
+                <p>As chaves da Vercel precisam ser configuradas no <strong>Dashboard da Vercel</strong> (Settings &gt; Environment Variables) para funcionarem em produção.</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li>VERCEL_API_KEY</li>
+                  <li>VERCEL_PROJECT_ID</li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       )}

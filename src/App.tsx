@@ -227,13 +227,13 @@ export default function App() {
     try {
       localStorage.removeItem('impersonated_camara_id');
       logout();
-      await authService.signOut();
-      setSession(null);
-      setUserProfile(null);
-      setView('auth');
+      await authService.signOut().catch(err => console.warn("Aviso: Falha ao invalidar sessão no servidor:", err));
     } catch (e) {
       console.error("Erro ao deslogar:", e);
     } finally {
+      setSession(null);
+      setUserProfile(null);
+      setView('auth');
       setLoading(false);
     }
   };
