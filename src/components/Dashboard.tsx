@@ -13,10 +13,12 @@ import {
   UserPlus, 
   LogOut,
   Building2,
-  Activity,
   Server,
   FileText,
-  Files
+  Files,
+  Moon,
+  Sun,
+  DollarSign
 } from 'lucide-react';
 import Notifications from './Notifications';
 
@@ -32,9 +34,10 @@ const Auditoria = lazy(() => import('./Auditoria'));
 const VercelManager = lazy(() => import('./VercelManager'));
 const TemplateManager = lazy(() => import('./TemplateManager'));
 const DashboardHome = lazy(() => import('./DashboardHome'));
+const FinanceiroBI = lazy(() => import('./FinanceiroBI'));
 
-export default function Dashboard({ session, userProfile, onSignOut }: { session: any, userProfile: any, onSignOut: () => void }) {
-  const { isGlobalAdmin, canManageTeam, canCreateProcess, canSeeAudit, isGod } = usePermissions();
+export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: any, userProfile: any, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
+  const { isGlobalAdmin, canManageTeam, canCreateProcess, canSeeAudit, isGod, isAtLeastAdmin } = usePermissions();
   const [currentView, setCurrentView] = useState('dash');
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
   const [camaraConfig, setCamaraConfig] = useState<any>(null);
@@ -153,7 +156,12 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
         if (isGlobalAdmin) {
           return <TemplateManager />;
         }
-        return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
+        return <DashboardHome />;
+      case 'fin_bi':
+        if (isAtLeastAdmin) {
+          return <FinanceiroBI />;
+        }
+        return <DashboardHome />;
       default:
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
     }
@@ -318,7 +326,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
               </>
             )}
 
-            {(canSeeAudit || isGlobalAdmin) && (
+            {(canSeeAudit || isGlobalAdmin || isAtLeastAdmin) && (
               <>
                 <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">SISTEMA</p>
                 {canSeeAudit && (
@@ -358,6 +366,19 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
                   >
                     <FileText size={18} className={currentView === 'templates' ? 'text-red-500' : ''} />
                     <span className="text-sm">Modelos de Documentos</span>
+                  </motion.button>
+                )}
+                {isAtLeastAdmin && (
+                  <motion.button 
+                    whileHover={{ x: 4 }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'fin_bi' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                    onClick={() => {
+                      setCurrentView('fin_bi');
+                      setIsSidebarOpen(false);
+                    }}
+                  >
+                    <DollarSign size={18} className={currentView === 'fin_bi' ? 'text-emerald-500' : ''} />
+                    <span className="text-sm">BI Financeiro</span>
                   </motion.button>
                 )}
               </>
@@ -427,6 +448,17 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
               {renderView()}
             </motion.div>
           </Suspense>
+          {/* Toggle Theme & Notifications */}
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={onToggleTheme}
+              className="p-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+              title="Alternar Tema"
+            >
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+            <Notifications onSelectProcess={handleProcessSelect} />
+          </div>
         </main>
       </div>
     </div>

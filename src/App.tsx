@@ -20,6 +20,14 @@ export default function App() {
   const [configError, setConfigError] = useState<string | null>(null);
   const setCurrentUser = useAuthStore(state => state.setCurrentUser);
   const logout = useAuthStore(state => state.logout);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     const checkConfig = () => {
@@ -290,5 +298,11 @@ export default function App() {
   );
   if (!session || view === 'auth') return <Auth onPublicView={() => setView('public')} />;
 
-  return <Dashboard session={session} userProfile={userProfile} onSignOut={handleSignOut} />;
+  return <Dashboard 
+    session={session} 
+    userProfile={userProfile} 
+    onSignOut={handleSignOut} 
+    theme={theme}
+    onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+  />;
 }
