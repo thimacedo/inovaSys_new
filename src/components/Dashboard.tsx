@@ -258,7 +258,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
                 onClick={() => { setCurrentView('novo'); setIsSidebarOpen(false); }}
               >
                 <PlusCircle size={18} className={currentView === 'novo' ? 'text-blue-500' : ''} />
-                <span className="text-sm">Iniciar Arbitragem</span>
+                <span className="text-sm">Novo Processo</span>
               </motion.button>
             )}
 
