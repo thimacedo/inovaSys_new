@@ -26,10 +26,10 @@ import { useModal } from '../context/ModalContext';
 import { applyMask } from '../utils/masks';
 import { isValidCPF } from '../utils/validators';
 
-function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: (password?: string) => void, camaraId?: string }) {
+function AddMemberForm({ onAdded, camaraId: propCamaraId, currentUserRole }: { onAdded: (password?: string) => void, camaraId?: string, currentUserRole: string }) {
   const [email, setEmail] = useState('');
   const [nome, setNome] = useState('');
-  const [tipoUsuario, setTipoUsuario] = useState('user');
+  const [tipoUsuario, setTipoUsuario] = useState('assistente');
   const [cpf, setCpf] = useState('');
   const [endereco, setEndereco] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,7 +57,7 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: (password
 
       const targetCamaraId = propCamaraId || myProfile?.camara_id;
 
-      if (myProfile?.tipo_usuario !== 'god' && targetCamaraId) {
+      if (myProfile?.tipo_usuario !== 'gestor' && targetCamaraId) {
         const { data: camara } = await supabase
           .from('camaras')
           .select('*, planos(limite_usuarios)')
@@ -213,9 +213,15 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId }: { onAdded: (password
               onChange={(e) => setTipoUsuario(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none"
             >
-              <option value="user">Usuário (Vê e edita processos)</option>
-              <option value="arbitro">Árbitro (Vê apenas seus processos)</option>
-              <option value="admin">Administrador (Acesso total)</option>
+              <option value="assistente">Assistente (Protocola e Vê Processos)</option>
+              <option value="arbitro">Árbitro (Apenas Seus Processos)</option>
+              <option value="admin">Administrador (Gestor da Câmara)</option>
+              {currentUserRole === 'gestor' && (
+                <>
+                  <option value="gestor">Gestor Global (Acesso Total)</option>
+                  <option value="controle">Controle Global (Criação e Leitura)</option>
+                </>
+              )}
             </select>
           </div>
         </div>
@@ -310,13 +316,13 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
         const r = role?.toLowerCase();
         const mRole = m.tipo_usuario?.toLowerCase();
         
-        // God vê tudo
-        if (r === 'god') return true;
+        // Gestor Global vê tudo
+        if (r === 'gestor') return true;
         
         // Outros vêem apenas membros da mesma câmara
         if (myCamaraId && m.camara_id !== myCamaraId) return false;
         
-        if (r === 'admin') return mRole !== 'god';
+        if (r === 'admin') return mRole !== 'gestor' && mRole !== 'controle';
         return m.id === user?.id;
       });
 
@@ -337,14 +343,15 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
     
     // Níveis permitidos para o usuário logado atribuir
     const rolesPermitidas = [];
-    if (currentUserRole === 'god') {
-      rolesPermitidas.push({ value: 'god', label: 'Super Admin (God)' });
-      rolesPermitidas.push({ value: 'admin', label: 'Administrador' });
-      rolesPermitidas.push({ value: 'user', label: 'Usuário Padrão' });
+    if (currentUserRole === 'gestor') {
+      rolesPermitidas.push({ value: 'gestor', label: 'Gestor Global' });
+      rolesPermitidas.push({ value: 'controle', label: 'Controle Global' });
+      rolesPermitidas.push({ value: 'admin', label: 'Administrador (Câmara)' });
+      rolesPermitidas.push({ value: 'assistente', label: 'Assistente' });
       rolesPermitidas.push({ value: 'arbitro', label: 'Árbitro' });
     } else if (currentUserRole === 'admin') {
-      rolesPermitidas.push({ value: 'admin', label: 'Administrador' });
-      rolesPermitidas.push({ value: 'user', label: 'Usuário Padrão' });
+      rolesPermitidas.push({ value: 'admin', label: 'Administrador (Câmara)' });
+      rolesPermitidas.push({ value: 'assistente', label: 'Assistente' });
       rolesPermitidas.push({ value: 'arbitro', label: 'Árbitro' });
     }
 
@@ -426,7 +433,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const handleAddMemberClick = () => {
     showModal(
       "Novo Membro na Equipe",
-      <AddMemberForm onAdded={(generatedPassword?: string) => {
+      <AddMemberForm currentUserRole={currentUserRole} onAdded={(generatedPassword?: string) => {
         carregarEquipe();
         const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');
         if (closeBtn instanceof HTMLElement) closeBtn.click();
@@ -556,17 +563,21 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
                     </td>
                     <td className="px-6 py-5">
                       <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${
-                        e.tipo_usuario?.toLowerCase() === 'god' 
+                        e.tipo_usuario?.toLowerCase() === 'gestor' 
                           ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                          : e.tipo_usuario?.toLowerCase() === 'controle'
+                          ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
                           : e.tipo_usuario?.toLowerCase() === 'admin'
                           ? 'bg-purple-50 text-purple-700 border-purple-100'
                           : e.tipo_usuario?.toLowerCase() === 'arbitro'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
                           : 'bg-blue-50 text-blue-700 border-blue-100'
                       }`}>
-                        {e.tipo_usuario?.toLowerCase() === 'god' ? 'Super Admin' : 
-                         e.tipo_usuario?.toLowerCase() === 'admin' ? 'Administrador' : 
-                         e.tipo_usuario?.toLowerCase() === 'arbitro' ? 'Árbitro' : 'Usuário'}
+                        {e.tipo_usuario?.toLowerCase() === 'gestor' ? 'Gestor Global' : 
+                         e.tipo_usuario?.toLowerCase() === 'controle' ? 'Controle' :
+                         e.tipo_usuario?.toLowerCase() === 'admin' ? 'Admin' : 
+                         e.tipo_usuario?.toLowerCase() === 'arbitro' ? 'Árbitro' : 
+                         e.tipo_usuario?.toLowerCase() === 'assistente' ? 'Assistente' : 'Usuário'}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right">

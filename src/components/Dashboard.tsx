@@ -101,8 +101,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
       case 'dash':
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'novo':
-        // Apenas Gestor, Admin e God podem criar processos
-        if (['god', 'admin', 'gestor'].includes(userTipoUsuario)) {
+        if (['gestor', 'controle', 'admin', 'assistente'].includes(userTipoUsuario)) {
           const camaraId = localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id;
           return <NewProcess onProcessCreated={() => setCurrentView('dash')} camaraId={camaraId} />;
         }
@@ -116,30 +115,30 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
           />
         ) : <div>Selecione um processo</div>;
       case 'equipe':
-        // Apenas Gestor, Admin e God acessam gestão da câmara
-        if (['god', 'admin', 'gestor'].includes(userTipoUsuario)) {
+        // Apenas Gestor e Admin acessam gestão da equipe da câmara
+        if (['gestor', 'admin'].includes(userTipoUsuario)) {
           const camaraId = localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id;
           return <Equipe camaraId={camaraId} />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'camara':
-        if (['god', 'admin', 'gestor'].includes(userTipoUsuario)) {
+        if (['gestor', 'admin'].includes(userTipoUsuario)) {
           const camaraId = localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id;
           return <CamaraConfig camaraId={camaraId} />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'vendas':
-        if (['god', 'vendas'].includes(userTipoUsuario)) {
+        if (['gestor', 'controle'].includes(userTipoUsuario)) {
           return <Ecossistema />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'auditoria':
-        if (['god'].includes(userTipoUsuario)) {
+        if (['gestor'].includes(userTipoUsuario)) {
           return <Auditoria />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'vercel':
-        if (['god', 'admin'].includes(userTipoUsuario)) {
+        if (['gestor'].includes(userTipoUsuario)) {
           return <VercelManager />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
@@ -213,7 +212,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
         <div className="flex-1 px-4 py-6 space-y-2">
           <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">MENU PRINCIPAL</p>
           
-          {['god', 'admin', 'gestor', 'arbitro'].includes(userTipoUsuario) && (
+          {['gestor', 'controle', 'admin', 'assistente'].includes(userTipoUsuario) && (
             <motion.button 
               whileHover={{ x: 4 }}
               aria-label="Painel de Controle"
@@ -228,7 +227,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
             </motion.button>
           )}
           
-          {['god', 'admin', 'gestor'].includes(userTipoUsuario) && (
+          {['gestor', 'admin'].includes(userTipoUsuario) && (
             <>
               <motion.button 
                 whileHover={{ x: 4 }}
@@ -272,8 +271,8 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
             </>
           )}
           
-          {/* Menus Ecossistema (Vendas / GOD) */}
-          {['god', 'vendas'].includes(userTipoUsuario) && (
+          {/* Menus Ecossistema (Controle / Gestor) */}
+          {['gestor', 'controle'].includes(userTipoUsuario) && (
             <>
               <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">CORPORATIVO</p>
               <motion.button 
@@ -290,7 +289,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
               </motion.button>
             </>
           )}
-          {userTipoUsuario === 'god' && (
+          {userTipoUsuario === 'gestor' && (
             <motion.button 
               whileHover={{ x: 4 }}
               aria-label="Histórico de Ações"
@@ -304,7 +303,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
               <span className="text-sm">Histórico de Ações</span>
             </motion.button>
           )}
-          {['god', 'admin'].includes(userTipoUsuario) && (
+          {userTipoUsuario === 'gestor' && (
             <motion.button 
               whileHover={{ x: 4 }}
               aria-label="Status do Sistema"

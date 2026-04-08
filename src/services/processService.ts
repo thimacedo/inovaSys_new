@@ -90,6 +90,28 @@ export const processService = {
     try {
       const { data, error } = await supabase.from('processos').insert([dbPayload]).select('id, numero_processo').single();
       if (error) throw error;
+      
+      // Notificar Admins e Gestores da câmara
+      if (dbPayload.camara_id) {
+        const { data: admins } = await supabase
+          .from('perfis')
+          .select('id')
+          .eq('camara_id', dbPayload.camara_id)
+          .in('tipo_usuario', ['admin', 'gestor']);
+          
+        if (admins && admins.length > 0) {
+          const notifications = admins.map(admin => ({
+            user_id: admin.id,
+            tipo: 'novo_processo',
+            titulo: 'Novo Processo Protocolado',
+            mensagem: `O processo nr. ${data.numero_processo} aguarda nomeação de árbitro.`,
+            processo_id: data.id,
+            lida: false
+          }));
+          await supabase.from('notificacoes').insert(notifications);
+        }
+      }
+      
       return data;
     } catch (error: any) {
       this.logError('CREATE', error);
@@ -99,8 +121,23 @@ export const processService = {
 
   async update(id: string, payload: Partial<Processo>) {
     try {
+      // Pega o estado anterior para checar se houve mudança real de árbitro (opcional, aqui mandaremos toda vez q repassar no payload)
+      // Para evitar flood, podemos só mandar se vier no payload explícito
       const { data, error } = await supabase.from('processos').update(payload).eq('id', id).select(SELECT_FIELDS).single();
       if (error) throw error;
+      
+      // Notifica o árbitro recém-nomeado
+      if (payload.arbitro_id) {
+        await supabase.from('notificacoes').insert([{
+           user_id: payload.arbitro_id,
+           tipo: 'nomeacao',
+           titulo: 'Nomeação de Processo',
+           mensagem: `Você foi nomeado ou renomeado para gerenciar o processo nr. ${(data as Processo).numero_processo}.`,
+           processo_id: data.id,
+           lida: false
+        }]);
+      }
+      
       return data as Processo;
     } catch (error: any) {
       this.logError('UPDATE', error);
