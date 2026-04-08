@@ -96,8 +96,8 @@ export abstract class BaseSupabaseRepository<T, InsertDTO, UpdateDTO>
   public async create(data: InsertDTO): Promise<T> {
     // Injeção automática de org_id se disponível e não fornecido
     const payload = { ...data } as any;
-    if (!payload.org_id && BaseSupabaseRepository.currentOrgId) {
-      payload.org_id = BaseSupabaseRepository.currentOrgId;
+    if (!payload.organization_id && BaseSupabaseRepository.currentOrgId) {
+      payload.organization_id = BaseSupabaseRepository.currentOrgId;
     }
 
     const { data: result, error } = await this.client

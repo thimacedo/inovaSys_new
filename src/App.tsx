@@ -187,9 +187,6 @@ export default function App() {
 
       if (profile) {
         setCurrentUser({
-          id: profile.id,
-          email: profile.email,
-          organization_id: profile.org_id,
           ...profile
         });
       }

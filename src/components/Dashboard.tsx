@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import Notifications from './Notifications';
 
+import { usePermissions } from '../hooks/usePermissions';
+
 const ProcessList = lazy(() => import('./ProcessList'));
 const NewProcess = lazy(() => import('./NewProcess'));
 const Equipe = lazy(() => import('./Equipe'));
@@ -28,15 +30,15 @@ const Auditoria = lazy(() => import('./Auditoria'));
 const VercelManager = lazy(() => import('./VercelManager'));
 
 export default function Dashboard({ session, userProfile, onSignOut }: { session: any, userProfile: any, onSignOut: () => void }) {
-  const userTipoUsuario = (userProfile?.tipo_usuario || 'arbitro').toLowerCase();
+  const { isGlobalAdmin, canManageTeam, canCreateProcess, canSeeAudit, isGod } = usePermissions();
   const [currentView, setCurrentView] = useState('dash');
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
   const [camaraConfig, setCamaraConfig] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    if (userProfile?.org_id) {
-      BaseSupabaseRepository.setOrgId(userProfile.org_id);
+    if (userProfile?.organization_id) {
+      BaseSupabaseRepository.setOrgId(userProfile.organization_id);
     }
   }, [userProfile]);
 
@@ -101,7 +103,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
       case 'dash':
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'novo':
-        if (['gestor', 'controle', 'admin', 'assistente', 'god'].includes(userTipoUsuario)) {
+        if (canCreateProcess) {
           const camaraId = localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id;
           return <NewProcess onProcessCreated={() => setCurrentView('dash')} camaraId={camaraId} />;
         }
@@ -115,29 +117,29 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
           />
         ) : <div>Selecione um processo</div>;
       case 'equipe':
-        if (['gestor', 'admin', 'god'].includes(userTipoUsuario)) {
+        if (canManageTeam) {
           const camaraId = localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id;
           return <Equipe camaraId={camaraId} />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'camara':
-        if (['gestor', 'admin', 'god'].includes(userTipoUsuario)) {
+        if (canManageTeam) {
           const camaraId = localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id;
           return <CamaraConfig camaraId={camaraId} />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'vendas':
-        if (['gestor', 'controle', 'god'].includes(userTipoUsuario)) {
+        if (isGlobalAdmin) {
           return <Ecossistema />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'auditoria':
-        if (['gestor', 'god'].includes(userTipoUsuario)) {
+        if (canSeeAudit) {
           return <Auditoria />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'vercel':
-        if (['gestor', 'god'].includes(userTipoUsuario)) {
+        if (isGlobalAdmin) {
           return <VercelManager />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
@@ -179,7 +181,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
           <Notifications onSelectProcess={handleProcessSelect} />
           <div className="hidden md:flex flex-col items-end">
             <span className="text-xs font-bold text-slate-900">{session?.user?.email}</span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{userTipoUsuario}</span>
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{(userProfile?.tipo_usuario || '').toLowerCase()}</span>
           </div>
           <button 
             onClick={onSignOut}
@@ -208,34 +210,34 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
           <div className="flex-1 px-4 py-6 space-y-2">
             <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">MENU PRINCIPAL</p>
             
-            {['gestor', 'controle', 'admin', 'assistente', 'god'].includes(userTipoUsuario) && (
+            <motion.button 
+              whileHover={{ x: 4 }}
+              className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'dash' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+              onClick={() => {
+                setCurrentView('dash');
+                setIsSidebarOpen(false);
+              }}
+            >
+              <LayoutDashboard size={18} className={currentView === 'dash' ? 'text-red-500' : ''} />
+              <span className="text-sm">Painel de Controle</span>
+            </motion.button>
+            
+            {canCreateProcess && (
               <motion.button 
                 whileHover={{ x: 4 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'dash' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'novo' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
                 onClick={() => {
-                  setCurrentView('dash');
+                  setCurrentView('novo');
                   setIsSidebarOpen(false);
                 }}
               >
-                <LayoutDashboard size={18} className={currentView === 'dash' ? 'text-red-500' : ''} />
-                <span className="text-sm">Painel de Controle</span>
+                <PlusCircle size={18} className={currentView === 'novo' ? 'text-red-500' : ''} />
+                <span className="text-sm">Novo Processo</span>
               </motion.button>
             )}
             
-            {['gestor', 'admin', 'god'].includes(userTipoUsuario) && (
+            {canManageTeam && (
               <>
-                <motion.button 
-                  whileHover={{ x: 4 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'novo' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                  onClick={() => {
-                    setCurrentView('novo');
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <PlusCircle size={18} className={currentView === 'novo' ? 'text-red-500' : ''} />
-                  <span className="text-sm">Novo Processo</span>
-                </motion.button>
-                
                 <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">ADMINISTRAÇÃO</p>
                 
                 <motion.button 
@@ -264,7 +266,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
               </>
             )}
             
-            {['gestor', 'controle', 'god'].includes(userTipoUsuario) && (
+            {isGlobalAdmin && (
               <>
                 <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">CORPORATIVO</p>
                 <motion.button 
@@ -281,30 +283,35 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
               </>
             )}
 
-            {['gestor', 'god'].includes(userTipoUsuario) && (
+            {(canSeeAudit || isGlobalAdmin) && (
               <>
-                <motion.button 
-                  whileHover={{ x: 4 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'auditoria' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                  onClick={() => {
-                    setCurrentView('auditoria');
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <Activity size={18} className={currentView === 'auditoria' ? 'text-red-500' : ''} />
-                  <span className="text-sm">Histórico de Ações</span>
-                </motion.button>
-                <motion.button 
-                  whileHover={{ x: 4 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'vercel' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                  onClick={() => {
-                    setCurrentView('vercel');
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <Server size={18} className={currentView === 'vercel' ? 'text-red-500' : ''} />
-                  <span className="text-sm">Status do Sistema</span>
-                </motion.button>
+                <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">SISTEMA</p>
+                {canSeeAudit && (
+                  <motion.button 
+                    whileHover={{ x: 4 }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'auditoria' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                    onClick={() => {
+                      setCurrentView('auditoria');
+                      setIsSidebarOpen(false);
+                    }}
+                  >
+                    <Activity size={18} className={currentView === 'auditoria' ? 'text-red-500' : ''} />
+                    <span className="text-sm">Histórico de Ações</span>
+                  </motion.button>
+                )}
+                {isGlobalAdmin && (
+                  <motion.button 
+                    whileHover={{ x: 4 }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'vercel' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                    onClick={() => {
+                      setCurrentView('vercel');
+                      setIsSidebarOpen(false);
+                    }}
+                  >
+                    <Server size={18} className={currentView === 'vercel' ? 'text-red-500' : ''} />
+                    <span className="text-sm">Status do Sistema</span>
+                  </motion.button>
+                )}
               </>
             )}
           </div>

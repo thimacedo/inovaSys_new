@@ -26,7 +26,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   const [submitting, setSubmitting] = useState(false);
   const { showToast, showModal, showPrompt, showConfirm } = useModal();
 
-  const isAdmin = ['gestor', 'admin'].includes(currentUser?.tipo_usuario || '');
+  const isAdmin = ['gestor', 'admin', 'god'].includes(currentUser?.tipo_usuario?.toLowerCase() || '');
   const canEditProcess = isAdmin || (processo && processo.arbitro_id === currentUser?.id);
 
   // Use prop if available, otherwise fallback to localStorage

@@ -7,7 +7,7 @@ export interface Perfil {
   nome?: string;
   tipo_usuario: string;
   camara_id?: string;
-  org_id?: string;
+  organization_id?: string;
   data_renovacao?: string;
   cpf?: string;
   rg?: string;
