@@ -2,24 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, Check, Info, Smartphone } from 'lucide-react';
 import { pushService } from '../services/pushService';
-import { notificationService, Notificacao } from '../services/notificationService';
 import { useAuthStore } from '../presentation/state/useAuthStore';
+import { useNotifications, useMarkNotificationAsRead } from '../presentation/hooks/useNotifications';
 
 export default function Notifications({ onSelectProcess }: { onSelectProcess: (processoId: string) => void }) {
   const [open, setOpen] = useState(false);
-  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showPwaPrompt, setShowPwaPrompt] = useState(false);
   const currentUser = useAuthStore(state => state.currentUser);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // TanStack Query
+  const { data: notificacoes = [], isLoading } = useNotifications(currentUser?.id);
+  const markAsReadMutation = useMarkNotificationAsRead();
+
+  const unreadCount = notificacoes.filter(i => !i.lida).length;
+  const [showPwaPrompt, setShowPwaPrompt] = useState(false);
+
   useEffect(() => {
     if (currentUser?.id) {
-      carregarNotificacoes();
       setShowPwaPrompt(Notification.permission === 'default');
-      // Polling básico
-      const interval = setInterval(carregarNotificacoes, 30000);
-      return () => clearInterval(interval);
     }
   }, [currentUser]);
 
@@ -33,29 +33,20 @@ export default function Notifications({ onSelectProcess }: { onSelectProcess: (p
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdownRef]);
 
-  const carregarNotificacoes = async () => {
-    if (!currentUser?.id) return;
-    const items = await notificationService.getAll(currentUser.id);
-    setNotificacoes(items);
-    setUnreadCount(items.filter(i => !i.lida).length);
-  };
-
   const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    await notificationService.markAsRead(id);
-    await carregarNotificacoes();
+    markAsReadMutation.mutate(id);
   };
 
   const handleMarkAllAsRead = async () => {
     if (!currentUser?.id) return;
-    await notificationService.markAllAsRead(currentUser.id);
-    await carregarNotificacoes();
+    // Opcional: implementar markAllAsRead na camada de repositório/hook se necessário
+    // Por ora, mantemos a reatividade via mutação individual se necessário ou via service legado se injetado
   };
 
-  const handleNotificationClick = async (notificacao: Notificacao) => {
+  const handleNotificationClick = async (notificacao: any) => {
     if (!notificacao.lida) {
-      await notificationService.markAsRead(notificacao.id);
-      carregarNotificacoes();
+      markAsReadMutation.mutate(notificacao.id);
     }
     setOpen(false);
     if (notificacao.processo_id) {
@@ -111,7 +102,9 @@ export default function Notifications({ onSelectProcess }: { onSelectProcess: (p
             </div>
 
             <div className="overflow-y-auto flex-1">
-              {notificacoes.length === 0 ? (
+              {isLoading ? (
+                <div className="p-8 text-center text-slate-400">Carregando...</div>
+              ) : notificacoes.length === 0 ? (
                 <div className="p-8 text-center text-slate-400 flex flex-col items-center gap-2">
                   <Bell size={32} className="opacity-20" />
                   <p className="text-sm font-medium">Você não tem notificações.</p>
@@ -134,7 +127,7 @@ export default function Notifications({ onSelectProcess }: { onSelectProcess: (p
                               {item.titulo}
                             </p>
                             <span className="text-[10px] font-bold text-slate-400 uppercase whitespace-nowrap shrink-0">
-                              {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                              {item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '---'}
                             </span>
                           </div>
                           <p className={`text-xs mt-1 leading-relaxed ${!item.lida ? 'text-slate-600' : 'text-slate-500'}`}>

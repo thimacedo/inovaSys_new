@@ -1,61 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { financeiroService, RegistroFinanceiro } from '../services/financeiroService';
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
-import { usePermissions } from '../hooks/usePermissions';
+import { useFinanceiroByOrg, useUpdateFinanceiro } from '../presentation/hooks/useFinanceiro';
 import { 
   DollarSign, 
   Search, 
-  Filter, 
   Download, 
-  Plus, 
   CheckCircle, 
   Clock, 
-  AlertTriangle,
   FileText,
   Calendar,
-  ArrowUpRight,
-  ArrowDownLeft,
   MoreVertical,
   Trash2
 } from 'lucide-react';
 
 export default function FinanceiroManager() {
-  const [registros, setRegistros] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<'Todos' | 'Pendente' | 'Pago'>('Todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const { showToast, showConfirm } = useModal();
-  const { isGlobalAdmin } = usePermissions();
+  const { showToast } = useModal();
   const currentUser = useAuthStore(state => state.currentUser);
 
-  useEffect(() => {
-    if (currentUser?.organizacao_id) {
-      carregarFinanceiro();
-    }
-  }, [currentUser]);
-
-  const carregarFinanceiro = async () => {
-    setLoading(true);
-    try {
-      const data = await financeiroService.getByOrganizacao(currentUser.organizacao_id);
-      setRegistros(data);
-    } catch (error: any) {
-      showToast('Erro ao carregar financeiro: ' + error.message, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // TanStack Query
+  const organizationId = currentUser?.organization_id || (currentUser as any)?.organizacao_id;
+  const { data: registros = [], isLoading: loading } = useFinanceiroByOrg(organizationId);
+  const updateMutation = useUpdateFinanceiro();
 
   const handleMarcarPago = async (id: string) => {
     try {
-      await financeiroService.update(id, { 
-        status: 'Pago', 
-        data_pagamento: new Date().toISOString() 
+      await updateMutation.mutateAsync({ 
+        id, 
+        data: { 
+          status: 'Pago', 
+          data_pagamento: new Date().toISOString() 
+        } 
       });
       showToast('Pagamento confirmado!', 'success');
-      carregarFinanceiro();
     } catch (e: any) {
       showToast('Erro ao atualizar: ' + e.message, 'error');
     }
@@ -197,7 +177,8 @@ export default function FinanceiroManager() {
                         {reg.status === 'Pendente' && (
                           <button 
                             onClick={() => handleMarcarPago(reg.id)}
-                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            disabled={updateMutation.isPending}
+                            className={`p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors ${updateMutation.isPending ? 'opacity-50' : ''}`}
                             title="Confirmar Pagamento"
                           >
                             <CheckCircle size={18} />
