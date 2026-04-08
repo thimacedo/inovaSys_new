@@ -1,23 +1,19 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { supabase } from '../../lib/supabase';
 
 export class SupabaseClientFactory {
+  private static instance: SupabaseClient | null = null;
+
+  private constructor() {}
+
+  /**
+   * Retorna a instância Singleton do cliente Supabase para o Browser.
+   * Evita a criação de múltiplas conexões websocket (Realtime) e vazamento de memória.
+   */
   public static createBrowser(): SupabaseClient {
-    // Debug flags (safe for production as they only log existence)
-    console.log('VITE_SUPABASE_URL set?', !!import.meta.env.VITE_SUPABASE_URL);
-    console.log('VITE_SUPABASE_ANON_KEY set?', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
-
-    // Vite utiliza import.meta.env e exige o prefixo VITE_ para expor no build do cliente
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      return new Proxy({} as SupabaseClient, {
-        get: () => {
-          throw new Error('CONFIG_ERROR: Faltam variáveis de ambiente do Supabase (VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY). Verifique as configurações no Vercel e faça Redeploy.');
-        }
-      });
+    if (!this.instance) {
+      this.instance = supabase;
     }
-
-    return createClient(supabaseUrl, supabaseKey);
+    return this.instance;
   }
 }
