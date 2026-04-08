@@ -32,7 +32,7 @@ const CamaraConfig = lazy(() => import('./CamaraConfig'));
 const Ecossistema = lazy(() => import('./Ecossistema'));
 const ProcessDetails = lazy(() => import('./ProcessDetails'));
 const Auditoria = lazy(() => import('./Auditoria'));
-const VercelManager = lazy(() => import('./VercelManager'));
+// const VercelManager = lazy(() => import('./VercelManager'));
 const TemplateManager = lazy(() => import('./TemplateManager'));
 const DashboardHome = lazy(() => import('./DashboardHome'));
 const FinanceiroBI = lazy(() => import('./FinanceiroBI'));
@@ -148,12 +148,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
         if (canSeeAudit) {
           return <Auditoria />;
         }
-        return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
-      case 'vercel':
-        if (isGlobalAdmin) {
-          return <VercelManager />;
-        }
-        return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
+        return <DashboardHome />;
       case 'templates':
         if (isGlobalAdmin) {
           return <TemplateManager />;
@@ -354,16 +349,6 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
                   >
                     <Activity size={18} className={currentView === 'auditoria' ? 'text-slate-500' : ''} />
                     <span className="text-sm">Trilha de Auditoria</span>
-                  </motion.button>
-                )}
-                {isGlobalAdmin && (
-                  <motion.button 
-                    whileHover={{ x: 4 }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'vercel' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                    onClick={() => { setCurrentView('vercel'); setIsSidebarOpen(false); }}
-                  >
-                    <Server size={18} className={currentView === 'vercel' ? 'text-slate-500' : ''} />
-                    <span className="text-sm">Console Cloud (Vercel)</span>
                   </motion.button>
                 )}
               </>
