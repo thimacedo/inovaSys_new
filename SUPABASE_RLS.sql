@@ -83,3 +83,27 @@ CREATE POLICY "Perfis: Leitura" ON public.perfis
     OR
     (camara_id = get_user_camara())
   );
+-- 15. Tabela de Templates de Documentos
+CREATE TABLE IF NOT EXISTS templates_documentos (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID REFERENCES perfis(id),
+    nome TEXT NOT NULL,
+    tipo_documento INTEGER,
+    conteudo_html TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE templates_documentos ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY 'Templates visíveis por todos da organização' 
+    ON templates_documentos FOR SELECT 
+    USING (organization_id IS NULL OR organization_id IN (SELECT organization_id FROM perfis WHERE id = auth.uid()));
+
+CREATE POLICY 'Apenas GOD e Admin podem gerenciar templates' 
+    ON templates_documentos FOR ALL 
+    USING (EXISTS (
+        SELECT 1 FROM perfis 
+        WHERE id = auth.uid() 
+        AND LOWER(tipo_usuario) IN ('god', 'gestor', 'admin')
+    ));

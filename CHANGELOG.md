@@ -5,6 +5,9 @@ Histórico de atualizações e melhorias técnicas implementadas.
 ## [2026-04-08] - Normalização RBAC e Estabilização
 
 ### Adicionado
+- **Módulo de Templates Dinâmicos**: Nova interface para gestão e edição de modelos de documentos diretamente pelo painel administrativo.
+- **Geração de Documentos em Lote**: Funcionalidade para gerar e baixar os 13 documentos do processo em um único pacote PDF.
+- **Integração com WhatsApp**: Botões de notificação instantânea para partes (Requerente/Requerido) com templates de mensagens automáticas.
 - **Novo Papel de Usuário: `GOD` (Super Admin)**: Implementação completa em todo o ecossistema (Auth, Dashboard, Processos e Equipe).
 - **Hook `usePermissions`**: Centralização de toda a lógica de níveis de acesso para facilitar manutenção e expansão.
 - **Tabelas de Sistema**: Definição das tabelas `notificacoes` e `auditoria` no script de banco de dados global.
@@ -27,12 +30,12 @@ Histórico de atualizações e melhorias técnicas implementadas.
 ## 🗺️ Planejamento de Próximas Fases (Roadmap)
 
 ### Fase 1: Inteligência e Automação de Documentos
-- [ ] **Templates Dinâmicos**: Implementar edição de templates de documentos via interface (CKEditor/TinyMCE).
+- [x] **Templates Dinâmicos**: Implementar edição de templates de documentos via interface (Estrutura e Gestor criados).
 - [ ] **Assinatura Digital**: Integração com APIs de assinatura (DocuSign/Clicksign) para finalização de termos.
-- [ ] **Geração em Lote**: Permitir gerar todos os documentos de um processo (Capa, Notificação, Termos) em um único clique.
+- [x] **Geração em Lote**: Permitir gerar todos os documentos de um processo (Capa, Notificação, Termos) em um único clique.
 
 ### Fase 2: Comunicação e Notificações
-- [ ] **WhatsApp Integration**: Disparo automático de notificações de andamento via WhatsApp para as partes.
+- [x] **WhatsApp Integration**: Disparo de notificações de andamento via WhatsApp para as partes (Integrado ao resumo do processo).
 - [ ] **E-mail Service 2.0**: Templates de e-mail personalizados com a logo da câmara em todas as comunicações.
 - [ ] **Central de Ajuda**: Wiki baseada em IA para tirar dúvidas de árbitros sobre o sistema.
 

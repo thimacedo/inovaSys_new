@@ -14,7 +14,8 @@ import {
   LogOut,
   Building2,
   Activity,
-  Server
+  Server,
+  FileText
 } from 'lucide-react';
 import Notifications from './Notifications';
 
@@ -28,6 +29,7 @@ const Ecossistema = lazy(() => import('./Ecossistema'));
 const ProcessDetails = lazy(() => import('./ProcessDetails'));
 const Auditoria = lazy(() => import('./Auditoria'));
 const VercelManager = lazy(() => import('./VercelManager'));
+const TemplateManager = lazy(() => import('./TemplateManager'));
 
 export default function Dashboard({ session, userProfile, onSignOut }: { session: any, userProfile: any, onSignOut: () => void }) {
   const { isGlobalAdmin, canManageTeam, canCreateProcess, canSeeAudit, isGod } = usePermissions();
@@ -141,6 +143,11 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
       case 'vercel':
         if (isGlobalAdmin) {
           return <VercelManager />;
+        }
+        return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
+      case 'templates':
+        if (isGlobalAdmin) {
+          return <TemplateManager />;
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       default:
@@ -310,6 +317,19 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
                   >
                     <Server size={18} className={currentView === 'vercel' ? 'text-red-500' : ''} />
                     <span className="text-sm">Status do Sistema</span>
+                  </motion.button>
+                )}
+                {isGlobalAdmin && (
+                  <motion.button 
+                    whileHover={{ x: 4 }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'templates' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                    onClick={() => {
+                      setCurrentView('templates');
+                      setIsSidebarOpen(false);
+                    }}
+                  >
+                    <FileText size={18} className={currentView === 'templates' ? 'text-red-500' : ''} />
+                    <span className="text-sm">Modelos de Documentos</span>
                   </motion.button>
                 )}
               </>

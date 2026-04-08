@@ -6,9 +6,11 @@ import { userService } from '../services/userService';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useModal } from '../context/ModalContext';
 import { documentService } from '../services/documentService';
+import { whatsappService } from '../services/whatsappService';
 import { isValidDoc, isValidCEP } from '../utils/validators';
 import { applyMask } from '../utils/masks';
 import DocumentPreview from './DocumentPreview';
+import BatchDocumentPreview from './BatchDocumentPreview';
 import { Clock, Send } from 'lucide-react';
 
 export default function ProcessDetails({ processId, onBack, camaraConfig: propCamaraConfig }: { processId: string, onBack: () => void, camaraConfig?: any }) {
@@ -141,6 +143,47 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
     const arb = arbitros.find(a => a.id === processo.arbitro_id) || null;
     const html = documentService.visualizarDoc(num, processo, arb, camaraConfig);
     showModal(title, <DocumentPreview html={html} fileName={`${title}_${processo.numero_processo}`} />);
+  };
+
+  const handleGerarLote = () => {
+    if (!processo) return;
+    const arb = arbitros.find(a => a.id === processo.arbitro_id) || null;
+    const docs = [
+      { id: 1, name: '01 - CAPA DO PROCESSO' },
+      { id: 2, name: '02 - TERMO DE APRESENTAÇÃO DO PEDIDO' },
+      { id: 3, name: '03 - NOTIFICAÇÃO EXTRAJUDICIAL' },
+      { id: 4, name: '04 - PORTARIA ARBITRAL (NOMEAÇÃO)' },
+      { id: 5, name: '05 - TERMO DE COMPROMISSO DO ÁRBITRO' },
+      { id: 6, name: '06 - TERMO DE COMPROMISSO ARBITRAL' },
+      { id: 7, name: '07 - ATA DE AUDIÊNCIA ARBITRAL' },
+      { id: 8, name: '08 - SENTENÇA ARBITRAL' },
+      { id: 9, name: '09 - TERMO DE RECEBIMENTO DE SENTENÇA' },
+      { id: 10, name: '10 - RECIBO DE VALORES DE ACORDO' },
+      { id: 11, name: '11 - RECIBO DE HONORÁRIOS' },
+      { id: 12, name: '12 - REQUERIMENTO' },
+      { id: 13, name: '13 - ANEXO DE PROCESSO' }
+    ].map(d => ({
+      title: d.name,
+      html: documentService.visualizarDoc(d.id, processo, arb, camaraConfig)
+    }));
+
+    showModal("Gerar Pacote Completo", <BatchDocumentPreview documents={docs} processNumber={processo.numero_processo} />);
+  };
+
+  const handleWhatsApp = (nomeParte: string, tipo: 'requerente' | 'requerido') => {
+    if (!processo) return;
+    
+    showPrompt(
+      `Notificar ${tipo === 'requerente' ? 'Requerente' : 'Requerido'}`,
+      `Confirme o número do WhatsApp de ${nomeParte} (apenas números com DDD):`,
+      '',
+      (phone) => {
+        if (!phone) return;
+        const msg = whatsappService.templates.avisoAndamento(nomeParte, processo.numero_processo, "Houve uma nova atualização no seu processo. Por favor, acesse o sistema.");
+        whatsappService.enviarMensagem(phone, msg);
+        showToast('WhatsApp aberto!', 'success');
+      }
+    );
   };
 
   const handleAssignArbitrator = async (arbitroId: string) => {
@@ -324,6 +367,13 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Endereço</p>
                       <p className="text-sm text-slate-700 font-medium hover:text-blue-600 transition-colors" onClick={(e) => { e.stopPropagation(); handleEditField('requerente_end', 'Endereço Requerente', processo.requerente_end); }}>{processo.requerente_end || '---'}</p>
                     </div>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleWhatsApp(processo.requerente_nome, 'requerente'); }}
+                      className="mt-2 flex items-center gap-2 text-[10px] font-bold text-green-600 hover:text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      Notificar via WhatsApp
+                    </button>
                   </div>
                 </div>
 
@@ -343,6 +393,13 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Endereço</p>
                       <p className="text-sm text-slate-700 font-medium hover:text-blue-600 transition-colors" onClick={(e) => { e.stopPropagation(); handleEditField('requerido_end', 'Endereço Requerido', processo.requerido_end); }}>{processo.requerido_end || '---'}</p>
                     </div>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleWhatsApp(processo.requerido_nome, 'requerido'); }}
+                      className="mt-2 flex items-center gap-2 text-[10px] font-bold text-green-600 hover:text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      Notificar via WhatsApp
+                    </button>
                   </div>
                 </div>
               </div>
@@ -444,9 +501,18 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
 
           {activeTab === 'documentos' && (
             <div className="space-y-6">
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex gap-3">
-                <svg className="text-blue-600 shrink-0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <p className="text-sm text-blue-800">Selecione um modelo para gerar o documento oficial em PDF. Você poderá editar campos específicos antes de baixar.</p>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex gap-3">
+                  <svg className="text-blue-600 shrink-0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  <p className="text-sm text-blue-800">Selecione um modelo para gerar o documento oficial em PDF. Você poderá editar campos específicos antes de baixar.</p>
+                </div>
+                <button 
+                  onClick={handleGerarLote}
+                  className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg shadow-slate-200 shrink-0"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Gerar Pacote Completo (Lote)
+                </button>
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
