@@ -21,17 +21,22 @@ export const deleteProcess = async (id: string): Promise<void> => {
   return await DependencyRegistry.getProcessRepository().delete(id);
 };
 
+export const getAll = async (page = 1, pageSize = 10, search = '') => {
+  return await DependencyRegistry.getProcessRepository().listWithPagination(page, pageSize, search);
+};
+
 export const processService = {
   create: createProcess,
-  createProcess, // Alias para legacy code
+  createProcess,
   getById: getProcessById,
-  getProcessById, // Alias
+  getProcessById,
   listByCamara: getProcessosByCamara,
-  getProcessosByCamara, // Alias
+  getProcessosByCamara,
   update: updateProcess,
-  updateProcess, // Alias
+  updateProcess,
   delete: deleteProcess,
-  deleteProcess // Alias
+  deleteProcess,
+  getAll
 };
 
 export default processService;

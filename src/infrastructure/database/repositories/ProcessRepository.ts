@@ -9,6 +9,8 @@ export interface ProcessEntity {
   arbitro_id?: string;
   requerente_id?: string;
   requerido_id?: string;
+  valor_causa?: number;
+  created_at?: string;
   [key: string]: any;
 }
 
@@ -50,6 +52,30 @@ export class ProcessRepository extends BaseSupabaseRepository<ProcessEntity> {
       return data as ProcessEntity[];
     } catch (error) {
       return this.handleError(error, 'listByCamara');
+    }
+  }
+
+  public async listWithPagination(page = 1, pageSize = 10, search = ''): Promise<{ data: ProcessEntity[], count: number | null }> {
+    try {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      let query = this.client
+        .from(this.tableName)
+        .select('*', { count: 'exact' });
+
+      if (search) {
+        query = query.or(`numero_processo.ilike.%${search}%,requerente_nome.ilike.%${search}%,requerido_nome.ilike.%${search}%`);
+      }
+
+      const { data, count, error } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      return { data: data as ProcessEntity[], count };
+    } catch (error) {
+      return this.handleError(error, 'listWithPagination');
     }
   }
 }

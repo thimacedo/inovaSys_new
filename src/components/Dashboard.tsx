@@ -46,12 +46,6 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    if (userProfile?.organization_id) {
-      BaseSupabaseRepository.setOrgId(userProfile.organization_id);
-    }
-  }, [userProfile]);
-
-  useEffect(() => {
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
     }
