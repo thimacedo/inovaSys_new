@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { useModal } from '../context/ModalContext';
-import { Save, FileText, ChevronRight, AlertCircle, RefreshCw } from 'lucide-react';
+import { Save, FileText, ChevronRight, AlertCircle, RefreshCw, Sparkles, Send } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
+import { aiService } from '../services/aiService';
 
 interface Template {
   id: string;
@@ -20,6 +21,9 @@ export default function TemplateManager() {
   const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useModal();
   const { isGlobalAdmin } = usePermissions();
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
 
   useEffect(() => {
     carregarTemplates();
@@ -68,6 +72,27 @@ export default function TemplateManager() {
 
   const resetToDefault = () => {
      showToast('Funcionalidade de restauração em breve. Por enquanto, edite manualmente.', 'attention');
+  };
+
+  const handleAiAssist = async () => {
+    if (!aiPrompt.trim()) return;
+    setIsAiLoading(true);
+    setAiResponse('');
+    try {
+      const resp = await aiService.suggestClausula(editContent, aiPrompt);
+      setAiResponse(resp as string);
+      showToast('Sugestão de IA gerada!', 'success');
+    } catch (e: any) {
+      showToast('IA indisponível no momento.', 'error');
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const insertAiResponse = () => {
+    setEditContent(prev => prev + "\n" + aiResponse);
+    setAiResponse('');
+    setAiPrompt('');
   };
 
   if (!isGlobalAdmin) {
@@ -147,19 +172,59 @@ export default function TemplateManager() {
               </div>
             </div>
             
-            <div className="flex-1 p-4 bg-slate-50">
-              <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl mb-4 flex gap-3">
-                <AlertCircle size={18} className="text-blue-600 shrink-0" />
-                <p className="text-[10px] text-blue-800 leading-tight">
-                  <strong>Dica:</strong> Use as tags automáticas como <code>{`{requerente_nome}`}</code>, <code>{`{requerido_nome}`}</code> e <code>{`{numero_processo}`}</code> para personalização dinâmica. O suporte ao CKEditor será adicionado em breve.
-                </p>
+            <div className="flex-1 p-4 bg-slate-50 flex gap-4 overflow-hidden">
+              <div className="flex-1 flex flex-col">
+                <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl mb-4 flex gap-3">
+                  <AlertCircle size={18} className="text-blue-600 shrink-0" />
+                  <p className="text-[10px] text-blue-800 leading-tight">
+                    <strong>Dica:</strong> Use as tags automáticas como <code>{`{requerente_nome}`}</code>, <code>{`{requerido_nome}`}</code> e <code>{`{numero_processo}`}</code> para personalização dinâmica. O suporte ao CKEditor será adicionado em breve.
+                  </p>
+                </div>
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="w-full h-full p-6 font-mono text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none shadow-inner"
+                  placeholder="Insira o HTML do modelo aqui..."
+                />
               </div>
-              <textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className="w-full h-[calc(100%-60px)] p-6 font-mono text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none shadow-inner"
-                placeholder="Insira o HTML do modelo aqui..."
-              />
+
+              {/* AI Sidebar */}
+              <div className="w-80 bg-white border border-slate-200 rounded-xl p-4 flex flex-col shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles size={18} className="text-purple-600" />
+                  <h5 className="text-xs font-bold text-slate-900 uppercase tracking-widest">Assistente de IA</h5>
+                </div>
+                
+                <textarea 
+                   value={aiPrompt}
+                   onChange={(e) => setAiPrompt(e.target.value)}
+                   className="w-full h-24 p-2 text-xs border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-purple-500/20 mb-2 resize-none"
+                   placeholder="Ex: Sugira uma cláusula compromissória cheia..."
+                />
+                <button 
+                  onClick={handleAiAssist}
+                  disabled={isAiLoading || !aiPrompt.trim()}
+                  className="w-full py-2 bg-purple-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-purple-700 transition-all disabled:opacity-50"
+                >
+                  {isAiLoading ? 'Pensando...' : <><Send size={14} /> Pedir Sugestão</>}
+                </button>
+
+                <div className="mt-4 flex-1 overflow-y-auto">
+                   {aiResponse ? (
+                      <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg animate-in fade-in slide-in-from-top-2">
+                         <p className="text-[10px] text-purple-800 whitespace-pre-wrap">{aiResponse}</p>
+                         <button 
+                            onClick={insertAiResponse}
+                            className="w-full mt-2 py-1.5 bg-white border border-purple-200 text-purple-700 rounded-md text-[10px] font-bold hover:bg-purple-100 transition-all"
+                         >
+                            Inserir no Documento
+                         </button>
+                      </div>
+                   ) : (
+                      <p className="text-[10px] text-slate-400 italic text-center mt-8">A IA pode ajudar você a redigir termos jurídicos precisos mais rápido.</p>
+                   )}
+                </div>
+              </div>
             </div>
           </motion.div>
         ) : (
