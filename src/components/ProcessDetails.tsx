@@ -11,7 +11,8 @@ import { isValidDoc, isValidCEP } from '../utils/validators';
 import { applyMask } from '../utils/masks';
 import DocumentPreview from './DocumentPreview';
 import BatchDocumentPreview from './BatchDocumentPreview';
-import { Clock, Send } from 'lucide-react';
+import FinanceiroTab from './FinanceiroTab';
+import { Clock, Send, DollarSign } from 'lucide-react';
 
 export default function ProcessDetails({ processId, onBack, camaraConfig: propCamaraConfig }: { processId: string, onBack: () => void, camaraConfig?: any }) {
   const currentUser = useAuthStore((state) => state.currentUser);
@@ -309,6 +310,12 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
           >
             Histórico
           </button>
+          <button 
+            className={`flex-1 py-3 px-4 text-sm font-semibold rounded-lg transition-all ${activeTab === 'financeiro' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`} 
+            onClick={() => setActiveTab('financeiro')}
+          >
+            Financeiro
+          </button>
         </div>
 
         <div className="p-8">
@@ -596,6 +603,10 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === 'financeiro' && (
+            <FinanceiroTab processoId={processId} organizationId={processo.organization_id || ''} />
           )}
         </div>
       </div>

@@ -5,10 +5,9 @@ Histórico de atualizações e melhorias técnicas implementadas.
 ## [2026-04-08] - Normalização RBAC e Estabilização
 
 ### Adicionado
+- **Módulo Financeiro**: Registro e controle de custas e honorários por processo, com indicadores de status de pagamento.
+- **Dashboard Executivo (Live)**: Nova tela inicial com métricas consolidadas, gráficos de progresso e visão global para Super Admins (GOD).
 - **Módulo de Templates Dinâmicos**: Nova interface para gestão e edição de modelos de documentos diretamente pelo painel administrativo.
-- **Geração de Documentos em Lote**: Funcionalidade para gerar e baixar os 13 documentos do processo em um único pacote PDF.
-- **Integração com WhatsApp**: Botões de notificação instantânea para partes (Requerente/Requerido) com templates de mensagens automáticas.
-- **Novo Papel de Usuário: `GOD` (Super Admin)**: Implementação completa em todo o ecossistema (Auth, Dashboard, Processos e Equipe).
 - **Hook `usePermissions`**: Centralização de toda a lógica de níveis de acesso para facilitar manutenção e expansão.
 - **Tabelas de Sistema**: Definição das tabelas `notificacoes` e `auditoria` no script de banco de dados global.
 - **Manual de Recuperação (SQL)**: Consolidação de políticas RLS em um arquivo mestre para fácil restauração do banco.
@@ -40,6 +39,6 @@ Histórico de atualizações e melhorias técnicas implementadas.
 - [ ] **Central de Ajuda**: Wiki baseada em IA para tirar dúvidas de árbitros sobre o sistema.
 
 ### Fase 3: Expansão e Enterprise
-- [ ] **Multi-Chamber Sync**: Dashboard para gestores de rede visualizarem estatísticas de múltiplas câmaras simultaneamente.
-- [ ] **Financeiro**: Módulo de controle de custas e honorários arbitrais com geração de boletos/PIX.
+- [x] **Multi-Chamber Sync**: Dashboard centralizado para gestores visualizarem estatísticas globais (Integrado ao DashboardHome).
+- [x] **Financeiro**: Módulo de controle de custas e honorários arbitrais (Tabelas, Serviço e Interface concluídos).
 - [ ] **App Mobile**: Versão PWA para acesso rápido de árbitros via celular.

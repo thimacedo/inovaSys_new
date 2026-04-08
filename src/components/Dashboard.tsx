@@ -15,7 +15,8 @@ import {
   Building2,
   Activity,
   Server,
-  FileText
+  FileText,
+  Files
 } from 'lucide-react';
 import Notifications from './Notifications';
 
@@ -30,6 +31,7 @@ const ProcessDetails = lazy(() => import('./ProcessDetails'));
 const Auditoria = lazy(() => import('./Auditoria'));
 const VercelManager = lazy(() => import('./VercelManager'));
 const TemplateManager = lazy(() => import('./TemplateManager'));
+const DashboardHome = lazy(() => import('./DashboardHome'));
 
 export default function Dashboard({ session, userProfile, onSignOut }: { session: any, userProfile: any, onSignOut: () => void }) {
   const { isGlobalAdmin, canManageTeam, canCreateProcess, canSeeAudit, isGod } = usePermissions();
@@ -103,6 +105,8 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
   const renderView = () => {
     switch (currentView) {
       case 'dash':
+        return <DashboardHome />;
+      case 'process_list':
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'novo':
         if (canCreateProcess) {
@@ -278,14 +282,26 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
                 <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-2">CORPORATIVO</p>
                 <motion.button 
                   whileHover={{ x: 4 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'vendas' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'dash' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
                   onClick={() => {
-                    setCurrentView('vendas');
+                    setCurrentView('dash');
                     setIsSidebarOpen(false);
                   }}
                 >
-                  <Globe size={18} className={currentView === 'vendas' ? 'text-red-500' : ''} />
-                  <span className="text-sm">Rede de Câmaras</span>
+                  <LayoutDashboard size={18} className={currentView === 'dash' ? 'text-blue-500' : ''} />
+                  <span className="text-sm">Início</span>
+                </motion.button>
+
+                <motion.button 
+                  whileHover={{ x: 4 }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'process_list' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+                  onClick={() => {
+                    setCurrentView('process_list');
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <Files size={18} className={currentView === 'process_list' ? 'text-blue-500' : ''} />
+                  <span className="text-sm">Processos</span>
                 </motion.button>
               </>
             )}

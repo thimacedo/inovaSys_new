@@ -107,3 +107,33 @@ CREATE POLICY 'Apenas GOD e Admin podem gerenciar templates'
         WHERE id = auth.uid() 
         AND LOWER(tipo_usuario) IN ('god', 'gestor', 'admin')
     ));
+-- 16. Tabela Financeira (Custas e Honorários)
+CREATE TABLE IF NOT EXISTS financeiro (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    processo_id UUID REFERENCES processos(id) ON DELETE CASCADE,
+    organization_id UUID REFERENCES perfis(id),
+    descricao TEXT NOT NULL,
+    valor DECIMAL(12,2) NOT NULL,
+    tipo TEXT NOT NULL CHECK (tipo IN ('Custa', 'Hon_Arbitral', 'Hon_Sucumbencia', 'Outros')),
+    status TEXT NOT NULL CHECK (status IN ('Pendente', 'Pago', 'Cancelado')),
+    data_vencimento DATE,
+    data_pagamento DATE,
+    metodo_pagamento TEXT,
+    comprovante_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE financeiro ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY 'Financeiro visível por membros da organização' 
+    ON financeiro FOR SELECT 
+    USING (organization_id IN (SELECT organization_id FROM perfis WHERE id = auth.uid()));
+
+CREATE POLICY 'Apenas Admin e GOD podem gerenciar financeiro' 
+    ON financeiro FOR ALL 
+    USING (EXISTS (
+        SELECT 1 FROM perfis 
+        WHERE id = auth.uid() 
+        AND LOWER(tipo_usuario) IN ('god', 'gestor', 'admin')
+    ));
