@@ -108,6 +108,18 @@ async function startServer() {
     }
   });
 
+  app.post("/api/vercel/email", async (req, res) => {
+    try {
+      const { to, subject, html } = req.body;
+      console.log(`[Dev Mock Email] Enviando para: ${to}\nAssunto: ${subject}`);
+      // Em dev local a gente loga por padrão e finge sucesso para não exigir o Resend no localhost.
+      res.json({ mock: true, message: "E-mail mockado localmente com sucesso." });
+    } catch (error) {
+      console.error("Erro local disparando email mock", error);
+      res.status(500).json({ error: "Erro interno no servidor de teste" });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

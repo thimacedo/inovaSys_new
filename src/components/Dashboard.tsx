@@ -16,6 +16,7 @@ import {
   Activity,
   Server
 } from 'lucide-react';
+import Notifications from './Notifications';
 
 const ProcessList = lazy(() => import('./ProcessList'));
 const NewProcess = lazy(() => import('./NewProcess'));
@@ -180,6 +181,7 @@ export default function Dashboard({ session, userProfile, onSignOut }: { session
         </div>
         
         <div className="flex items-center gap-4">
+          <Notifications onSelectProcess={handleProcessSelect} />
           <div className="hidden md:flex flex-col items-end">
             <span className="text-xs font-bold text-slate-900">{session?.user?.email}</span>
             <span className="text-[10px] text-slate-400 uppercase tracking-widest">{userTipoUsuario}</span>

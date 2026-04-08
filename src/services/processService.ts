@@ -91,13 +91,13 @@ export const processService = {
       const { data, error } = await supabase.from('processos').insert([dbPayload]).select('id, numero_processo').single();
       if (error) throw error;
       
-      // Notificar Admins e Gestores da câmara
+      // Notificar Admins da câmara (somente o Admin da organização vinculada)
       if (dbPayload.camara_id) {
         const { data: admins } = await supabase
           .from('perfis')
           .select('id')
           .eq('camara_id', dbPayload.camara_id)
-          .in('tipo_usuario', ['admin', 'gestor']);
+          .eq('tipo_usuario', 'admin');
           
         if (admins && admins.length > 0) {
           const notifications = admins.map(admin => ({
@@ -136,6 +136,29 @@ export const processService = {
            processo_id: data.id,
            lida: false
         }]);
+
+        // Consulta os dados do árbitro para enviar E-mail
+        const { data: arbData } = await supabase.from('perfis').select('email, nome').eq('id', payload.arbitro_id).single();
+        if (arbData && arbData.email) {
+          await fetch('/api/vercel/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: arbData.email,
+              subject: 'InovaSys: Você foi nomeado para um Processo',
+              html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                  <h2 style="color: #0f172a;">Olá, ${arbData.nome || 'Árbitro'}!</h2>
+                  <p>Você foi designado pelo Presidente da sua Câmara para atuar como Árbitro no processo <strong>nº ${(data as Processo).numero_processo}</strong>.</p>
+                  <p>Os documentos oficiais do processo já se encontram <strong>preparados, organizados e formatados automaticamente</strong> no sistema.</p>
+                  <p>Acesse a plataforma <a href="https://inovasys-navy.vercel.app">InovaSys</a> para visualizar os resumos e dar andamento aos despachos.</p>
+                  <br/>
+                  <p>Atenciosamente,<br/><strong>Equipe InovaSys Automations</strong></p>
+                </div>
+              `
+            })
+          }).catch(err => console.error("Falha ao enviar webhook de e-mail:", err));
+        }
       }
       
       return data as Processo;
