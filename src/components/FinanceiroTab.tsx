@@ -1,14 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { financeiroService, RegistroFinanceiro } from '../services/financeiroService';
 import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { usePermissions } from '../hooks/usePermissions';
-import { DollarSign, Plus, Calendar, CheckCircle, Clock, Trash2 } from 'lucide-react';
+import { 
+  DollarSign, 
+  Plus, 
+  Calendar, 
+  CheckCircle, 
+  Clock, 
+  Trash2, 
+  X, 
+  Save, 
+  AlertCircle,
+  TrendingDown,
+  TrendingUp
+} from 'lucide-react';
 
 export default function FinanceiroTab({ processoId, organizationId }: { processoId: string, organizationId: string }) {
   const [registros, setRegistros] = useState<RegistroFinanceiro[]>([]);
   const [loading, setLoading] = useState(true);
-  const { showToast, showConfirm, showPrompt } = useModal();
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    descricao: '',
+    valor: '',
+    tipo: 'Custa' as any,
+    data_vencimento: new Date().toISOString().split('T')[0]
+  });
+  
+  const { showToast, showConfirm } = useModal();
   const { isAtLeastAdmin } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
 
@@ -28,37 +49,38 @@ export default function FinanceiroTab({ processoId, organizationId }: { processo
     }
   };
 
-  const handleNovoRegistro = async () => {
-    // Por simplicidade, usaremos prompts ou um modal interno no futuro.
-    // Aqui vamos simular a criação de uma custa básica para teste de fluxo.
-    showPrompt("Novo Lançamento", "Descrição do lançamento:", "Custas Iniciais", async (desc) => {
-      if (!desc) return;
-      showPrompt("Valor", "Valor (R$):", "0,00", async (valStr) => {
-          if (!valStr) return;
-          const valor = parseFloat(valStr.replace(/\./g, '').replace(',', '.'));
-          
-          if (isNaN(valor)) {
-            showToast('Valor inválido. Use o formato 0.000,00', 'attention');
-            return;
-          }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.descricao || !formData.valor) return;
 
-          try {
-            await financeiroService.create({
-              processo_id: processoId,
-              organization_id: organizationId,
-              descricao: desc,
-              valor: valor,
-              tipo: 'Custa',
-              status: 'Pendente',
-              data_vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-            });
-            showToast('Lançamento criado!', 'success');
-            carregarRegistros();
-          } catch (e: any) {
-            showToast('Erro ao criar: ' + e.message, 'error');
-          }
+    const valor = parseFloat(formData.valor.replace(',', '.'));
+    if (isNaN(valor)) {
+      showToast('Valor numérico inválido', 'attention');
+      return;
+    }
+
+    try {
+      await financeiroService.create({
+        processo_id: processoId,
+        organization_id: organizationId,
+        descricao: formData.descricao,
+        valor: valor,
+        tipo: formData.tipo,
+        status: 'Pendente',
+        data_vencimento: formData.data_vencimento
       });
-    });
+      showToast('Lançamento registrado!', 'success');
+      setShowForm(false);
+      setFormData({ 
+        descricao: '', 
+        valor: '', 
+        tipo: 'Custa', 
+        data_vencimento: new Date().toISOString().split('T')[0] 
+      });
+      carregarRegistros();
+    } catch (e: any) {
+      showToast('Erro ao criar: ' + e.message, 'error');
+    }
   };
 
   const handleMarcarComoPago = async (id: string) => {
@@ -87,110 +109,168 @@ export default function FinanceiroTab({ processoId, organizationId }: { processo
   };
 
   const totalPendente = registros.filter(r => r.status === 'Pendente').reduce((acc, r) => acc + Number(r.valor), 0);
+  const totalPago = registros.filter(r => r.status === 'Pago').reduce((acc, r) => acc + Number(r.valor), 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h4 className="text-xl font-bold text-slate-800">Controle Financeiro</h4>
-          <p className="text-sm text-slate-500">Gestão de custas e honorários deste processo</p>
-        </div>
-        {isAtLeastAdmin && (
-          <button 
-            onClick={handleNovoRegistro}
-            className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
-          >
-            <Plus size={18} />
-            Novo Lançamento
-          </button>
-        )}
-      </div>
-
+      {/* Mini Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-bold text-slate-400 uppercase mb-1">Total Pendente</p>
-          <p className="text-2xl font-black text-red-600">R$ {totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Custas Pendentes</p>
+            <p className="text-xl font-black text-amber-600">R$ {totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl">
+            <TrendingDown size={20} />
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-bold text-slate-400 uppercase mb-1">Total Pago</p>
-          <p className="text-2xl font-black text-green-600">R$ {registros.filter(r => r.status === 'Pago').reduce((acc, r) => acc + Number(r.valor), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+        
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Honorários Recebidos</p>
+            <p className="text-xl font-black text-emerald-600">R$ {totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+            <TrendingUp size={20} />
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-bold text-slate-400 uppercase mb-1">Nº de Lançamentos</p>
-          <p className="text-2xl font-black text-slate-800">{registros.length}</p>
+
+        <div className="bg-white p-2 rounded-3xl border border-slate-200 flex items-center justify-center">
+            {isAtLeastAdmin && !showForm && (
+                <button 
+                  onClick={() => setShowForm(true)}
+                  className="w-full h-full flex items-center justify-center gap-2 text-sm font-bold text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-all border border-dashed border-slate-200"
+                >
+                  <Plus size={18} />
+                  Novo Lançamento
+                </button>
+            )}
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 border-b border-slate-100">
-            <tr>
-              <th className="px-6 py-4 font-bold text-slate-600">Descrição</th>
-              <th className="px-6 py-4 font-bold text-slate-600">Tipo</th>
-              <th className="px-6 py-4 font-bold text-slate-600">Valor</th>
-              <th className="px-6 py-4 font-bold text-slate-600">Vencimento</th>
-              <th className="px-6 py-4 font-bold text-slate-600">Status</th>
-              <th className="px-6 py-4 font-bold text-slate-600 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {loading ? (
-              <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400">Carregando dados financeiros...</td></tr>
-            ) : registros.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">Nenhum lançamento financeiro para este processo.</td></tr>
-            ) : (
-              registros.map(reg => (
-                <tr key={reg.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-slate-700">{reg.descricao}</td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 rounded-lg bg-slate-100 text-[10px] font-bold text-slate-600 uppercase">
-                      {reg.tipo}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-slate-900">R$ {Number(reg.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                  <td className="px-6 py-4 text-slate-500">
-                    {reg.data_vencimento ? new Date(reg.data_vencimento).toLocaleDateString('pt-BR') : '---'}
-                  </td>
-                  <td className="px-6 py-4">
-                    {reg.status === 'Pago' ? (
-                      <span className="flex items-center gap-1.5 text-green-600 font-bold">
-                        <CheckCircle size={14} />
-                        Pago
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1.5 text-amber-600 font-bold">
-                        <Clock size={14} />
-                        Pendente
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      {reg.status === 'Pendente' && isAtLeastAdmin && (
-                        <button 
-                          onClick={() => handleMarcarComoPago(reg.id)}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                          title="Marcar como pago"
-                        >
-                          <CheckCircle size={18} />
-                        </button>
-                      )}
-                      {isAtLeastAdmin && (
-                        <button 
-                          onClick={() => handleExcluir(reg.id)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Excluir"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <AnimatePresence>
+        {showForm && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl overflow-hidden"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h5 className="font-bold flex items-center gap-2">
+                <Plus size={16} className="text-emerald-400" />
+                Registrar Lançamento Financeiro
+              </h5>
+              <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1.5 ml-1">Descrição</label>
+                <input 
+                  type="text" 
+                  value={formData.descricao}
+                  onChange={e => setFormData({...formData, descricao: e.target.value})}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  placeholder="Ex: Honorários Arbitrais - Parcela 1"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1.5 ml-1">Valor (R$)</label>
+                <input 
+                  type="text" 
+                  value={formData.valor}
+                  onChange={e => setFormData({...formData, valor: e.target.value})}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
+              <div className="flex items-end">
+                <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                  <Save size={16} />
+                  Salvar
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50/50 border-b border-slate-100">
+              <tr>
+                <th className="px-6 py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">Descrição</th>
+                <th className="px-6 py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">Valor</th>
+                <th className="px-6 py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest">Vencimento</th>
+                <th className="px-6 py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-center">Status</th>
+                <th className="px-6 py-4 font-black text-[10px] text-slate-400 uppercase tracking-widest text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {loading ? (
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-400">Processando...</td></tr>
+              ) : registros.length === 0 ? (
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">Nenhum lançamento registrado.</td></tr>
+              ) : (
+                registros.map(reg => (
+                  <tr key={reg.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-6 py-4">
+                      <p className="font-bold text-slate-800">{reg.descricao}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">{reg.tipo}</p>
+                    </td>
+                    <td className="px-6 py-4 font-black text-slate-900">R$ {Number(reg.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-6 py-4 text-slate-500">
+                      {reg.data_vencimento ? new Date(reg.data_vencimento).toLocaleDateString('pt-BR') : '---'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center">
+                        {reg.status === 'Pago' ? (
+                          <div className="flex items-center gap-1 py-1 px-3 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase">
+                            <CheckCircle size={12} />
+                            Pago
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 py-1 px-3 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black uppercase">
+                            <Clock size={12} />
+                            Pendente
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {reg.status === 'Pendente' && isAtLeastAdmin && (
+                          <button 
+                            onClick={() => handleMarcarComoPago(reg.id)}
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-emerald-100"
+                            title="Confirmar Pagamento"
+                          >
+                            <CheckCircle size={18} />
+                          </button>
+                        )}
+                        {isAtLeastAdmin && (
+                          <button 
+                            onClick={() => handleExcluir(reg.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-slate-100"
+                            title="Remover"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

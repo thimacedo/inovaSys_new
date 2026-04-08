@@ -36,6 +36,7 @@ const VercelManager = lazy(() => import('./VercelManager'));
 const TemplateManager = lazy(() => import('./TemplateManager'));
 const DashboardHome = lazy(() => import('./DashboardHome'));
 const FinanceiroBI = lazy(() => import('./FinanceiroBI'));
+const FinanceiroManager = lazy(() => import('./FinanceiroManager'));
 
 export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: any, userProfile: any, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
   const { isGlobalAdmin, canManageTeam, canCreateProcess, canSeeAudit, isGod, isAtLeastAdmin } = usePermissions();
@@ -158,7 +159,12 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
           return <TemplateManager />;
         }
         return <DashboardHome />;
-      case 'fin_bi':
+      case 'financeiro':
+        if (isAtLeastAdmin) {
+          return <FinanceiroManager />;
+        }
+        return <DashboardHome />;
+      case 'financeiro_bi':
         if (isAtLeastAdmin) {
           return <FinanceiroBI />;
         }
@@ -266,14 +272,25 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
               <>
                 <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">GESTÃO & NEGÓCIOS</p>
                 {isAtLeastAdmin && (
-                  <motion.button 
-                    whileHover={{ x: 4 }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'fin_bi' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                    onClick={() => { setCurrentView('fin_bi'); setIsSidebarOpen(false); }}
-                  >
-                    <DollarSign size={18} className={currentView === 'fin_bi' ? 'text-emerald-500' : ''} />
-                    <span className="text-sm">BI Financeiro</span>
-                  </motion.button>
+                  <div className="space-y-1">
+                    <motion.button 
+                      whileHover={{ x: 4 }}
+                      onClick={() => { setCurrentView('financeiro'); setIsSidebarOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${currentView === 'financeiro' ? 'bg-emerald-50 text-emerald-700 font-bold shadow-sm border border-emerald-100' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                      <DollarSign size={18} className={currentView === 'financeiro' ? 'text-emerald-500' : ''} />
+                      <span className="text-sm">Gestão Financeira</span>
+                    </motion.button>
+
+                    <motion.button 
+                      whileHover={{ x: 4 }}
+                      onClick={() => { setCurrentView('financeiro_bi'); setIsSidebarOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${currentView === 'financeiro_bi' ? 'bg-emerald-50 text-emerald-700 font-bold shadow-sm border border-emerald-100' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                      <Activity size={18} className={currentView === 'financeiro_bi' ? 'text-emerald-500' : ''} />
+                      <span className="text-sm">BI Financeiro</span>
+                    </motion.button>
+                  </div>
                 )}
                 
                 {canManageTeam && (
