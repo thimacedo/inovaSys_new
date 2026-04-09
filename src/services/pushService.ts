@@ -1,5 +1,7 @@
+import { supabase } from '../lib/supabase';
+
 /**
- * Serviço de Gerenciamento de Notificações Push
+ * Serviço de Gerenciamento de Notificações Push (PWA)
  */
 export const pushService = {
   /**
@@ -14,7 +16,10 @@ export const pushService = {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
-        await pushService.registerServiceWorker();
+        const registration = await pushService.registerServiceWorker();
+        if (registration) {
+          await pushService.subscribeUser(registration);
+        }
         return true;
       }
       return false;
@@ -37,6 +42,38 @@ export const pushService = {
         console.error('[Push Service] Falha ao registrar SW:', err);
       }
     }
+    return null;
+  },
+
+  /**
+   * Inscreve o usuário para Push real via Servidor
+   */
+  subscribeUser: async (registration: ServiceWorkerRegistration) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        // No futuro, adicionar publicVapidKey aqui
+        // applicationServerKey: '...' 
+      });
+
+      // Salva no banco de dados
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .insert({
+          user_id: user.id,
+          subscription_json: subscription,
+          device_type: window.innerWidth < 1024 ? 'mobile' : 'desktop'
+        });
+
+      if (error && error.code !== '23505') { // Ignora se já existir
+        console.warn('[Push Service] Falha ao salvar subscrição:', error);
+      }
+    } catch (error) {
+      console.error('[Push Service] Falha ao subscrever usuário:', error);
+    }
   },
 
   /**
@@ -44,26 +81,17 @@ export const pushService = {
    */
   sendLocalTest: async (title: string, body: string) => {
     if (Notification.permission === 'granted') {
-      if (!('serviceWorker' in navigator)) {
-        new Notification(title, { body });
-        return;
-      }
-      
       try {
-        // Aguarda o Service Worker estar pronto e ativo
         const registration = await navigator.serviceWorker.ready;
         if (registration && registration.active) {
           await registration.showNotification(title, {
             body: body,
             icon: '/logo-inovasys.png',
-            badge: '/logo-inovasys.png'
+            badge: '/logo-inovasys.png',
+            vibrate: [100, 50, 100]
           });
-        } else {
-          console.warn('[Push Service] Service Worker registrado, mas ainda não está ativo para exibir notificações.');
-          new Notification(title, { body });
         }
       } catch (error) {
-        console.error('[Push Service] Falha ao exibir notificação local:', error);
         new Notification(title, { body });
       }
     }
@@ -71,3 +99,4 @@ export const pushService = {
 };
 
 export default pushService;
+

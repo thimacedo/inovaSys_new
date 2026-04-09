@@ -83,7 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <nav className={`w-72 bg-white border-r border-slate-200 h-[calc(100vh-72px)] flex flex-col fixed lg:sticky left-0 top-[72px] z-40 transition-all duration-300 overflow-y-auto ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full lg:w-0 opacity-0'}`}>
+    <nav className={`w-72 glass border-r border-slate-200 h-[calc(100vh-72px)] flex flex-col fixed lg:sticky left-0 top-[72px] z-40 transition-all duration-300 overflow-y-auto ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full lg:w-0 opacity-0'}`}>
       <div className="flex-1 px-4 py-8 space-y-8">
         
         {/* SECTION: GERAL */}
