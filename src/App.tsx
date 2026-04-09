@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Toaster } from 'sonner';
 import { GlobalErrorBoundary } from './presentation/ui/components/GlobalErrorBoundary';
 import { useAuthSync } from './presentation/hooks/useAuthSync';
 import { useRealtimeSync } from './presentation/hooks/useRealtimeSync';
@@ -117,13 +118,16 @@ function AppContent() {
   if (!isAuthenticated || view === 'auth') return <Auth onPublicView={() => setView('public')} />;
 
   return (
-    <Dashboard 
-      session={{ user: currentUser }} 
-      userProfile={userProfile} 
-      onSignOut={handleSignOut} 
-      theme={theme}
-      onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
-    />
+    <>
+      <Toaster position="top-right" richColors closeButton />
+      <Dashboard 
+        session={{ user: currentUser }} 
+        userProfile={userProfile} 
+        onSignOut={handleSignOut} 
+        theme={theme}
+        onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+      />
+    </>
   );
 }
 

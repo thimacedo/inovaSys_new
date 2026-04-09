@@ -6,13 +6,13 @@
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/validate-env.mjs",
-    "build": "tsc && vite build",
+    "build": "npm run clean && tsc && vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "clean": "rm -rf dist"
+    "clean": "rmdir /s /q dist 2>nul || rmdir dist 2>nul || del /q dist 2>nul || true"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
@@ -27,6 +27,7 @@
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.0.0",
+    "sonner": "^2.0.7",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

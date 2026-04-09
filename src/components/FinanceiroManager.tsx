@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useFinanceiroByOrg, useUpdateFinanceiro } from '../presentation/hooks/useFinanceiro';
+import { toast } from 'sonner';
 import { 
   DollarSign, 
   Search, 
@@ -10,35 +10,33 @@ import {
   CheckCircle, 
   Clock, 
   FileText,
-  Calendar,
-  MoreVertical,
-  Trash2
+  Calendar
 } from 'lucide-react';
+import { ProcessRowSkeleton } from '../presentation/ui/components/Skeleton';
 
 export default function FinanceiroManager() {
   const [filterStatus, setFilterStatus] = useState<'Todos' | 'Pendente' | 'Pago'>('Todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const { showToast } = useModal();
   const currentUser = useAuthStore(state => state.currentUser);
 
-  // TanStack Query
   const organizationId = currentUser?.organization_id || (currentUser as any)?.organizacao_id;
   const { data: registros = [], isLoading: loading } = useFinanceiroByOrg(organizationId);
   const updateMutation = useUpdateFinanceiro();
 
   const handleMarcarPago = async (id: string) => {
-    try {
-      await updateMutation.mutateAsync({ 
-        id, 
-        data: { 
-          status: 'Pago', 
-          data_pagamento: new Date().toISOString() 
-        } 
-      });
-      showToast('Pagamento confirmado!', 'success');
-    } catch (e: any) {
-      showToast('Erro ao atualizar: ' + e.message, 'error');
-    }
+    const promise = updateMutation.mutateAsync({ 
+      id, 
+      data: { 
+        status: 'Pago', 
+        data_pagamento: new Date().toISOString() 
+      } 
+    });
+
+    toast.promise(promise, {
+      loading: 'Confirmando pagamento...',
+      success: 'Pagamento processado com sucesso!',
+      error: 'Erro ao processar pagamento.'
+    });
   };
 
   const filtered = registros.filter(r => {
@@ -56,7 +54,6 @@ export default function FinanceiroManager() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Stats */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -81,7 +78,6 @@ export default function FinanceiroManager() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -113,7 +109,6 @@ export default function FinanceiroManager() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -129,16 +124,18 @@ export default function FinanceiroManager() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {loading ? (
-                <tr><td colSpan={6} className="px-6 py-20 text-center text-slate-400">Carregando lançamentos...</td></tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i}>
+                    <td colSpan={6}><ProcessRowSkeleton /></td>
+                  </tr>
+                ))
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-20 text-center text-slate-400 italic">Nenhum registro encontrado.</td></tr>
               ) : (
                 filtered.map((reg) => (
                   <tr key={reg.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-blue-600">{reg.processos?.numero_processo || 'N/A'}</span>
-                      </div>
+                      <span className="text-xs font-bold text-blue-600">{reg.processos?.numero_processo || 'N/A'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
@@ -159,27 +156,18 @@ export default function FinanceiroManager() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex justify-center">
-                        {reg.status === 'Pago' ? (
-                          <div className="flex items-center gap-1.5 py-1 px-3 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase">
-                            <CheckCircle size={12} />
-                            Pago
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 py-1 px-3 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black uppercase">
-                            <Clock size={12} />
-                            Pendente
-                          </div>
-                        )}
+                        <div className={`flex items-center gap-1.5 py-1 px-3 rounded-lg text-[10px] font-black uppercase ${reg.status === 'Pago' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                          {reg.status === 'Pago' ? <CheckCircle size={12} /> : <Clock size={12} />}
+                          {reg.status}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex justify-end gap-2">
                         {reg.status === 'Pendente' && (
                           <button 
                             onClick={() => handleMarcarPago(reg.id)}
-                            disabled={updateMutation.isPending}
-                            className={`p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors ${updateMutation.isPending ? 'opacity-50' : ''}`}
-                            title="Confirmar Pagamento"
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                           >
                             <CheckCircle size={18} />
                           </button>

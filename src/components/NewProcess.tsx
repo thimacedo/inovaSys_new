@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useCreateProcess } from '../presentation/hooks/useProcessos';
-import { useModal } from '../context/ModalContext';
 import { applyMask, parseMoney } from '../utils/masks';
+import { toast } from 'sonner';
 
 interface NewProcessProps {
   onProcessCreated?: () => void;
@@ -12,7 +12,6 @@ interface NewProcessProps {
 
 const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) => {
   const currentUser = useAuthStore((state) => state.currentUser);
-  const { showToast } = useModal();
   const createMutation = useCreateProcess();
   
   const [formData, setFormData] = useState({
@@ -49,13 +48,13 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError || !session?.user?.id) {
-        setError("Sessão inválida ou expirada. Faça login novamente.");
+        toast.error("Sessão inválida ou expirada. Faça login novamente.");
         return;
       }
 
       const orgId = currentUser?.organization_id || (currentUser as any)?.organizacao_id;
       if (!orgId) {
-        setError("O usuário não possui vínculo com uma organização ativa. Operação bloqueada.");
+        toast.error("Vínculo organizacional não encontrado.");
         return;
       }
 
@@ -69,16 +68,17 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
 
       await createMutation.mutateAsync(payload, {
         onSuccess: () => {
-          showToast('Processo protocolado com sucesso!', 'success');
+          toast.success('Processo protocolado com sucesso!');
           if (onProcessCreated) onProcessCreated();
         },
         onError: (err: any) => {
+          toast.error('Falha ao criar processo. Verifique os dados.');
           setError(err?.message || "Erro ao criar processo.");
         }
       });
     } catch (err: any) {
-      console.error('[SUBMIT ERROR]', err);
-      setError(err?.message || "Falha de comunicação com o servidor.");
+      toast.error('Erro de comunicação com o servidor.');
+      setError(err?.message || "Falha de comunicação.");
     }
   };
 
@@ -91,7 +91,7 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
         </div>
       </div>
       
-      {error && <div className="error-message p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-sm font-bold mb-6">{error}</div>}
+      {error && <div className="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-sm font-bold mb-6">{error}</div>}
 
       <form onSubmit={handleProtocolar} className="space-y-6">
         <fieldset className="space-y-4 border border-slate-100 p-4 rounded-xl">
@@ -113,15 +113,15 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1 md:col-span-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nome / Razão Social</label>
-              <input type="text" name="requerente_nome" placeholder="Nome do Requerente" value={formData.requerente_nome} onChange={handleChange} required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
+              <input type="text" name="requerente_nome" placeholder="Nome" value={formData.requerente_nome} onChange={handleChange} required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Documento (CPF/CNPJ)</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">CPF/CNPJ</label>
               <input type="text" name="requerente_doc" placeholder="000.000.000-00" value={formData.requerente_doc} onChange={handleChange} required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Endereço Residencial/Comercial</label>
-              <input type="text" name="requerente_end" placeholder="Rua, número, bairro..." value={formData.requerente_end} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
+              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Endereço</label>
+              <input type="text" name="requerente_end" placeholder="Rua, número..." value={formData.requerente_end} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
             </div>
           </div>
         </fieldset>
@@ -131,15 +131,15 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1 md:col-span-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nome / Razão Social</label>
-              <input type="text" name="requerido_nome" placeholder="Nome do Requerido" value={formData.requerido_nome} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
+              <input type="text" name="requerido_nome" placeholder="Nome" value={formData.requerido_nome} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Documento (CPF/CNPJ)</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">CPF/CNPJ</label>
               <input type="text" name="requerido_doc" placeholder="000.000.000-00" value={formData.requerido_doc} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Endereço Completo</label>
-              <input type="text" name="requerido_end" placeholder="Rua, número, bairro..." value={formData.requerido_end} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
+              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Endereço</label>
+              <input type="text" name="requerido_end" placeholder="Rua, número..." value={formData.requerido_end} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
             </div>
           </div>
         </fieldset>
