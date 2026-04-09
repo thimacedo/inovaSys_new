@@ -1,6 +1,8 @@
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
 import { ProcessEntity } from '../infrastructure/database/repositories/ProcessRepository';
 
+export type Processo = ProcessEntity;
+
 export const createProcess = async (data: Partial<ProcessEntity>): Promise<ProcessEntity> => {
   return await DependencyRegistry.getProcessRepository().create(data);
 };
@@ -25,6 +27,17 @@ export const getAll = async (page = 1, pageSize = 10, search = '') => {
   return await DependencyRegistry.getProcessRepository().listWithPagination(page, pageSize, search);
 };
 
+export const assignArbitrator = async (id: string, arbitroId: string) => {
+  return await DependencyRegistry.getProcessRepository().update(id, { arbitro_id: arbitroId });
+};
+
+export const publicSearch = async (numero: string) => {
+  // Busca pública simplificada
+  const repo = DependencyRegistry.getProcessRepository();
+  const { data } = await repo.listWithPagination(1, 1, numero);
+  return data[0] || null;
+};
+
 export const processService = {
   create: createProcess,
   createProcess,
@@ -36,7 +49,9 @@ export const processService = {
   updateProcess,
   delete: deleteProcess,
   deleteProcess,
-  getAll
+  getAll,
+  assignArbitrator,
+  publicSearch
 };
 
 export default processService;
