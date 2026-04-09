@@ -89,7 +89,7 @@ export const pushService = {
             icon: '/logo-inovasys.png',
             badge: '/logo-inovasys.png',
             vibrate: [100, 50, 100]
-          });
+          } as any);
         }
       } catch (error) {
         new Notification(title, { body });

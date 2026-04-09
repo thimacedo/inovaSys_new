@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // A chave será buscada do ambiente (VITE_GEMINI_API_KEY)
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
