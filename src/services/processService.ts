@@ -1,7 +1,7 @@
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
 import { ProcessEntity } from '../infrastructure/database/repositories/ProcessRepository';
 
-export type Processo = ProcessEntity;
+export interface Processo extends ProcessEntity {}
 
 export const createProcess = async (data: Partial<ProcessEntity>): Promise<ProcessEntity> => {
   return await DependencyRegistry.getProcessRepository().create(data);
@@ -33,11 +33,7 @@ export const assignArbitrator = async (id: string, arbitroId: string) => {
 
 export const publicSearch = async (numero: string, documento: string) => {
   const repo = DependencyRegistry.getProcessRepository();
-  // Busca pública que exige o número E o documento (CPF/CNPJ) de uma das partes para segurança
   const { data } = await repo.listWithPagination(1, 10, numero);
-  
-  // Filtro extra no cliente para garantir que o documento bate com o requerente ou requerido
-  // Em produção, isso deveria ser uma query RPC ou filtragem no servidor (RLS)
   return data.find(p => 
     p.numero_processo === numero && (p.requerente_doc === documento || p.requerido_doc === documento)
   ) || null;

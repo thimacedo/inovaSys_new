@@ -1,7 +1,7 @@
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
 import { FinanceiroEntity } from '../infrastructure/database/repositories/FinanceiroRepository';
 
-export type RegistroFinanceiro = FinanceiroEntity;
+export interface RegistroFinanceiro extends FinanceiroEntity {}
 
 export const financeiroService = {
   create: async (data: Partial<FinanceiroEntity>) => DependencyRegistry.getFinanceiroRepository().create(data),
@@ -9,7 +9,6 @@ export const financeiroService = {
   delete: async (id: string) => DependencyRegistry.getFinanceiroRepository().delete(id),
   listByOrganization: async (orgId: string) => DependencyRegistry.getFinanceiroRepository().listByOrganization(orgId),
   listByProcesso: async (processoId: string) => DependencyRegistry.getFinanceiroRepository().listByProcesso(processoId),
-  // Alias de compatibilidade
   getByProcesso: async (processoId: string) => DependencyRegistry.getFinanceiroRepository().listByProcesso(processoId)
 };
 
