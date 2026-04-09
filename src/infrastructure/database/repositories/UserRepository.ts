@@ -8,6 +8,9 @@ export interface UserEntity {
   tipo_usuario?: string;
   camara_id?: string;
   organization_id?: string;
+  cpf?: string;
+  endereco?: string;
+  created_at?: string;
 }
 
 export class UserRepository extends BaseSupabaseRepository<UserEntity> {
@@ -17,41 +20,56 @@ export class UserRepository extends BaseSupabaseRepository<UserEntity> {
     super(client);
   }
 
-  public async getById(id: string): Promise<UserEntity | null> {
-    try {
-      const { data, error } = await this.client
-        .from(this.tableName)
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') return null; // Row not found
-        throw error;
-      }
-
-      return data as UserEntity;
-    } catch (error) {
-      return this.handleError(error, 'getById');
-    }
+  /**
+   * Lista todos os usuários (com paginação/ordenação básica do base)
+   */
+  public async listAll(limit = 100) {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    return data as UserEntity[];
   }
 
-  public async getByEmail(email: string): Promise<UserEntity | null> {
-    try {
-      const { data, error } = await this.client
-        .from(this.tableName)
-        .select('*')
-        .eq('email', email)
-        .single();
+  /**
+   * Busca especializada com Join para membros de organização (Árbitros)
+   */
+  public async listArbitrosByOrg(organizationId: string) {
+    const { data, error } = await this.client
+      .from('org_members')
+      .select(`user_id, perfis ( id, nome, cpf )`)
+      .eq('organization_id', organizationId)
+      .eq('role', 'arbitro');
 
-      if (error) {
-        if (error.code === 'PGRST116') return null; // Row not found
-        throw error;
-      }
+    if (error) throw error;
+    return data;
+  }
 
-      return data as UserEntity;
-    } catch (error) {
-      return this.handleError(error, 'getByEmail');
-    }
+  public async findByEmail(email: string): Promise<UserEntity | null> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    return data as UserEntity;
+  }
+
+  /**
+   * Sobrescrita do getById para incluir tratamento de erro unificado
+   */
+  public async getById(id: string): Promise<UserEntity | null> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    
+    if (error) throw error;
+    return data as UserEntity;
   }
 }
