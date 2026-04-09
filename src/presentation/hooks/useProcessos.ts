@@ -43,24 +43,18 @@ export function useCreateProcess() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: Partial<ProcessEntity>) => {
-      return await processService.create(data);
-    },
+    mutationFn: async (data: Partial<ProcessEntity>) => processService.create(data),
     onSuccess: (newProcess) => {
       queryClient.invalidateQueries({ queryKey: [PROCESSOS_QUERY_KEY] });
       
-      // Registo automático de protocolo no histórico
-      if (newProcess?.id) {
-        historyService.addEntry(
-          newProcess.id,
-          'Processo Protocolado',
-          'sistema',
-          'O processo foi registado com sucesso no sistema.',
-          (newProcess as any).user_id || (newProcess as any).autor_id
-        ).then(() => {
-          queryClient.invalidateQueries({ queryKey: [HISTORY_KEY, newProcess.id] });
-        });
-      }
+      // Automação: Registo de protocolo inicial na Timeline
+      historyService.addEntry(
+        newProcess.id,
+        'Processo Protocolado',
+        'sistema',
+        'O processo foi registrado com sucesso no sistema e a timeline iniciada.',
+        newProcess.autor_id
+      );
     }
   });
 }
