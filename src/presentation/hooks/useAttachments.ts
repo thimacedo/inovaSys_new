@@ -39,8 +39,9 @@ export function useUploadAttachment() {
 export function useDeleteAttachment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => attachmentService.deleteAttachment(id),
-    onSuccess: (_, id) => {
+    mutationFn: (vars: { id: string; storagePath: string }) => 
+      attachmentService.deleteAttachment(vars.id, vars.storagePath),
+    onSuccess: () => {
        queryClient.invalidateQueries({ queryKey: [ATTACHMENTS_KEY] });
     }
   });
