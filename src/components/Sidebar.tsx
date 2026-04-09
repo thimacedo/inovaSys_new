@@ -10,7 +10,8 @@ import {
   FileText,
   Files,
   DollarSign,
-  Activity
+  Activity,
+  CalendarDays
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 
@@ -69,6 +70,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         >
           <Files size={18} className={currentView === 'process_list' ? 'text-blue-500' : ''} />
           <span className="text-sm">Meus Processos</span>
+        </motion.button>
+
+        <motion.button 
+          whileHover={{ x: 4 }}
+          className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'calendar' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
+          onClick={() => handleNavClick('calendar')}
+        >
+          <CalendarDays size={18} className={currentView === 'calendar' ? 'text-blue-500' : ''} />
+          <span className="text-sm">Agenda da Câmara</span>
         </motion.button>
         
         {canCreateProcess && (
