@@ -27,7 +27,10 @@ export class FinanceiroRepository extends BaseSupabaseRepository<FinanceiroEntit
     try {
       const { data, error } = await this.client
         .from(this.tableName)
-        .select('*')
+        .select(`
+          *,
+          processos:processo_id (numero_processo)
+        `)
         .eq('organization_id', organizationId)
         .order('created_at', { ascending: false });
 

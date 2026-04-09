@@ -1,16 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
-import { HISTORY_KEY } from './useHistory';
+import attachmentService from '../../services/attachmentService';
+import historyService from '../../services/historyService';
 
 export const ATTACHMENTS_KEY = 'attachments';
+const HISTORY_KEY = 'process_history';
 
 export function useAttachments(processoId: string | undefined) {
   return useQuery({
     queryKey: [ATTACHMENTS_KEY, processoId],
-    queryFn: async () => {
-      if (!processoId) return [];
-      return await DependencyRegistry.getAttachmentRepository().listByProcesso(processoId);
-    },
+    queryFn: async () => processoId ? attachmentService.listByProcesso(processoId) : [],
     enabled: !!processoId,
     staleTime: 1000 * 60 * 5,
   });
@@ -18,19 +16,18 @@ export function useAttachments(processoId: string | undefined) {
 
 export function useUploadAttachment() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ file, processoId, userId }: { file: File; processoId: string; userId: string }) => {
-      return await DependencyRegistry.getAttachmentRepository().uploadFile(file, processoId, userId);
-    },
+    mutationFn: (vars: { file: File; processoId: string; userId: string }) => 
+      attachmentService.uploadFile(vars.file, vars.processoId, vars.userId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [ATTACHMENTS_KEY, variables.processoId] });
-      // Registro automático no histórico
-      DependencyRegistry.getHistoryRepository().addEntry(
-        variables.processoId,
-        'Novo anexo adicionado',
-        'usuario',
-        `Arquivo "${variables.file.name}" anexado ao processo.`,
+      
+      // Registo automático de histórico
+      historyService.addEntry(
+        variables.processoId, 
+        'Novo anexo', 
+        'usuario', 
+        `Arquivo "${variables.file.name}" anexado.`, 
         variables.userId
       ).then(() => {
         queryClient.invalidateQueries({ queryKey: [HISTORY_KEY, variables.processoId] });
@@ -41,23 +38,10 @@ export function useUploadAttachment() {
 
 export function useDeleteAttachment() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ id, storagePath, processoId, userId }: { id: string; storagePath: string; processoId: string; userId?: string }) => {
-      return await DependencyRegistry.getAttachmentRepository().deleteAttachment(id, storagePath);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [ATTACHMENTS_KEY, variables.processoId] });
-      // Registro automático no histórico
-      DependencyRegistry.getHistoryRepository().addEntry(
-        variables.processoId,
-        'Anexo removido',
-        'usuario',
-        'Um documento foi excluído do processo.',
-        variables.userId
-      ).then(() => {
-        queryClient.invalidateQueries({ queryKey: [HISTORY_KEY, variables.processoId] });
-      });
+    mutationFn: (id: string) => attachmentService.delete(id),
+    onSuccess: (_, id) => {
+       queryClient.invalidateQueries({ queryKey: [ATTACHMENTS_KEY] });
     }
   });
 }

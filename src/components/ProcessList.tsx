@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ProcessEntity as Processo } from '../infrastructure/database/repositories/ProcessRepository';
 import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
-import { useProcessos } from '../presentation/hooks/useProcessos';
+import { useProcessos, useDeleteProcess } from '../presentation/hooks/useProcessos';
 import { toast } from 'sonner';
 import {
   BarChart3,
@@ -52,15 +52,14 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
     return () => clearTimeout(searchTimerRef.current);
   }, [searchTerm]);
 
+  const deleteMutation = useDeleteProcess();
+
   const excluirProcesso = async (id: string) => {
     showConfirm(
       "Confirmar Exclusão",
       "A exclusão apagará TUDO relacionado a este processo. Esta ação não pode ser desfeita. Confirma?",
       async () => {
-        const promise = (async () => {
-          const { processService } = await import('../services/processService');
-          await processService.delete(id);
-        })();
+        const promise = deleteMutation.mutateAsync(id);
 
         toast.promise(promise, {
           loading: 'Excluindo processo...',

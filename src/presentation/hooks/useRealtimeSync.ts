@@ -5,6 +5,8 @@ import { useAuthStore } from '../state/useAuthStore';
 import { PROCESSOS_QUERY_KEY } from './useProcessos';
 import { NOTIFICATIONS_KEY } from './useNotifications';
 import { FINANCEIRO_ORG_KEY, FINANCEIRO_PROCESS_KEY } from './useFinanceiro';
+import { TEAM_KEY } from './useTeam';
+import { CALENDAR_KEY } from './useCalendar';
 
 export function useRealtimeSync() {
   const queryClient = useQueryClient();
@@ -39,6 +41,22 @@ export function useRealtimeSync() {
           console.log('[Realtime] Dados financeiros alterados.');
           queryClient.invalidateQueries({ queryKey: [FINANCEIRO_ORG_KEY] });
           queryClient.invalidateQueries({ queryKey: [FINANCEIRO_PROCESS_KEY] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'perfis' },
+        () => {
+          console.log('[Realtime] Mudança na equipe detectada.');
+          queryClient.invalidateQueries({ queryKey: [TEAM_KEY] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'agenda' },
+        () => {
+          console.log('[Realtime] Agenda da câmara atualizada.');
+          queryClient.invalidateQueries({ queryKey: [CALENDAR_KEY] });
         }
       )
       .subscribe((status) => {

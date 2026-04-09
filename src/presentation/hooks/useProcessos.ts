@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { processService } from '../../services/processService';
+import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
 import { ProcessEntity } from '../../infrastructure/database/repositories/ProcessRepository';
 
 export const PROCESSOS_QUERY_KEY = 'processos';
@@ -13,12 +13,12 @@ export function useProcessos(
     queryFn: async () => {
       if (!camaraId) return { data: [], count: 0 };
       
+      const repo = DependencyRegistry.getProcessRepository();
       if (params) {
-        return await processService.getAll(params.page, params.pageSize, params.search);
+        return await repo.listWithPagination(params.page, params.pageSize, params.search);
       }
       
-      const listFn = processService.listByCamara || (processService as any).getProcessosByCamara;
-      const data = await listFn(camaraId);
+      const data = await repo.listByCamara(camaraId);
       return { data, count: data.length };
     },
     enabled: !!camaraId,
@@ -31,8 +31,7 @@ export function useProcesso(id: string | undefined) {
     queryKey: [PROCESSOS_QUERY_KEY, 'detail', id],
     queryFn: async () => {
       if (!id) return null;
-      const getFn = processService.getById || (processService as any).getProcessById;
-      return await getFn(id);
+      return await DependencyRegistry.getProcessRepository().getById(id);
     },
     enabled: !!id,
     staleTime: 1000 * 60 * 5,
@@ -44,14 +43,23 @@ export function useCreateProcess() {
 
   return useMutation({
     mutationFn: async (data: Partial<ProcessEntity>) => {
-      const createFn = processService.create || (processService as any).createProcess;
-      return await createFn(data);
+      return await DependencyRegistry.getProcessRepository().create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [PROCESSOS_QUERY_KEY] });
+    }
+  });
+}
+
+export function useDeleteProcess() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await DependencyRegistry.getProcessRepository().delete(id);
     },
-    onError: (error) => {
-      console.error('[Mutation Error] Falha ao criar processo:', error);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [PROCESSOS_QUERY_KEY] });
     }
   });
 }
