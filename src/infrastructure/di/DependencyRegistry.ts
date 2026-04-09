@@ -5,6 +5,7 @@ import { CamaraRepository } from '../database/repositories/CamaraRepository';
 import { FinanceiroRepository } from '../database/repositories/FinanceiroRepository';
 import { NotificationRepository } from '../database/repositories/NotificationRepository';
 import { TemplateRepository } from '../database/repositories/TemplateRepository';
+import { AttachmentRepository } from '../database/repositories/AttachmentRepository';
 import { GetUserByEmailUseCase } from '../../core/usecases/GetUserByEmailUseCase';
 
 export class DependencyRegistry {
@@ -14,6 +15,7 @@ export class DependencyRegistry {
   private static financeiroRepository: FinanceiroRepository | null = null;
   private static notificationRepository: NotificationRepository | null = null;
   private static templateRepository: TemplateRepository | null = null;
+  private static attachmentRepository: AttachmentRepository | null = null;
 
   public static getUserRepository(): UserRepository {
     if (!this.userRepository) this.userRepository = new UserRepository(SupabaseClientFactory.createBrowser());
@@ -43,6 +45,13 @@ export class DependencyRegistry {
   public static getTemplateRepository(): TemplateRepository {
     if (!this.templateRepository) this.templateRepository = new TemplateRepository(SupabaseClientFactory.createBrowser());
     return this.templateRepository;
+  }
+
+  public static getAttachmentRepository(): AttachmentRepository {
+    if (!this.attachmentRepository) {
+      this.attachmentRepository = new AttachmentRepository(SupabaseClientFactory.createBrowser());
+    }
+    return this.attachmentRepository;
   }
 
   public static getGetUserByEmailUseCase(): GetUserByEmailUseCase {

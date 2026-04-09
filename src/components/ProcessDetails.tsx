@@ -17,6 +17,7 @@ import { applyMask } from '../utils/masks';
 import DocumentPreview from './DocumentPreview';
 import BatchDocumentPreview from './BatchDocumentPreview';
 import FinanceiroTab from './FinanceiroTab';
+import ProcessAttachments from './ProcessAttachments';
 import { Clock, Send, Calendar as CalendarIcon, ExternalLink, FileText, Download, Trash2 } from 'lucide-react';
 
 export default function ProcessDetails({ processId, onBack, camaraConfig: propCamaraConfig }: { processId: string, onBack: () => void, camaraConfig?: any }) {
@@ -26,9 +27,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   const { data: processo, isLoading: loading, isError } = useProcesso(processId);
 
   const [andamentos, setAndamentos] = useState<Andamento[]>([]);
-  const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [arbitros, setArbitros] = useState<any[]>([]);
-  const [uploading, setUploading] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
   const [novoAndamento, setNovoAndamento] = useState('');
@@ -45,7 +44,6 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   useEffect(() => {
     if (processId) {
       carregarAndamentos();
-      carregarAnexos();
     }
   }, [processId]);
 
@@ -63,43 +61,6 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
     } catch (e) {
       console.error('Erro ao carregar árbitros:', e);
     }
-  };
-
-  const carregarAnexos = async () => {
-    try {
-      const data = await attachmentService.getByProcesso(processId);
-      setAnexos(data);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleUploadAnexo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      await attachmentService.upload(processId, file);
-      showToast('Arquivo anexado com sucesso!', 'success');
-      carregarAnexos();
-    } catch (error) {
-      showToast('Erro ao anexar arquivo.', 'error');
-    } finally {
-      setUploading(false);
-      e.target.value = '';
-    }
-  };
-
-  const handleExcluirAnexo = async (id: string, url: string) => {
-    showConfirm("Excluir Anexo", "Tem certeza que deseja excluir este anexo?", async () => {
-      try {
-        await attachmentService.delete(id, url);
-        showToast('Anexo excluído com sucesso!', 'success');
-        carregarAnexos();
-      } catch (error) {
-        showToast('Erro ao excluir anexo.', 'error');
-      }
-    }, "Excluir");
   };
 
   const carregarAndamentos = async () => {
@@ -380,41 +341,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
           )}
 
           {activeTab === 'anexos' && (
-            <div className="space-y-8">
-              <div className="flex justify-between items-center bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                <h4 className="text-sm font-bold text-slate-900">Gerenciar Documentos Anexos</h4>
-                <div>
-                  <input type="file" id="file-upload" className="hidden" onChange={handleUploadAnexo} disabled={uploading} />
-                  <label htmlFor="file-upload" className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer transition-all shadow-md ${uploading ? 'bg-slate-200 text-slate-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-                    {uploading ? 'Enviando...' : 'Fazer Upload'}
-                  </label>
-                </div>
-              </div>
-
-              {anexos.length === 0 ? (
-                <div className="text-center py-24 bg-slate-50 rounded-3xl border border-slate-200 border-dashed">
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Aguardando Documentação</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {anexos.map(anexo => (
-                    <div key={anexo.id} className="bg-white border border-slate-200 rounded-3xl p-6 hover:shadow-xl transition-all group flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl"><FileText size={24} /></div>
-                            <button onClick={() => handleExcluirAnexo(anexo.id, anexo.url)} className="p-2 text-slate-300 hover:text-red-600 transition-colors"><Trash2 size={20} /></button>
-                        </div>
-                        <h5 className="font-bold text-slate-900 text-sm line-clamp-2">{anexo.nome_arquivo}</h5>
-                      </div>
-                      <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-50">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">{(anexo.tamanho / 1024 / 1024).toFixed(2)} MB</span>
-                        <a href={anexo.url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">Download</a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ProcessAttachments processoId={processId} />
           )}
 
           {activeTab === 'documentos' && (
