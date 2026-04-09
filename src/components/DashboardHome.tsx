@@ -1,81 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import React, { useMemo } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import { useAuthStore } from '../presentation/state/useAuthStore';
+import { useProcessos } from '../presentation/hooks/useProcessos';
+import { useFinanceiroByOrg } from '../presentation/hooks/useFinanceiro';
 import { motion } from 'motion/react';
 import { 
   BarChart3, 
   Users, 
   TrendingUp, 
   Building2, 
-  AlertCircle,
   DollarSign,
   CheckCircle,
-  Activity,
-  Server,
-  FileText,
   Files
 } from 'lucide-react';
-import { userService } from '../services/userService';
 
 export default function DashboardHome() {
-  const { isGod, isAtLeastAdmin } = usePermissions();
+  const { isGod } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
-  const [stats, setStats] = useState({
-    totalProcessos: 0,
-    totalUsuarios: 0,
-    totalCamaras: 0,
-    totalFinanceiro: 0
-  });
-  const [loading, setLoading] = useState(true);
+  
+  // Identificação da Câmara/Organização
+  const camaraId = currentUser?.organization_id || currentUser?.camara_id;
 
-  useEffect(() => {
-    loadStats();
-  }, []);
+  // Hooks reativos (TanStack Query)
+  const { data: processosData, isLoading: loadingProcs } = useProcessos(camaraId);
+  const { data: financeiroData, isLoading: loadingFinance } = useFinanceiroByOrg(camaraId);
 
-  const loadStats = async () => {
-    setLoading(true);
-    try {
-      // Se for GOD, buscar estatísticas globais
-      if (isGod) {
-        const [proc, users, camaras, finance] = await Promise.all([
-          supabase.from('processos').select('*', { count: 'exact', head: true }),
-          supabase.from('perfis').select('*', { count: 'exact', head: true }),
-          supabase.from('camaras').select('*', { count: 'exact', head: true }),
-          supabase.from('financeiro').select('valor').eq('status', 'Pago')
-        ]);
+  const stats = useMemo(() => {
+    // Processos
+    const procs = processosData?.data || [];
+    const totalProcessos = procs.length;
+    const processosAtivos = procs.filter(p => p.status !== 'Concluído' && p.status !== 'Arquivado').length;
 
-        setStats({
-          totalProcessos: proc.count || 0,
-          totalUsuarios: users.count || 0,
-          totalCamaras: camaras.count || 0,
-          totalFinanceiro: finance.data?.reduce((acc, curr) => acc + Number(curr.valor), 0) || 0
-        });
-      } 
-      // Se for Admin/Gestor, buscar estatísticas da organização
-      else if (currentUser?.organization_id) {
-        const [proc, users, finance] = await Promise.all([
-          supabase.from('processos').select('*', { count: 'exact', head: true }).eq('organization_id', currentUser.organization_id),
-          supabase.from('perfis').select('*', { count: 'exact', head: true }).eq('organization_id', currentUser.organization_id),
-          supabase.from('financeiro').select('valor').eq('organization_id', currentUser.organization_id).eq('status', 'Pago')
-        ]);
+    // Financeiro
+    const finance = financeiroData || [];
+    const totalFinanceiro = finance
+      .filter(f => f.status === 'Pago')
+      .reduce((acc, curr) => acc + Number(curr.valor), 0);
 
-        setStats({
-          totalProcessos: proc.count || 0,
-          totalUsuarios: users.count || 0,
-          totalCamaras: 1,
-          totalFinanceiro: finance.data?.reduce((acc, curr) => acc + Number(curr.valor), 0) || 0
-        });
-      }
-    } catch (e) {
-      console.error('Erro ao carregar estatísticas:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return {
+      totalProcessos,
+      processosAtivos,
+      totalFinanceiro,
+      totalUsuarios: isGod ? 'Global' : 1, // Placeholder para usuários se não houver hook específico solicitado
+      totalCamaras: isGod ? 'Global' : 1
+    };
+  }, [processosData, financeiroData, isGod]);
+
+  const loading = loadingProcs || loadingFinance;
 
   const statCards = [
-    { label: 'Processos Ativos', value: stats.totalProcessos, icon: Files, color: 'blue' },
+    { label: 'Processos Ativos', value: stats.processosAtivos, icon: Files, color: 'blue' },
     { label: 'Usuários no Sistema', value: stats.totalUsuarios, icon: Users, color: 'purple' },
     { label: isGod ? 'Câmaras Registradas' : 'Status da Câmara', value: isGod ? stats.totalCamaras : 'Ativa', icon: Building2, color: 'amber' },
     { label: 'Volume Financeiro (Pago)', value: `R$ ${stats.totalFinanceiro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'emerald' },
