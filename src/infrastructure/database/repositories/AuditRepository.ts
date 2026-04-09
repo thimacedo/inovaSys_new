@@ -14,6 +14,10 @@ export interface AuditEntity {
   perfil?: any;
 }
 
+export interface AuditWithProfile extends AuditEntity {
+  perfil: { nome: string; email: string };
+}
+
 export class AuditRepository extends BaseSupabaseRepository<AuditEntity> {
   protected readonly tableName = 'auditoria';
 
@@ -21,7 +25,7 @@ export class AuditRepository extends BaseSupabaseRepository<AuditEntity> {
     super(client);
   }
 
-  public async listAll(limit = 100): Promise<AuditEntity[]> {
+  public async listAll(limit = 100): Promise<AuditWithProfile[]> {
     try {
       const { data, error } = await this.client
         .from(this.tableName)
@@ -33,7 +37,7 @@ export class AuditRepository extends BaseSupabaseRepository<AuditEntity> {
         .limit(limit);
 
       if (error) throw error;
-      return data as any[];
+      return data as AuditWithProfile[];
     } catch (error) {
       return this.handleError(error, 'listAll');
     }

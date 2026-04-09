@@ -48,6 +48,16 @@ export default function Auditoria() {
     return groups;
   }, [filteredLogs]);
 
+  const grouped = useMemo(() => {
+    const groups: Record<string, typeof logs> = {};
+    filteredLogs.forEach(log => {
+      const date = new Date(log.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(log);
+    });
+    return groups;
+  }, [filteredLogs]);
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">

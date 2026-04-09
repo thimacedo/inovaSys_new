@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
+import teamService from '../../services/teamService';
 
 export const TEAM_KEY = 'team_members';
 
@@ -8,7 +8,7 @@ export function useTeamMembers(organizationId: string | undefined) {
     queryKey: [TEAM_KEY, organizationId],
     queryFn: async () => {
       if (!organizationId) return [];
-      return await DependencyRegistry.getTeamRepository().listByOrganization(organizationId);
+      return await teamService.listByOrganization(organizationId);
     },
     enabled: !!organizationId,
     staleTime: 1000 * 60 * 5,
@@ -20,7 +20,7 @@ export function useUpdateUserRole() {
 
   return useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string; newRole: string }) => {
-      await DependencyRegistry.getTeamRepository().updateUserRole(userId, newRole);
+      await teamService.updateUserRole(userId, newRole);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TEAM_KEY] });
@@ -33,7 +33,7 @@ export function useRemoveUser() {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      await DependencyRegistry.getTeamRepository().removeUserFromOrganization(userId);
+      await teamService.removeUser(userId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TEAM_KEY] });

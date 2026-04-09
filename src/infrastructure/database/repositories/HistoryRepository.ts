@@ -13,6 +13,10 @@ export interface HistoryEntity {
   perfil?: any;
 }
 
+export interface HistoryWithProfile extends HistoryEntity {
+  perfil: { nome: string; email: string };
+}
+
 export class HistoryRepository extends BaseSupabaseRepository<HistoryEntity> {
   protected readonly tableName = 'historico_processos';
 
@@ -20,7 +24,7 @@ export class HistoryRepository extends BaseSupabaseRepository<HistoryEntity> {
     super(client);
   }
 
-  public async listByProcesso(processoId: string): Promise<HistoryEntity[]> {
+  public async listByProcesso(processoId: string): Promise<HistoryWithProfile[]> {
     try {
       const { data, error } = await this.client
         .from(this.tableName)
@@ -32,7 +36,7 @@ export class HistoryRepository extends BaseSupabaseRepository<HistoryEntity> {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as any[];
+      return data as HistoryWithProfile[];
     } catch (error) {
       return this.handleError(error, 'listByProcesso');
     }
