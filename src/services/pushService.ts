@@ -40,20 +40,34 @@ export const pushService = {
   },
 
   /**
-   * Envia uma notificação local (para teste)
+   * Envia uma notificação local (para teste) garantindo que o SW está pronto
    */
   sendLocalTest: async (title: string, body: string) => {
     if (Notification.permission === 'granted') {
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (registration && registration.active) {
-        registration.showNotification(title, {
-          body: body,
-          icon: '/logo-inovasys.png',
-          badge: '/logo-inovasys.png'
-        });
-      } else {
+      if (!('serviceWorker' in navigator)) {
+        new Notification(title, { body });
+        return;
+      }
+      
+      try {
+        // Aguarda o Service Worker estar pronto e ativo
+        const registration = await navigator.serviceWorker.ready;
+        if (registration && registration.active) {
+          await registration.showNotification(title, {
+            body: body,
+            icon: '/logo-inovasys.png',
+            badge: '/logo-inovasys.png'
+          });
+        } else {
+          console.warn('[Push Service] Service Worker registrado, mas ainda não está ativo para exibir notificações.');
+          new Notification(title, { body });
+        }
+      } catch (error) {
+        console.error('[Push Service] Falha ao exibir notificação local:', error);
         new Notification(title, { body });
       }
     }
   }
 };
+
+export default pushService;
