@@ -1,60 +1,46 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React from 'react';
 
-interface Props {
-  children: ReactNode;
-}
-
-interface State {
-  hasError: boolean;
-  errorMessage: string;
-}
-
-export class GlobalErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    errorMessage: ''
-  };
-
-  constructor(props: Props) {
+/**
+ * Escudo de Proteção Global (Error Boundary)
+ * Captura falhas críticas de renderização para evitar o "white screen of death".
+ */
+export class GlobalErrorBoundary extends React.Component<any, any> {
+  constructor(props: any) {
     super(props);
+    this.state = {
+      hasError: false,
+      errorMessage: ''
+    };
   }
 
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, errorMessage: error.message };
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, errorMessage: error.message || 'Erro inesperado' };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('Uncaught error:', error, errorInfo);
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('[Proteção InovaSys] Erro capturado:', error, errorInfo);
   }
 
-  public render(): ReactNode {
-    if (this.state.hasError) {
+  render() {
+    const s = this.state as any;
+    const p = this.props as any;
+
+    if (s.hasError) {
       return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-          <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-10 shadow-xl">
-            <div>
-              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Falha Crítica no Sistema
-              </h2>
-              <p className="mt-2 text-center text-sm text-red-600 font-medium">
-                {this.state.errorMessage.includes('CONFIG_ERROR') 
-                  ? 'Erro de Configuração do Banco de Dados. Verifique as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.'
-                  : 'Ocorreu um erro inesperado na aplicação.'}
-              </p>
-            </div>
-            <div className="mt-8 space-y-6">
-              <button
-                onClick={() => window.location.reload()}
-                className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                Tentar Novamente
-              </button>
-            </div>
+        <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9fafb', padding: '20px', textAlign: 'center' }}>
+          <div style={{ padding: '40px', backgroundColor: 'white', borderRadius: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', maxWidth: '450px' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#111827', marginBottom: '16px' }}>Falha Crítica</h2>
+            <p style={{ color: '#ef4444', fontSize: '14px', marginBottom: '24px' }}>{s.errorMessage}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              style={{ padding: '12px 24px', backgroundColor: '#4f46e5', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+            >
+              Reiniciar Plataforma
+            </button>
           </div>
         </div>
       );
     }
-
-    return this.props.children;
+    return p.children;
   }
 }
