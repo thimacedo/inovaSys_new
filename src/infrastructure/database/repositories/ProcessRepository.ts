@@ -9,6 +9,10 @@ export interface ProcessEntity {
   arbitro_id?: string;
   requerente_id?: string;
   requerido_id?: string;
+  requerente_nome?: string;
+  requerido_nome?: string;
+  requerente_doc?: string;
+  requerido_doc?: string;
   valor_causa?: number;
   created_at?: string;
   [key: string]: any;
@@ -76,6 +80,24 @@ export class ProcessRepository extends BaseSupabaseRepository<ProcessEntity> {
       return { data: data as ProcessEntity[], count };
     } catch (error) {
       return this.handleError(error, 'listWithPagination');
+    }
+  }
+
+  public async publicSearch(searchQuery: string): Promise<ProcessEntity | null> {
+    try {
+      const { data, error } = await this.client
+        .from(this.tableName)
+        .select('*')
+        .eq('numero_processo', searchQuery)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') return null;
+        throw error;
+      }
+      return data as ProcessEntity;
+    } catch (error) {
+      return this.handleError(error, 'publicSearch');
     }
   }
 }

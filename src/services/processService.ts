@@ -1,7 +1,7 @@
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
 import { ProcessEntity } from '../infrastructure/database/repositories/ProcessRepository';
 
-export interface Processo extends ProcessEntity {}
+export type Processo = ProcessEntity;
 
 export const createProcess = async (data: Partial<ProcessEntity>): Promise<ProcessEntity> => {
   return await DependencyRegistry.getProcessRepository().create(data);
@@ -27,16 +27,12 @@ export const getAll = async (page = 1, pageSize = 10, search = '') => {
   return await DependencyRegistry.getProcessRepository().listWithPagination(page, pageSize, search);
 };
 
-export const assignArbitrator = async (id: string, arbitroId: string) => {
+export const assignArbitrator = async (id: string, arbitroId: string): Promise<ProcessEntity> => {
   return await DependencyRegistry.getProcessRepository().update(id, { arbitro_id: arbitroId });
 };
 
-export const publicSearch = async (numero: string, documento: string) => {
-  const repo = DependencyRegistry.getProcessRepository();
-  const { data } = await repo.listWithPagination(1, 10, numero);
-  return data.find(p => 
-    p.numero_processo === numero && (p.requerente_doc === documento || p.requerido_doc === documento)
-  ) || null;
+export const publicSearch = async (query: string): Promise<ProcessEntity | null> => {
+  return await DependencyRegistry.getProcessRepository().publicSearch(query);
 };
 
 export const processService = {
