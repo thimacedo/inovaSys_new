@@ -96,7 +96,7 @@ export default function ProcessAttachments({ processoId }: { processoId: string 
                   <Download size={18} />
                 </button>
                 <button 
-                  onClick={() => deleteMutation.mutate({ id: file.id, storagePath: file.caminho_storage })}
+                  onClick={() => deleteMutation.mutate({ id: file.id, storagePath: file.caminho_storage, processoId, userId: currentUser?.id })}
                   disabled={deleteMutation.isPending}
                   className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                   title="Excluir Documento"

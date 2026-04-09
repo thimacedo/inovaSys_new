@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeiroService } from '../../services/financeiroService';
 import { FinanceiroEntity } from '../../infrastructure/database/repositories/FinanceiroRepository';
+import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
+import { HISTORY_KEY } from './useHistory';
 
 export const FINANCEIRO_ORG_KEY = 'financeiro_org';
 export const FINANCEIRO_PROCESS_KEY = 'financeiro_processo';
@@ -34,10 +36,21 @@ export function useCreateFinanceiro() {
 
   return useMutation({
     mutationFn: async (data: Partial<FinanceiroEntity>) => await financeiroService.create(data),
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: [FINANCEIRO_ORG_KEY] });
       if (variables.processo_id) {
         queryClient.invalidateQueries({ queryKey: [FINANCEIRO_PROCESS_KEY, variables.processo_id] });
+        
+        // Registro automático no histórico do processo
+        DependencyRegistry.getHistoryRepository().addEntry(
+          variables.processo_id,
+          'Lançamento financeiro',
+          'usuario',
+          `Novo registro de ${variables.tipo === 'receita' ? 'receita' : 'despesa'} no valor de R$ ${variables.valor}.`,
+          variables.perfil_id
+        ).then(() => {
+          queryClient.invalidateQueries({ queryKey: [HISTORY_KEY, variables.processo_id] });
+        });
       }
     }
   });
@@ -49,9 +62,21 @@ export function useUpdateFinanceiro() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<FinanceiroEntity> }) => 
       await financeiroService.update(id, data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [FINANCEIRO_ORG_KEY] });
       queryClient.invalidateQueries({ queryKey: [FINANCEIRO_PROCESS_KEY] });
+      
+      if (variables.data.processo_id) {
+        DependencyRegistry.getHistoryRepository().addEntry(
+          variables.data.processo_id,
+          'Atualização financeira',
+          'usuario',
+          'Um registro financeiro vinculado a este processo foi atualizado.',
+          variables.data.perfil_id
+        ).then(() => {
+          queryClient.invalidateQueries({ queryKey: [HISTORY_KEY, variables.data.processo_id] });
+        });
+      }
     }
   });
 }
