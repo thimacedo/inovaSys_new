@@ -10,10 +10,16 @@ interface State {
 }
 
 export class GlobalErrorBoundary extends React.Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    errorMessage: ''
-  };
+  // Garantia de tipagem para o compilador TS em ambientes estritos
+  declare props: Props;
+
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      errorMessage: ''
+    };
+  }
 
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, errorMessage: error.message };
@@ -51,6 +57,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    // Acesso seguro ao children utilizando cast se necessário, embora declare props resolva.
+    return (this.props as Props).children;
   }
 }
