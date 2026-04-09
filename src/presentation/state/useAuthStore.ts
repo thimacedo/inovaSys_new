@@ -1,17 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export interface UserEntity {
-  id: string;
-  email?: string;
-  organization_id?: string;
-  [key: string]: any;
-}
-
 export interface AuthState {
-  currentUser: UserEntity | null;
+  currentUser: any | null;
   isAuthenticated: boolean;
-  setCurrentUser: (user: UserEntity | null) => void;
+  setCurrentUser: (user: any) => void;
   logout: () => void;
 }
 
@@ -20,8 +13,20 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       currentUser: null,
       isAuthenticated: false,
-      setCurrentUser: (user: UserEntity | null) => set({ currentUser: user, isAuthenticated: !!user }),
-      logout: () => set({ currentUser: null, isAuthenticated: false }),
+      setCurrentUser: (user) => {
+        // Fallback de Retrocompatibilidade:
+        // Se o sistema antigo gravou 'camara_id' mas a nova arquitetura pede 'organization_id'
+        if (user && !user.organization_id && user.camara_id) {
+          user.organization_id = user.camara_id;
+          console.log('🔄 [Auto-Heal] organization_id sincronizado a partir do camara_id');
+        }
+        
+        set({ currentUser: user, isAuthenticated: !!user });
+      },
+      logout: () => {
+        localStorage.removeItem('auth-storage');
+        set({ currentUser: null, isAuthenticated: false });
+      },
     }),
     { name: 'auth-storage' }
   )
