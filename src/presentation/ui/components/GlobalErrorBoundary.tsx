@@ -4,10 +4,10 @@ import React from 'react';
  * Escudo de Proteção Global (Error Boundary)
  * Captura falhas críticas de renderização para evitar o "white screen of death".
  */
-export class GlobalErrorBoundary extends (React.Component as any) {
+export class GlobalErrorBoundary extends React.Component<any, any> {
   constructor(props: any) {
     super(props);
-    (this as any).state = {
+    this.state = {
       hasError: false,
       errorMessage: ''
     };
@@ -22,8 +22,8 @@ export class GlobalErrorBoundary extends (React.Component as any) {
   }
 
   render() {
-    const s = (this as any).state;
-    const p = (this as any).props;
+    const s = this.state as any;
+    const p = this.props as any;
 
     if (s.hasError) {
       return (
