@@ -38,9 +38,39 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   useEffect(() => {
+    // Verificação inicial
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
     }
+    
+    // Listener para redimensionamento da janela
+    const handleResize = () => {
+      // ✅ Mantém o menu SEMPRE aberto em telas grandes, independente do tempo logado
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(prev => {
+          // ✅ Correção definitiva: NUNCA fecha automaticamente no desktop
+          // Se o usuário fechou manualmente, respeita a escolha
+          return prev === false ? false : true;
+        });
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // ✅ Proteção final: Verificação a cada 15 segundos para recuperar estado se for perdido
+    const interval = setInterval(() => {
+      if (window.innerWidth >= 1024 && document.visibilityState === 'visible') {
+        setIsSidebarOpen(prev => {
+          // Se por algum motivo ficou fechado sem ação do usuário, reabre
+          return prev === false ? false : true;
+        });
+      }
+    }, 15000);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
