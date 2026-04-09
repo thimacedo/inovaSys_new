@@ -7,6 +7,7 @@ import { NotificationRepository } from '../database/repositories/NotificationRep
 import { TemplateRepository } from '../database/repositories/TemplateRepository';
 import { AttachmentRepository } from '../database/repositories/AttachmentRepository';
 import { TeamRepository } from '../database/repositories/TeamRepository';
+import { AuditRepository } from '../database/repositories/AuditRepository';
 import { GetUserByEmailUseCase } from '../../core/usecases/GetUserByEmailUseCase';
 
 export class DependencyRegistry {
@@ -18,6 +19,7 @@ export class DependencyRegistry {
   private static templateRepository: TemplateRepository | null = null;
   private static attachmentRepository: AttachmentRepository | null = null;
   private static teamRepository: TeamRepository | null = null;
+  private static auditRepository: AuditRepository | null = null;
 
   public static getUserRepository(): UserRepository {
     if (!this.userRepository) this.userRepository = new UserRepository(SupabaseClientFactory.createBrowser());
@@ -61,6 +63,13 @@ export class DependencyRegistry {
       this.teamRepository = new TeamRepository(SupabaseClientFactory.createBrowser());
     }
     return this.teamRepository;
+  }
+
+  public static getAuditRepository(): AuditRepository {
+    if (!this.auditRepository) {
+      this.auditRepository = new AuditRepository(SupabaseClientFactory.createBrowser());
+    }
+    return this.auditRepository;
   }
 
   public static getGetUserByEmailUseCase(): GetUserByEmailUseCase {

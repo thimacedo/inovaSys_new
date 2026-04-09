@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -6,27 +6,21 @@ import {
   UserPlus, 
   Shield, 
   Mail, 
-  Calendar, 
   MoreVertical, 
   Edit2, 
   Trash2, 
-  Search, 
-  Filter,
   Info,
   CheckCircle2,
-  AlertCircle,
   MapPin,
-  Fingerprint,
-  ChevronRight
+  Fingerprint
 } from 'lucide-react';
-import { userService, Perfil } from '../services/userService';
-import { authService } from '../services/authService';
-import { auditService } from '../services/auditService';
+import { userService } from '../services/userService';
 import { supabase } from '../lib/supabase';
 import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { applyMask } from '../utils/masks';
 import { isValidCPF } from '../utils/validators';
+import { useTeamMembers, useUpdateUserRole, useRemoveUser } from '../presentation/hooks/useTeam';
 
 function AddMemberForm({ onAdded, camaraId: propCamaraId, currentUserRole }: { onAdded: (password?: string) => void, camaraId?: string, currentUserRole: string }) {
   const [email, setEmail] = useState('');
@@ -82,11 +76,6 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId, currentUserRole }: { o
         }
       }
 
-      // 2. Criar Usuário no Auth via Supabase direct API (server-side proxy recomendado)
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      // Senha segura gerada via Web Crypto API (24 chars, alfanum+symbols)
       const generateSecurePassword = (): string => {
         const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=';
         const array = new Uint8Array(24);
@@ -95,6 +84,8 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId, currentUserRole }: { o
       };
 
       const tempPassword = generateSecurePassword();
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
       const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
         method: 'POST',
@@ -141,16 +132,9 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId, currentUserRole }: { o
         if (updateError) {
           await supabase.from('perfis').upsert({ id: json.user.id, ...updateData });
         }
-
-        await auditService.log('ADICIONAR_MEMBRO', {
-          novo_usuario_id: json.user.id,
-          email: email.trim(),
-          tipo_usuario: tipoUsuario,
-          camara_id: targetCamaraId
-        });
       }
 
-      showToast('Sucesso: Membro adicionado à equipe! Senha temporária gerada.', 'success');
+      showToast('Sucesso: Membro adicionado à equipe!', 'success');
       onAdded(tempPassword);
     } catch (err: any) {
       console.error(err);
@@ -212,7 +196,7 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId, currentUserRole }: { o
             <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <select 
               value={tipoUsuario}
-              onChange={(e) => setTipoUsuario(e.target.value)}
+              onChange={(e) => setTypeUsuario(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none"
             >
               <option value="assistente">Assistente (Protocola e Vê Processos)</option>
@@ -266,7 +250,7 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId, currentUserRole }: { o
         <button 
           type="button"
           onClick={() => {
-            const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');
+            const closeBtn = document.querySelector('button[aria-label="Close modal"]');
             if (closeBtn instanceof HTMLElement) closeBtn.click();
           }}
           className="px-6 py-2.5 text-slate-500 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 rounded-xl transition-all"
@@ -286,66 +270,44 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId, currentUserRole }: { o
 }
 
 export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }) {
-  const [equipe, setEquipe] = useState<Perfil[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { showToast, showConfirm, showPrompt, showModal } = useModal();
-  const { isGod, isGestor, isAdmin: isLocalAdmin, isGlobalAdmin, canManageTeam } = usePermissions();
+  const { showToast, showConfirm, showModal } = useModal();
+  const { isGlobalAdmin, isAdmin: isLocalAdmin } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
+  const camaraId = propCamaraId || currentUser?.organization_id || currentUser?.camara_id;
 
-  useEffect(() => {
-    carregarEquipe();
-  }, [propCamaraId]);
+  // Hooks do TanStack Query
+  const { data: membrosRaw = [], isLoading } = useTeamMembers(camaraId);
+  const updateRoleMutation = useUpdateUserRole();
+  const removeUserMutation = useRemoveUser();
 
-  const carregarEquipe = async () => {
-    setLoading(true);
-    try {
-      const data = await userService.getAll();
-      const myCamaraId = propCamaraId || currentUser?.camara_id;
+  // Memória calculada para filtragem de permissões
+  const membros = useMemo(() => {
+    return membrosRaw.filter(m => {
+      if (isGlobalAdmin) return true;
       
-      const filteredData = data.filter(m => {
-        // Super Admin e Gestor Global vêem tudo
-        if (isGlobalAdmin) return true;
-        
-        // Outros vêem apenas membros da mesma câmara
-        if (myCamaraId && m.camara_id !== myCamaraId) return false;
-        
-        // Membros só vêem a si mesmos se não forem admins da câmara
-        if (!isLocalAdmin && m.id !== currentUser?.id) return false;
+      // Membros comuns só vêem a si mesmos
+      if (!isLocalAdmin && m.id !== currentUser?.id) return false;
 
-        // Admins da câmara não vêem gestores globais ou super admins
-        const mRole = m.tipo_usuario?.toLowerCase();
-        if (isLocalAdmin && !isGlobalAdmin) {
-           return !['gestor', 'controle', 'god'].includes(mRole);
-        }
+      // Admins da câmara não vêem gestores globais
+      const mRole = m.tipo_usuario?.toLowerCase();
+      if (isLocalAdmin && !isGlobalAdmin) {
+         return !['gestor', 'controle', 'god'].includes(mRole);
+      }
+      return true;
+    });
+  }, [membrosRaw, isGlobalAdmin, isLocalAdmin, currentUser]);
 
-        return true;
-      });
-
-      setEquipe(filteredData);
-    } catch (e: any) {
-      console.error('Erro detalhado ao carregar equipe:', e);
-      showToast(`Erro ao carregar equipe: ${e.message || 'Erro desconhecido'}`, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEditTipoUsuario = async (membro: Perfil) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    
-    const currentUserRole = await userService.getTipoUsuario(user.id);
-    
-    // Níveis permitidos para o usuário logado atribuir
+  const handleEditTipoUsuario = (membro: any) => {
     const rolesPermitidas = [];
-    if (currentUserRole === 'gestor' || currentUserRole === 'GOD') {
-      rolesPermitidas.push({ value: 'GOD', label: 'Super Admin (GOD)' });
+    const currentUserRole = currentUser?.tipo_usuario?.toLowerCase();
+
+    if (currentUserRole === 'gestor' || currentUserRole === 'god') {
       rolesPermitidas.push({ value: 'gestor', label: 'Gestor Global' });
       rolesPermitidas.push({ value: 'controle', label: 'Controle Global' });
       rolesPermitidas.push({ value: 'admin', label: 'Administrador (Câmara)' });
       rolesPermitidas.push({ value: 'assistente', label: 'Assistente' });
       rolesPermitidas.push({ value: 'arbitro', label: 'Árbitro' });
-    } else if (currentUserRole === 'admin') {
+    } else {
       rolesPermitidas.push({ value: 'admin', label: 'Administrador (Câmara)' });
       rolesPermitidas.push({ value: 'assistente', label: 'Assistente' });
       rolesPermitidas.push({ value: 'arbitro', label: 'Árbitro' });
@@ -372,7 +334,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
         <div className="flex justify-end gap-3 pt-4">
           <button 
             onClick={() => {
-              const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');
+              const closeBtn = document.querySelector('button[aria-label="Close modal"]');
               if (closeBtn instanceof HTMLElement) closeBtn.click();
             }}
             className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-semibold transition-colors"
@@ -380,100 +342,56 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
             Cancelar
           </button>
           <button 
+            disabled={updateRoleMutation.isPending}
             onClick={async () => {
               const select = document.getElementById('new-role-select') as HTMLSelectElement;
               const newRole = select.value;
               try {
-                await userService.update(membro.id, { tipo_usuario: newRole });
+                await updateRoleMutation.mutateAsync({ userId: membro.id, newRole });
                 showToast("Nível de acesso atualizado!", 'success');
-                carregarEquipe();
-                const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');
+                const closeBtn = document.querySelector('button[aria-label="Close modal"]');
                 if (closeBtn instanceof HTMLElement) closeBtn.click();
               } catch (e) {
-                showToast("Erro ao atualizar: " + (e as Error).message, 'error');
+                showToast("Erro ao atualizar permissão.", 'error');
               }
             }}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors"
           >
-            Confirmar
+            {updateRoleMutation.isPending ? 'Salvando...' : 'Confirmar'}
           </button>
         </div>
       </div>
     );
   };
 
-  const handleDeleteMembro = async (id: string) => {
+  const handleDeleteMembro = (id: string) => {
     if (id === currentUser?.id) {
-      showToast("Atenção: Você não pode remover seu próprio acesso.", 'attention');
+      showToast("Você não pode remover seu próprio acesso.", 'attention');
       return;
     }
 
     showConfirm(
       "Remover Membro",
-      "Tem certeza que deseja remover este membro da equipe? O acesso ao sistema será revogado.",
+      "Deseja remover este membro da equipe? O acesso será revogado.",
       async () => {
         try {
-          showToast("Processando exclusão...");
-          await userService.delete(id);
+          await removeUserMutation.mutateAsync(id);
           showToast("Membro removido com sucesso!", 'success');
-          await carregarEquipe();
-        } catch (e: any) {
-          console.error('Erro ao excluir membro:', e);
-          showToast("Erro ao remover: " + (e.message || "Erro desconhecido"), 'error');
+        } catch (e) {
+          showToast("Erro ao remover membro.", 'error');
         }
       },
-      "Remover Permanentemente"
+      "Remover"
     );
   };
 
   const handleAddMemberClick = () => {
     showModal(
       "Novo Membro na Equipe",
-      <AddMemberForm currentUserRole={currentUser?.tipo_usuario || ''} onAdded={(generatedPassword?: string) => {
-        carregarEquipe();
-        const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');
-        if (closeBtn instanceof HTMLElement) closeBtn.click();
-
-        // Show the generated password so admin can share it
-        if (generatedPassword) {
-          setTimeout(() => {
-            showModal(
-              "Senha Temporária Gerada",
-              <div className="space-y-4 p-2 text-center">
-                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 size={32} />
-                </div>
-                <p className="text-sm text-slate-600">
-                  O membro foi criado com sucesso. Compartilhe a senha temporária abaixo de forma segura:
-                </p>
-                <div className="bg-slate-900 text-white p-4 rounded-xl font-mono text-lg select-all">
-                  {generatedPassword}
-                </div>
-                <p className="text-xs text-slate-400">
-                  Recomende ao membro alterar a senha no primeiro acesso.
-                </p>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(generatedPassword);
-                    showToast('Senha copiada!', 'success');
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700"
-                >
-                  Copiar Senha
-                </button>
-                <button
-                  onClick={() => {
-                    const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');
-                    if (closeBtn instanceof HTMLElement) closeBtn.click();
-                  }}
-                  className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg text-sm font-bold"
-                >
-                  Fechar
-                </button>
-              </div>
-            );
-          }, 300);
-        }
+      <AddMemberForm currentUserRole={currentUser?.tipo_usuario || ''} onAdded={(tempPwd) => {
+        // Invalidação do Query já tratada na mutação se houvesse uma mutação de criação separada
+        // Aqui o AddMemberForm ainda usa supabase direto para signup (necessário para auth)
+        // Mas a listagem recarregará se invalidarmos manualmente ou via realtime
       }} />
     );
   };
@@ -490,12 +408,12 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
             <Users className="text-blue-600" size={32} />
             EQUIPE DA CÂMARA
           </h2>
-          <p className="text-slate-500 font-medium">Gerencie quem pode acessar o sistema e as funções de cada um.</p>
+          <p className="text-slate-500 font-medium">Gerencie o acesso e as funções dos colaboradores.</p>
         </div>
         <div className="flex gap-3">
           <button 
             onClick={handleAddMemberClick}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 flex items-center gap-2"
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center gap-2"
           >
             <UserPlus size={18} />
             Novo Membro
@@ -504,7 +422,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
             <div className="w-12 h-12 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin"></div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando membros...</p>
@@ -516,79 +434,45 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
                 <tr className="bg-slate-50/50 border-b border-slate-200">
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Membro</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cadastro</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Acesso</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {equipe.map(e => (
+                {membros.map(e => (
                   <tr key={e.id} className="hover:bg-slate-50 transition-colors group">
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center font-bold text-lg transition-all shadow-inner">
+                        <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-lg">
                           {(e.nome || e.email || 'U').charAt(0).toUpperCase()}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-slate-900">{e.nome || e.email || 'Usuário'}</span>
-                          <span className="text-xs text-slate-500 flex items-center gap-1">
-                            <Mail size={12} />
-                            {e.email}
-                          </span>
-                          {e.tipo_usuario === 'arbitro' && (
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                                <Fingerprint size={10} />
-                                CPF: {e.cpf || '---'}
-                              </span>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                                <MapPin size={10} />
-                                {e.endereco || '---'}
-                              </span>
-                            </div>
-                          )}
+                          <span className="text-sm font-bold text-slate-900">{e.nome || e.email}</span>
+                          <span className="text-xs text-slate-500">{e.email}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-600">
-                          {new Date(e.created_at).toLocaleDateString('pt-BR')}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Início</span>
-                      </div>
+                      <span className="text-xs font-bold text-slate-600">
+                        {e.created_at ? new Date(e.created_at).toLocaleDateString('pt-BR') : '---'}
+                      </span>
                     </td>
                     <td className="px-6 py-5">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${
-                        e.tipo_usuario?.toLowerCase() === 'gestor' 
-                          ? 'bg-amber-50 text-amber-700 border-amber-100' 
-                          : e.tipo_usuario?.toLowerCase() === 'controle'
-                          ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
-                          : e.tipo_usuario?.toLowerCase() === 'admin'
-                          ? 'bg-purple-50 text-purple-700 border-purple-100'
-                          : e.tipo_usuario?.toLowerCase() === 'arbitro'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                          : 'bg-blue-50 text-blue-700 border-blue-100'
-                      }`}>
-                        {e.tipo_usuario?.toLowerCase() === 'gestor' ? 'Gestor Global' : 
-                         e.tipo_usuario?.toLowerCase() === 'controle' ? 'Controle' :
-                         e.tipo_usuario?.toLowerCase() === 'admin' ? 'Admin' : 
-                         e.tipo_usuario?.toLowerCase() === 'arbitro' ? 'Árbitro' : 
-                         e.tipo_usuario?.toLowerCase() === 'assistente' ? 'Assistente' : 'Usuário'}
+                      <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border bg-blue-50 text-blue-700 border-blue-100">
+                        {e.tipo_usuario}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                         <button 
                           onClick={() => handleEditTipoUsuario(e)}
-                          className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                          title="Editar Nível"
+                          className="p-2.5 text-slate-400 hover:text-blue-600 rounded-xl transition-all"
                         >
                           <Edit2 size={18} />
                         </button>
                         <button 
                           onClick={() => handleDeleteMembro(e.id)}
-                          className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                          title="Remover"
+                          className="p-2.5 text-slate-400 hover:text-red-600 rounded-xl transition-all"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -596,16 +480,6 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
                     </td>
                   </tr>
                 ))}
-                {equipe.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-24 text-center">
-                      <div className="flex flex-col items-center justify-center text-slate-400 gap-3">
-                        <Users size={48} className="opacity-20" />
-                        <p className="text-sm font-medium italic">Nenhum membro da equipe encontrado.</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
