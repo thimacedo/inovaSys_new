@@ -17,21 +17,13 @@ export class CamaraRepository extends BaseSupabaseRepository<CamaraEntity> {
   }
 
   public async getById(id: string): Promise<CamaraEntity | null> {
-    try {
-      const { data, error } = await this.client
-        .from(this.tableName)
-        .select('*')
-        .eq('id', id)
-        .single();
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
 
-      if (error) {
-        if (error.code === 'PGRST116') return null;
-        throw error;
-      }
-
-      return data as CamaraEntity;
-    } catch (error) {
-      return this.handleError(error, 'getById');
-    }
+    if (error) return this.handleError(error, 'getById');
+    return data as CamaraEntity;
   }
 }

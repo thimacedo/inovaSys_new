@@ -27,7 +27,7 @@ export class HistoryRepository extends BaseSupabaseRepository<HistoryEntity> {
     try {
       const { data, error } = await this.client
         .from(this.tableName)
-        .select('*, perfil:autor_id (nome, email)')
+        .select('*, perfis:autor_id (nome, email)')
         .eq('processo_id', processoId)
         .order('created_at', { ascending: false });
 
