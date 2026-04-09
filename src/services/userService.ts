@@ -62,7 +62,8 @@ export const userService = {
     return data.map((m: any) => ({
       id: m.user_id,
       nome: m.perfis?.nome || 'Árbitro sem nome',
-      cpf: m.perfis?.cpf || ''
+      cpf: m.perfis?.cpf || '',
+      email: m.perfis?.email || ''
     }));
   }
 };

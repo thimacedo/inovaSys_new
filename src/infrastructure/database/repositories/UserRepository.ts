@@ -40,7 +40,7 @@ export class UserRepository extends BaseSupabaseRepository<UserEntity> {
   public async listArbitrosByOrg(organizationId: string) {
     const { data, error } = await this.client
       .from('org_members')
-      .select(`user_id, perfis ( id, nome, cpf )`)
+      .select(`user_id, perfis ( id, nome, cpf, email )`)
       .eq('organization_id', organizationId)
       .eq('role', 'arbitro');
 

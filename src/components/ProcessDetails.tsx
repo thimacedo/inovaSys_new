@@ -5,16 +5,15 @@ import { useProcesso } from '../presentation/hooks/useProcessos';
 import { userService } from '../services/userService';
 import { documentService } from '../services/documentService';
 import { whatsappService } from '../services/whatsappService';
-import { calendarService } from '../services/calendarService';
 import { processService, Processo } from '../services/processService';
 import { isValidDoc } from '../utils/validators';
 import FinanceiroTab from './FinanceiroTab';
 import ProcessAttachments from './ProcessAttachments';
 import ProcessTimeline from './ProcessTimeline';
 import { useAddHistoryEntry } from '../presentation/hooks/useHistory';
-import { Clock, Send, Calendar as CalendarIcon, ExternalLink, FileText, Download, Trash2 } from 'lucide-react';
+import { Clock, ExternalLink, FileText, Download } from 'lucide-react';
 
-export default function ProcessDetails({ processId, onBack, camaraConfig: propCamaraConfig }: { processId: string, onBack: () => void, camaraConfig?: any }) {
+export default function ProcessDetails({ processId, onBack }: { processId: string, onBack: () => void }) {
   const currentUser = useAuthStore((state) => state.currentUser);
   
   // TanStack Query Hook
@@ -26,7 +25,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   const [activeTab, setActiveTab] = useState('resumo');
   const [novoAndamento, setNovoAndamento] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { showToast, showModal, showPrompt, showConfirm } = useModal();
+  const { showToast, showPrompt } = useModal();
 
   const isAdmin = ['gestor', 'admin', 'god'].includes(currentUser?.tipo_usuario?.toLowerCase() || '');
   const canEditProcess = isAdmin || (processo && processo.arbitro_id === currentUser?.id);
@@ -95,7 +94,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   };
 
   const handleAssignArbitrator = async (arbitroId: string) => {
-    if (!processo) return;
+    if (!processo || !arbitroId) return;
     setIsAssigning(true);
     try {
       await processService.assignArbitrator(processo.id, arbitroId);

@@ -180,8 +180,8 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                           </td>
                           <td className="px-6 py-5">
                             <div className="flex flex-col">
-                              <span className="text-sm font-bold text-slate-900">{(p as any).requerente_nome}</span>
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{(p as any).requerido_nome}</span>
+                              <span className="text-sm font-bold text-slate-900">{p.requerente_nome}</span>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{p.requerido_nome}</span>
                             </div>
                           </td>
                           <td className="px-6 py-5">
@@ -213,8 +213,8 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                   {loading ? [...Array(3)].map((_, i) => <ProcessRowSkeleton key={i} />) : processos.filter(p => p.status === status).map(p => (
                     <div key={p.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => onProcessSelect(p.id)}>
                       <span className="text-[10px] font-mono font-bold text-blue-600 block mb-2">{p.numero_processo}</span>
-                      <p className="text-sm font-bold text-slate-900 mb-1 line-clamp-1">{(p as any).requerente_nome}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase line-clamp-1">{(p as any).requerido_nome}</p>
+                      <p className="text-sm font-bold text-slate-900 mb-1 line-clamp-1">{p.requerente_nome}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase line-clamp-1">{p.requerido_nome}</p>
                     </div>
                   ))}
                 </div>
