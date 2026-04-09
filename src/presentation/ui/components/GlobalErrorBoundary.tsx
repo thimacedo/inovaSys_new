@@ -1,4 +1,4 @@
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -9,10 +9,7 @@ interface State {
   errorMessage: string;
 }
 
-export class GlobalErrorBoundary extends React.Component<Props, State> {
-  // Garantia de tipagem para o compilador TS em ambientes estritos
-  declare props: Props;
-
+export class GlobalErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -57,7 +54,6 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    // Acesso seguro ao children utilizando cast se necessário, embora declare props resolva.
-    return (this.props as Props).children;
+    return this.props.children;
   }
 }
