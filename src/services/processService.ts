@@ -31,11 +31,16 @@ export const assignArbitrator = async (id: string, arbitroId: string) => {
   return await DependencyRegistry.getProcessRepository().update(id, { arbitro_id: arbitroId });
 };
 
-export const publicSearch = async (numero: string) => {
-  // Busca pública simplificada
+export const publicSearch = async (numero: string, documento: string) => {
   const repo = DependencyRegistry.getProcessRepository();
-  const { data } = await repo.listWithPagination(1, 1, numero);
-  return data[0] || null;
+  // Busca pública que exige o número E o documento (CPF/CNPJ) de uma das partes para segurança
+  const { data } = await repo.listWithPagination(1, 10, numero);
+  
+  // Filtro extra no cliente para garantir que o documento bate com o requerente ou requerido
+  // Em produção, isso deveria ser uma query RPC ou filtragem no servidor (RLS)
+  return data.find(p => 
+    p.numero_processo === numero && (p.requerente_doc === documento || p.requerido_doc === documento)
+  ) || null;
 };
 
 export const processService = {
