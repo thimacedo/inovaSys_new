@@ -33,7 +33,7 @@ export default function Auditoria() {
   const filteredLogs = useMemo(() => {
     return (logs as any[]).filter(log => 
       log.acao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.perfil?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (log as any).perfil?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       JSON.stringify(log.dados_novos || log.dados_antigos).toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [logs, searchTerm]);

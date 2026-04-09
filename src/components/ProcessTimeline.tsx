@@ -77,10 +77,10 @@ export default function ProcessTimeline({ processoId }: { processoId: string }) 
 
             <div className="flex items-center gap-2 pt-3 border-t border-slate-50">
               <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400">
-                {( (item.perfil as any)?.nome || 'S').charAt(0).toUpperCase()}
+                {((item as any).perfil?.nome || 'S').charAt(0).toUpperCase()}
               </div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Portado por: <span className="text-slate-600">{(item.perfil as any)?.nome || 'Sistema Automático'}</span>
+                Portado por: <span className="text-slate-600">{(item as any).perfil?.nome || 'Sistema Automático'}</span>
               </span>
             </div>
           </div>
