@@ -39,10 +39,21 @@ export function useUploadAttachment() {
 export function useDeleteAttachment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (vars: { id: string; storagePath: string }) => 
+    mutationFn: (vars: { id: string; storagePath: string; processoId: string; userId: string; fileName?: string }) => 
       attachmentService.deleteAttachment(vars.id, vars.storagePath),
-    onSuccess: () => {
-       queryClient.invalidateQueries({ queryKey: [ATTACHMENTS_KEY] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [ATTACHMENTS_KEY, variables.processoId] });
+      
+      // Registo automático de remoção no histórico
+      historyService.addEntry(
+        variables.processoId,
+        'Arquivo removido',
+        'usuario',
+        `O arquivo "${variables.fileName || 'Anexo'}" foi excluído do processo.`,
+        variables.userId
+      ).then(() => {
+        queryClient.invalidateQueries({ queryKey: [HISTORY_KEY, variables.processoId] });
+      });
     }
   });
 }
