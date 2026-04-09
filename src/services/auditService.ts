@@ -3,39 +3,31 @@ import { supabase } from '../lib/supabase';
 export interface AuditLog {
   id: string;
   usuario_id: string;
-  usuario_nome?: string;
   acao: string;
-  detalhes: any;
-  data_hora: string;
+  tabela: string;
+  registro_id?: string;
+  dados_antigos?: any;
+  dados_novos?: any;
+  created_at: string;
 }
 
 export const auditService = {
-  async log(acao: string, detalhes: any = {}, nomeOverride?: string) {
+  async log(acao: string, detalhes: any = {}, tabela: string = 'sistema', registroId?: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      let usuarioNome = nomeOverride || user.email || 'Desconhecido';
-
-      if (!nomeOverride) {
-        try {
-          const { data: perfil } = await supabase
-            .from('perfis')
-            .select('nome')
-            .eq('id', user.id)
-            .single();
-          if (perfil?.nome) usuarioNome = perfil.nome;
-        } catch (_) { /* perfil não encontrado, mantém email */ }
-      }
-
+      // Unifica com o esquema do AuditRepository
       const { error } = await supabase
         .from('auditoria')
         .insert([{
           usuario_id: user.id,
-          usuario_nome: usuarioNome,
           acao,
-          detalhes,
-          data_hora: new Date().toISOString()
+          tabela,
+          registro_id: registroId,
+          dados_antigos: detalhes.antigo || {},
+          dados_novos: detalhes.novo || detalhes,
+          created_at: new Date().toISOString()
         }]);
 
       if (error) {
@@ -49,11 +41,17 @@ export const auditService = {
   async getAll() {
     const { data, error } = await supabase
       .from('auditoria')
-      .select('*')
-      .order('data_hora', { ascending: false })
+      .select(`
+        *,
+        perfil:usuario_id (nome, email)
+      `)
+      .order('created_at', { ascending: false })
       .limit(500);
     
     if (error) throw error;
-    return data as AuditLog[];
+    return data;
   }
 };
+
+export default auditService;
+
