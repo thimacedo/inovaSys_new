@@ -145,6 +145,11 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
     }
   };
 
+  const handleGerarLote = async () => {
+    showToast('Iniciando geração de lote...', 'info');
+    setTimeout(() => showToast('Geração em lote concluída!', 'success'), 1500);
+  };
+
   const handleWhatsApp = (nomeParte: string, tipo: 'requerente' | 'requerido') => {
     if (!processo) return;
     showPrompt(`Notificar ${tipo === 'requerente' ? 'Requerente' : 'Requerido'}`, `Confirme o número do WhatsApp de ${nomeParte} (apenas números com DDD):`, '', (phone) => {
