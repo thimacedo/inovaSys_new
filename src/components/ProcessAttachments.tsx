@@ -54,7 +54,7 @@ export default function ProcessAttachments({ processoId }: { processoId: string 
       async (email) => {
         if (!email) return;
         try {
-          showToast("Processando documento...", 'info');
+          showToast("Processando documento...", 'attention');
           
           // 1. Obter arquivo e converter para Base64
           const url = await attachmentService.getDownloadUrl(file.caminho_storage);

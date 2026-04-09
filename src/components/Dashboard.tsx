@@ -98,6 +98,11 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
     };
 
     loadConfig();
+    
+    // ✅ Garante que o menu fica aberto sempre que a sessão for atualizada
+    if (window.innerWidth >= 1024) {
+      setIsSidebarOpen(true);
+    }
   }, [userProfile]);
 
   const handleProcessSelect = (id: string) => {

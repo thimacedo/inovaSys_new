@@ -28,7 +28,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const { showConfirm } = useModal();
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
@@ -49,7 +49,9 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
       setCurrentPage(1);
       setDebouncedSearch(searchTerm);
     }, 400);
-    return () => clearTimeout(searchTimerRef.current);
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
   }, [searchTerm]);
 
   const deleteMutation = useDeleteProcess();

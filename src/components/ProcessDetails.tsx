@@ -40,7 +40,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   const carregarArbitros = async (orgId?: string) => {
     if (!isAdmin || !orgId) return;
     try {
-      const data = await userService.getArbitrosDaOrganizacao(orgId);
+      const data = await userService.getArbitrosDisponiveis(orgId);
       setArbitros(data);
     } catch (e) {
       console.error('Erro ao carregar árbitros:', e);
@@ -69,7 +69,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
 
   const handleGerarTermo = async () => {
     if (!processo) return;
-    showToast('Gerando PDF...', 'info');
+    showToast('Gerando PDF...', 'attention');
     try {
       await documentService.generateFromTemplate(2, {
         requerente_nome: processo.requerente_nome || 'Não informado',
