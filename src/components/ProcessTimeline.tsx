@@ -1,13 +1,13 @@
 import React from 'react';
 import { useProcessHistory } from '../presentation/hooks/useHistory';
-import { 
-  CheckCircle2, 
-  User, 
-  Globe, 
-  Clock, 
-  MessageSquare, 
-  FileText, 
-  AlertCircle 
+import {
+  CheckCircle2,
+  User,
+  Globe,
+  Clock,
+  MessageSquare,
+  FileText,
+  AlertCircle
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -50,11 +50,11 @@ export default function ProcessTimeline({ processoId }: { processoId: string }) 
   return (
     <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-blue-100 before:via-slate-100 before:to-transparent">
       {history.map((item, index) => (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: index * 0.05 }}
-          key={item.id} 
+          key={item.id}
           className="relative pl-12 group"
         >
           {/* Dot/Icon Container */}
@@ -70,7 +70,7 @@ export default function ProcessTimeline({ processoId }: { processoId: string }) 
                 {new Date(item.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
-            
+
             {item.descricao && (
               <p className="text-sm text-slate-600 leading-relaxed mb-4">{item.descricao}</p>
             )}
