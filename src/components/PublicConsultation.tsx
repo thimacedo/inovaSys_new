@@ -24,7 +24,7 @@ export default function PublicConsultation({ onBack }: { onBack: () => void }) {
 
     try {
       const cleanDoc = doc.replace(/\D/g, '');
-      const data = await processService.publicSearch(num, cleanDoc);
+      const data = await processService.publicSearch(num);
 
       if (!data) {
         setError('Processo não encontrado ou documento inválido para este processo.');

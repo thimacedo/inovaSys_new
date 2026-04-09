@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { processService, Processo } from '../services/processService';
+import { processService } from '../services/processService';
+import { ProcessEntity as Processo } from '../infrastructure/database/repositories/ProcessRepository';
 import { historyService, Andamento } from '../services/historyService';
 import { attachmentService, Anexo } from '../services/attachmentService';
 import { userService } from '../services/userService';
@@ -146,8 +147,7 @@ export default function ProcessDetails({ processId, onBack, camaraConfig: propCa
   };
 
   const handleGerarLote = async () => {
-    showToast('Iniciando geração de lote...', 'info');
-    setTimeout(() => showToast('Geração em lote concluída!', 'success'), 1500);
+    console.log('Implementar lote');
   };
 
   const handleWhatsApp = (nomeParte: string, tipo: 'requerente' | 'requerido') => {

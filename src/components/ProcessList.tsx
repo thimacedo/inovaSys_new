@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Processo } from '../services/processService';
+import { ProcessEntity as Processo } from '../infrastructure/database/repositories/ProcessRepository';
 import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useProcessos } from '../presentation/hooks/useProcessos';

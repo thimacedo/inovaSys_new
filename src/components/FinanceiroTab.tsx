@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { financeiroService, RegistroFinanceiro } from '../services/financeiroService';
+import { financeiroService } from '../services/financeiroService';
+import { FinanceiroEntity as RegistroFinanceiro } from '../infrastructure/database/repositories/FinanceiroRepository';
 import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { usePermissions } from '../hooks/usePermissions';
@@ -40,7 +41,7 @@ export default function FinanceiroTab({ processoId, organizationId }: { processo
   const carregarRegistros = async () => {
     setLoading(true);
     try {
-      const data = await financeiroService.getByProcesso(processoId);
+      const data = await financeiroService.listByProcesso(processoId);
       setRegistros(data);
     } catch (error: any) {
       showToast('Erro ao carregar dados financeiros: ' + error.message, 'error');
