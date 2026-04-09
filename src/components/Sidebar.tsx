@@ -11,7 +11,8 @@ import {
   Files,
   DollarSign,
   Activity,
-  CalendarDays
+  CalendarDays,
+  ChevronRight
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 
@@ -47,160 +48,125 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  return (
-    <nav className={`w-64 bg-white border-r border-slate-200 h-[calc(100vh-72px)] flex flex-col fixed lg:sticky left-0 top-[72px] z-40 transition-all duration-300 overflow-y-auto ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full lg:w-0 opacity-0'}`}>
-      <div className="flex-1 px-4 py-6 space-y-2">
-        {/* GERAL */}
-        <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">PRINCIPAL</p>
-        <motion.button 
-          whileHover={{ x: 4 }}
-          className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'dash' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-          onClick={() => handleNavClick('dash')}
-        >
-          <LayoutDashboard size={18} className={currentView === 'dash' ? 'text-red-500' : ''} />
-          <span className="text-sm">Início</span>
-        </motion.button>
-
-        {/* OPERACIONAL */}
-        <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">OPERACIONAL</p>
-        <motion.button 
-          whileHover={{ x: 4 }}
-          className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'process_list' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-          onClick={() => handleNavClick('process_list')}
-        >
-          <Files size={18} className={currentView === 'process_list' ? 'text-blue-500' : ''} />
-          <span className="text-sm">Meus Processos</span>
-        </motion.button>
-
-        <motion.button 
-          whileHover={{ x: 4 }}
-          className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'calendar' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-          onClick={() => handleNavClick('calendar')}
-        >
-          <CalendarDays size={18} className={currentView === 'calendar' ? 'text-blue-500' : ''} />
-          <span className="text-sm">Agenda da Câmara</span>
-        </motion.button>
-        
-        {canCreateProcess && (
-          <motion.button 
-            whileHover={{ x: 4 }}
-            className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'novo' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-            onClick={() => handleNavClick('novo')}
-          >
-            <PlusCircle size={18} className={currentView === 'novo' ? 'text-blue-500' : ''} />
-            <span className="text-sm">Novo Processo</span>
-          </motion.button>
+  const NavItem = ({ id, icon: Icon, label, color = 'blue' }: { id: string, icon: any, label: string, color?: string }) => {
+    const isActive = currentView === id;
+    
+    return (
+      <motion.button 
+        whileHover={{ x: 4 }}
+        whileTap={{ scale: 0.98 }}
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group relative ${
+          isActive 
+            ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' 
+            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+        }`} 
+        onClick={() => handleNavClick(id)}
+      >
+        <Icon 
+          size={18} 
+          className={`transition-colors ${
+            isActive ? `text-${color}-400` : 'group-hover:text-slate-900'
+          }`} 
+        />
+        <span className={`text-sm tracking-tight ${isActive ? 'font-bold' : 'font-medium'}`}>
+          {label}
+        </span>
+        {isActive && (
+          <motion.div 
+            layoutId="active-nav-indicator"
+            className="absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-full"
+          />
         )}
+        <ChevronRight size={14} className={`ml-auto transition-all ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`} />
+      </motion.button>
+    );
+  };
 
-        {/* GESTÃO E BI */}
+  return (
+    <nav className={`w-72 bg-white border-r border-slate-200 h-[calc(100vh-72px)] flex flex-col fixed lg:sticky left-0 top-[72px] z-40 transition-all duration-300 overflow-y-auto ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full lg:w-0 opacity-0'}`}>
+      <div className="flex-1 px-4 py-8 space-y-8">
+        
+        {/* SECTION: GERAL */}
+        <div className="space-y-2">
+          <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Core</p>
+          <NavItem id="dash" icon={LayoutDashboard} label="Início" color="red" />
+        </div>
+
+        {/* SECTION: OPERACIONAL */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-4 mb-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Operacional</p>
+          </div>
+          <NavItem id="process_list" icon={Files} label="Meus Processos" color="blue" />
+          <NavItem id="calendar" icon={CalendarDays} label="Agenda da Câmara" color="indigo" />
+          
+          {canCreateProcess && (
+            <NavItem id="novo" icon={PlusCircle} label="Novo Processo" color="emerald" />
+          )}
+        </div>
+
+        {/* SECTION: GESTÃO */}
         {(isAtLeastAdmin || canManageTeam) && (
-          <>
-            <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">GESTÃO & NEGÓCIOS</p>
+          <div className="space-y-2">
+            <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Gestão & Inteligência</p>
             {isAtLeastAdmin && (
-              <div className="space-y-1">
-                <motion.button 
-                  whileHover={{ x: 4 }}
-                  onClick={() => handleNavClick('financeiro')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${currentView === 'financeiro' ? 'bg-emerald-50 text-emerald-700 font-bold shadow-sm border border-emerald-100' : 'text-slate-500 hover:bg-slate-50'}`}
-                >
-                  <DollarSign size={18} className={currentView === 'financeiro' ? 'text-emerald-500' : ''} />
-                  <span className="text-sm">Gestão Financeira</span>
-                </motion.button>
-
-                <motion.button 
-                  whileHover={{ x: 4 }}
-                  onClick={() => handleNavClick('financeiro_bi')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${currentView === 'financeiro_bi' ? 'bg-emerald-50 text-emerald-700 font-bold shadow-sm border border-emerald-100' : 'text-slate-500 hover:bg-slate-50'}`}
-                >
-                  <Activity size={18} className={currentView === 'financeiro_bi' ? 'text-emerald-500' : ''} />
-                  <span className="text-sm">BI Financeiro</span>
-                </motion.button>
-              </div>
+              <>
+                <NavItem id="financeiro" icon={DollarSign} label="Gestão Financeira" color="emerald" />
+                <NavItem id="financeiro_bi" icon={Activity} label="BI Financeiro" color="amber" />
+              </>
             )}
             
             {canManageTeam && (
-              <motion.button 
-                whileHover={{ x: 4 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'equipe' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                onClick={() => handleNavClick('equipe')}
-              >
-                <Users size={18} className={currentView === 'equipe' ? 'text-green-500' : ''} />
-                <span className="text-sm">Minha Equipe</span>
-              </motion.button>
+              <NavItem id="equipe" icon={Users} label="Minha Equipe" color="blue" />
             )}
 
             {isGlobalAdmin && (
-              <motion.button 
-                whileHover={{ x: 4 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'templates' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                onClick={() => handleNavClick('templates')}
-              >
-                <FileText size={18} className={currentView === 'templates' ? 'text-purple-500' : ''} />
-                <span className="text-sm">Modelos de Docs</span>
-              </motion.button>
+              <NavItem id="templates" icon={FileText} label="Modelos de Docs" color="purple" />
             )}
-          </>
+          </div>
         )}
 
-        {/* CORPORATIVO (GOD ONLY) */}
+        {/* SECTION: CORPORATIVO */}
         {isGlobalAdmin && (
-          <>
-            <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">REDE INOVASYS</p>
-            <motion.button 
-              whileHover={{ x: 4 }}
-              className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'vendas' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-              onClick={() => handleNavClick('vendas')}
-            >
-              <Globe size={18} className={currentView === 'vendas' ? 'text-orange-500' : ''} />
-              <span className="text-sm">Plataforma & Câmaras</span>
-            </motion.button>
-          </>
+          <div className="space-y-2">
+            <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Rede InovaSys</p>
+            <NavItem id="vendas" icon={Globe} label="Plataforma & Câmaras" color="orange" />
+          </div>
         )}
 
-        {/* SISTEMA */}
+        {/* SECTION: SISTEMA */}
         {(canSeeAudit || isGlobalAdmin || canManageTeam) && (
-          <>
-            <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">SISTEMA</p>
+          <div className="space-y-2">
+            <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Sistema</p>
             {canManageTeam && (
-              <motion.button 
-                whileHover={{ x: 4 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'camara' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                onClick={() => handleNavClick('camara')}
-              >
-                <Settings size={18} className={currentView === 'camara' ? 'text-slate-500' : ''} />
-                <span className="text-sm">Configurações</span>
-              </motion.button>
+              <NavItem id="camara" icon={Settings} label="Configurações" color="slate" />
             )}
             {canSeeAudit && (
-              <motion.button 
-                whileHover={{ x: 4 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${currentView === 'auditoria' ? 'bg-slate-900 text-white font-bold shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`} 
-                onClick={() => handleNavClick('auditoria')}
-              >
-                <Activity size={18} className={currentView === 'auditoria' ? 'text-slate-500' : ''} />
-                <span className="text-sm">Trilha de Auditoria</span>
-              </motion.button>
+              <NavItem id="auditoria" icon={Activity} label="Trilha de Auditoria" color="slate" />
             )}
-          </>
+          </div>
         )}
       </div>
 
       <div className="mt-auto p-4 border-t border-slate-100 bg-slate-50/50">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 shadow-sm mb-3">
-          <div className="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm mb-4">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-white font-bold text-xs shadow-md">
             {userEmail?.substring(0, 2).toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-slate-900 truncate">{userEmail}</p>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Sessão Ativa</p>
+            <p className="text-[11px] font-bold text-slate-900 truncate">{userEmail}</p>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-sm shadow-emerald-200"></div>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Sessão Ativa</p>
+            </div>
           </div>
         </div>
         <button 
           onClick={onSignOut}
-          className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100 uppercase tracking-widest"
+          className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-bold text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all border border-transparent hover:border-red-100 uppercase tracking-[0.15em]"
         >
           <LogOut size={16} />
-          Sair do Sistema
+          Encerrar Acesso
         </button>
       </div>
     </nav>
@@ -208,3 +174,4 @@ const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export default Sidebar;
+

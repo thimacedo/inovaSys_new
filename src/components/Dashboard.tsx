@@ -6,10 +6,14 @@ import {
   LogOut,
   ShieldCheck,
   Moon,
-  Sun
+  Sun,
+  HelpCircle,
+  Menu,
+  ChevronLeft
 } from 'lucide-react';
 import Notifications from './Notifications';
 import Sidebar from './Sidebar';
+import HelpCenter from './HelpCenter';
 import { usePermissions } from '../hooks/usePermissions';
 
 const ProcessList = lazy(() => import('./ProcessList'));
@@ -31,6 +35,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
   const [camaraConfig, setCamaraConfig] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   useEffect(() => {
     if (window.innerWidth < 1024) {
@@ -110,27 +115,51 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
   };
 
   return (
-    <div id="layout-shell" className="flex flex-col min-h-screen bg-slate-50 overflow-x-hidden">
-      <header id="topbar" className="sticky top-0 left-0 right-0 h-[72px] bg-white border-b border-slate-200 z-50 flex items-center justify-between px-4 md:px-8 shadow-sm">
+    <div id="layout-shell" className="flex flex-col min-h-screen bg-slate-50 overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
+      <header id="topbar" className="sticky top-0 left-0 right-0 h-[72px] bg-white/80 backdrop-blur-md border-b border-slate-200 z-50 flex items-center justify-between px-4 md:px-8 shadow-sm">
         <div className="flex items-center gap-4">
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+            className="p-2.5 text-slate-600 hover:bg-slate-100 rounded-xl transition-all active:scale-90"
+          >
+            {isSidebarOpen ? <ChevronLeft size={22} /> : <Menu size={22} />}
           </button>
-          <div className="flex items-center gap-3">
-            <img src={camaraConfig?.logo || logoImg} className="h-8 w-auto object-contain" alt="Logo" />
-            <span className="font-bold text-slate-900 truncate max-w-[200px] hidden sm:inline-block">{camaraConfig?.nome || 'InovaSys'}</span>
+          <div className="flex items-center gap-3 group">
+            <div className="p-1.5 bg-slate-900 rounded-lg group-hover:scale-110 transition-transform">
+              <img src={camaraConfig?.logo || logoImg} className="h-6 w-auto object-contain brightness-0 invert" alt="Logo" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-slate-900 leading-tight truncate max-w-[200px] hidden sm:inline-block">
+                {camaraConfig?.nome || 'InovaSys'}
+              </span>
+              <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest hidden sm:block">Painel de Gestão</span>
+            </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          <Notifications onSelectProcess={handleProcessSelect} />
-          <div className="hidden md:flex flex-col items-end">
-            <span className="text-xs font-bold text-slate-900">{session?.user?.email}</span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{(userProfile?.tipo_usuario || '').toLowerCase()}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+             <button onClick={onToggleTheme} className="p-2 text-slate-600 rounded-lg hover:bg-white transition-all shadow-sm">
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
           </div>
-          <button onClick={onSignOut} className="p-2 text-slate-400 hover:text-red-600 transition-colors" title="Sair"><LogOut size={20} /></button>
+          
+          <div className="w-[1px] h-8 bg-slate-200 mx-1 hidden sm:block"></div>
+          
+          <Notifications onSelectProcess={handleProcessSelect} />
+          
+          <div className="hidden md:flex flex-col items-end px-2">
+            <span className="text-xs font-bold text-slate-900">{session?.user?.id.substring(0, 8)}...</span>
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{(userProfile?.tipo_usuario || 'arbitro').toLowerCase()}</span>
+          </div>
+
+          <button 
+            onClick={onSignOut} 
+            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" 
+            title="Sair"
+          >
+            <LogOut size={20} />
+          </button>
         </div>
       </header>
 
@@ -144,35 +173,73 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
           onSignOut={onSignOut} 
         />
 
-        <main id="main-content" className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 relative min-h-screen transition-all duration-300">
+        <main id="main-content" className="flex-1 min-w-0 p-4 md:p-6 lg:p-10 relative min-h-screen transition-all duration-300">
           <AnimatePresence mode="wait">
             {isImpersonating && (
-              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="mb-8 p-4 bg-slate-900 text-white rounded-2xl flex justify-between items-center shadow-lg border border-slate-800">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 0.95 }} 
+                className="mb-8 p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl flex justify-between items-center shadow-xl border border-slate-800"
+              >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-slate-900 shadow-inner"><ShieldCheck size={20} /></div>
+                  <div className="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center text-slate-900 shadow-inner ring-4 ring-amber-400/20">
+                    <ShieldCheck size={24} />
+                  </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Modo de Visualização Ativo</p>
-                    <p className="text-sm font-bold">Painel da Câmara: <span className="text-amber-400">{camaraConfig?.nome}</span></p>
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-indigo-300">Modo de Visualização Ativo</p>
+                    <p className="text-base font-bold">Gerenciando: <span className="text-amber-400">{camaraConfig?.nome}</span></p>
                   </div>
                 </div>
-                <button onClick={handleExitImpersonation} className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all border border-white/10 backdrop-blur-sm">Encerrar Visualização</button>
+                <button 
+                  onClick={handleExitImpersonation} 
+                  className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all border border-white/10 backdrop-blur-sm active:scale-95"
+                >
+                  Encerrar Visualização
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <Suspense fallback={<div className="flex flex-col items-center justify-center h-[60vh] text-slate-400 gap-4"><div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div><p className="text-xs font-bold uppercase tracking-widest">Preparando ambiente...</p></div>}>
-            <motion.div key={currentView} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <Suspense fallback={
+            <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400 gap-6">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 bg-slate-100 rounded-lg animate-pulse"></div>
+                </div>
+              </div>
+              <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Orquestrando Módulos...</p>
+            </div>
+          }>
+            <motion.div 
+              key={currentView} 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            >
               {renderView()}
             </motion.div>
           </Suspense>
 
-          <div className="fixed bottom-6 right-6 flex items-center gap-2">
-            <button onClick={onToggleTheme} className="p-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
-              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
+          {/* Floating Help Button */}
+          <div className="fixed bottom-8 right-8 flex flex-col items-end gap-3 z-[100]">
+            <motion.button 
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsHelpOpen(true)}
+              className="bg-indigo-600 text-white p-4 rounded-2xl shadow-2xl shadow-indigo-200 flex items-center gap-3 group relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <HelpCircle size={24} className="relative z-10" />
+              <span className="relative z-10 font-bold text-sm pr-1">Central de Ajuda</span>
+            </motion.button>
           </div>
         </main>
       </div>
+
+      <HelpCenter isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </div>
   );
 }
+

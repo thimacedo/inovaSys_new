@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface UserEntity {
   id: string;
@@ -14,9 +15,14 @@ export interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  currentUser: null,
-  isAuthenticated: false,
-  setCurrentUser: (user: UserEntity | null) => set({ currentUser: user, isAuthenticated: !!user }),
-  logout: () => set({ currentUser: null, isAuthenticated: false }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      currentUser: null,
+      isAuthenticated: false,
+      setCurrentUser: (user: UserEntity | null) => set({ currentUser: user, isAuthenticated: !!user }),
+      logout: () => set({ currentUser: null, isAuthenticated: false }),
+    }),
+    { name: 'auth-storage' }
+  )
+);
