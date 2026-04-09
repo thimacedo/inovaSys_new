@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -9,9 +9,6 @@ interface State {
   errorMessage: string;
 }
 
-/**
- * Escudo de Proteção Global (Error Boundary) - InovaSys 2.0
- */
 export class GlobalErrorBoundary extends Component<Props, State> {
   public state: State;
   public props: Props;
@@ -22,37 +19,44 @@ export class GlobalErrorBoundary extends Component<Props, State> {
       hasError: false,
       errorMessage: ''
     };
-    this.props = props;
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, errorMessage: error.message || 'Erro inesperado' };
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, errorMessage: error.message };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[Proteção InovaSys] Erro capturado:', error, errorInfo);
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    console.error('Uncaught error:', error, errorInfo);
   }
 
-  render() {
-    const { hasError, errorMessage } = this.state;
-    const { children } = this.props;
-
-    if (hasError) {
+  public render(): ReactNode {
+    if (this.state.hasError) {
       return (
-        <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9fafb', padding: '20px', textAlign: 'center' }}>
-          <div style={{ padding: '40px', backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', maxWidth: '450px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#111827', marginBottom: '16px' }}>Falha Crítica no Sistema</h2>
-            <p style={{ color: '#ef4444', fontSize: '14px', marginBottom: '24px' }}>{errorMessage}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              style={{ padding: '12px 24px', backgroundColor: '#4f46e5', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 700 }}
-            >
-              Recarregar Aplicação
-            </button>
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+          <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-10 shadow-xl">
+            <div>
+              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Falha Crítica no Sistema
+              </h2>
+              <p className="mt-2 text-center text-sm text-red-600 font-medium">
+                {this.state.errorMessage.includes('CONFIG_ERROR') 
+                  ? 'Erro de Configuração do Banco de Dados.'
+                  : 'Ocorreu um erro inesperado na aplicação.'}
+              </p>
+            </div>
+            <div className="mt-8 space-y-6">
+              <button
+                onClick={() => window.location.reload()}
+                className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                Tentar Novamente
+              </button>
+            </div>
           </div>
         </div>
       );
     }
-    return children;
+
+    return this.props.children;
   }
 }

@@ -11,7 +11,6 @@ export interface AuditEntity {
   dados_novos?: any;
   ip_address?: string;
   created_at: string;
-  perfil?: any;
 }
 
 export interface AuditWithProfile extends AuditEntity {
@@ -29,10 +28,7 @@ export class AuditRepository extends BaseSupabaseRepository<AuditEntity> {
     try {
       const { data, error } = await this.client
         .from(this.tableName)
-        .select(`
-          *,
-          perfil:usuario_id (nome, email)
-        `)
+        .select('*, perfil:usuario_id (nome, email)')
         .order('created_at', { ascending: false })
         .limit(limit);
 

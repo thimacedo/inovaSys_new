@@ -46,7 +46,7 @@ export function useCreateFinanceiro() {
           variables.processo_id,
           'Lançamento financeiro',
           'usuario',
-          `Novo registro financeiro (${variables.tipo}) no valor de R$ ${variables.valor}.`,
+          `Novo registro de ${(variables.tipo as any)} no valor de R$ ${variables.valor}.`, // Cast para evitar erro de comparação
           variables.perfil_id
         ).then(() => {
           queryClient.invalidateQueries({ queryKey: [HISTORY_KEY, variables.processo_id] });
