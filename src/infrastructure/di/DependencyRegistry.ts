@@ -9,6 +9,7 @@ import { AttachmentRepository } from '../database/repositories/AttachmentReposit
 import { TeamRepository } from '../database/repositories/TeamRepository';
 import { AuditRepository } from '../database/repositories/AuditRepository';
 import { HistoryRepository } from '../database/repositories/HistoryRepository';
+import { CalendarRepository } from '../database/repositories/CalendarRepository';
 import { GetUserByEmailUseCase } from '../../core/usecases/GetUserByEmailUseCase';
 
 export class DependencyRegistry {
@@ -22,6 +23,7 @@ export class DependencyRegistry {
   private static teamRepository: TeamRepository | null = null;
   private static auditRepository: AuditRepository | null = null;
   private static historyRepository: HistoryRepository | null = null;
+  private static calendarRepository: CalendarRepository | null = null;
 
   public static getUserRepository(): UserRepository {
     if (!this.userRepository) this.userRepository = new UserRepository(SupabaseClientFactory.createBrowser());
@@ -79,6 +81,13 @@ export class DependencyRegistry {
       this.historyRepository = new HistoryRepository(SupabaseClientFactory.createBrowser());
     }
     return this.historyRepository;
+  }
+
+  public static getCalendarRepository(): CalendarRepository {
+    if (!this.calendarRepository) {
+      this.calendarRepository = new CalendarRepository(SupabaseClientFactory.createBrowser());
+    }
+    return this.calendarRepository;
   }
 
   public static getGetUserByEmailUseCase(): GetUserByEmailUseCase {

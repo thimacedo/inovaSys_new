@@ -23,6 +23,7 @@ const TemplateManager = lazy(() => import('./TemplateManager'));
 const DashboardHome = lazy(() => import('./DashboardHome'));
 const FinanceiroBI = lazy(() => import('./FinanceiroBI'));
 const FinanceiroManager = lazy(() => import('./FinanceiroManager'));
+const CalendarView = lazy(() => import('./CalendarView'));
 
 export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: any, userProfile: any, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
   const { canManageTeam, canCreateProcess, canSeeAudit, isGlobalAdmin, isAtLeastAdmin } = usePermissions();
@@ -102,6 +103,8 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
         return isAtLeastAdmin ? <FinanceiroManager /> : <DashboardHome />;
       case 'financeiro_bi':
         return isAtLeastAdmin ? <FinanceiroBI /> : <DashboardHome />;
+      case 'calendar':
+        return <CalendarView />;
       default: return <DashboardHome />;
     }
   };
