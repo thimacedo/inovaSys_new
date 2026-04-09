@@ -45,7 +45,7 @@ export const pushService = {
   sendLocalTest: async (title: string, body: string) => {
     if (Notification.permission === 'granted') {
       const registration = await navigator.serviceWorker.getRegistration();
-      if (registration) {
+      if (registration && registration.active) {
         registration.showNotification(title, {
           body: body,
           icon: '/logo-inovasys.png',

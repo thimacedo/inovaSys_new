@@ -25,7 +25,7 @@ export class NotificationRepository extends BaseSupabaseRepository<NotificationE
         .from(this.tableName)
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('id', { ascending: false });
 
       if (error) throw error;
       return data as NotificationEntity[];
