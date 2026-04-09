@@ -14,14 +14,28 @@ export const useAuthStore = create<AuthState>()(
       currentUser: null,
       isAuthenticated: false,
       setCurrentUser: (user) => {
-        // Fallback de Retrocompatibilidade:
-        // Se o sistema antigo gravou 'camara_id' mas a nova arquitetura pede 'organization_id'
-        if (user && !user.organization_id && user.camara_id) {
-          user.organization_id = user.camara_id;
-          console.log('🔄 [Auto-Heal] organization_id sincronizado a partir do camara_id');
+        if (!user) {
+          set({ currentUser: null, isAuthenticated: false });
+          return;
         }
-        
-        set({ currentUser: user, isAuthenticated: !!user });
+
+        // Fallback de Retrocompatibilidade (ID Organização)
+        if (!user.organization_id && user.camara_id) {
+          user.organization_id = user.camara_id;
+        }
+
+        // Fallback de Permissões (Evita a quebra do Sidebar se a API omitir a chave original)
+        if (!user.tipo_usuario && user.role) {
+          user.tipo_usuario = user.role;
+        } else if (!user.tipo_usuario && user.user_metadata?.role) {
+          user.tipo_usuario = user.user_metadata.role;
+        }
+
+        set((state) => ({
+          // State Merging: Previne perda de dados hidratados do LocalStorage quando ocorre um background fetch
+          currentUser: state.currentUser ? { ...state.currentUser, ...user } : user,
+          isAuthenticated: true,
+        }));
       },
       logout: () => {
         localStorage.removeItem('auth-storage');
