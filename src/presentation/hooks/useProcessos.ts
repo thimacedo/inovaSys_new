@@ -13,17 +13,28 @@ export function useProcessos(
     queryFn: async () => {
       if (!camaraId) return { data: [], count: 0 };
       
-      // Se houver parâmetros de paginação/busca, usar getAll
       if (params) {
         return await processService.getAll(params.page, params.pageSize, params.search);
       }
       
-      // Caso contrário, usar listByCamara legado (para casos de uso simples)
       const listFn = processService.listByCamara || (processService as any).getProcessosByCamara;
       const data = await listFn(camaraId);
       return { data, count: data.length };
     },
     enabled: !!camaraId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useProcesso(id: string | undefined) {
+  return useQuery({
+    queryKey: [PROCESSOS_QUERY_KEY, 'detail', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const getFn = processService.getById || (processService as any).getProcessById;
+      return await getFn(id);
+    },
+    enabled: !!id,
     staleTime: 1000 * 60 * 5,
   });
 }
