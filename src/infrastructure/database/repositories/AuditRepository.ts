@@ -11,6 +11,7 @@ export interface AuditEntity {
   dados_novos?: any;
   ip_address?: string;
   created_at: string;
+  perfil?: any;
 }
 
 export class AuditRepository extends BaseSupabaseRepository<AuditEntity> {

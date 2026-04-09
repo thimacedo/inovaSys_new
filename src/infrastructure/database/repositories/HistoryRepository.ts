@@ -10,6 +10,7 @@ export interface HistoryEntity {
   autor_id?: string;
   metadata?: any;
   created_at: string;
+  perfil?: any;
 }
 
 export class HistoryRepository extends BaseSupabaseRepository<HistoryEntity> {

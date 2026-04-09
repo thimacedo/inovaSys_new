@@ -39,7 +39,7 @@ export default function Auditoria() {
   }, [logs, searchTerm]);
 
   const grouped = useMemo(() => {
-    const groups: { [key: string]: typeof logs } = {};
+    const groups: Record<string, typeof logs> = {};
     filteredLogs.forEach(log => {
       const date = new Date(log.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
       if (!groups[date]) groups[date] = [];

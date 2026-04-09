@@ -196,7 +196,7 @@ function AddMemberForm({ onAdded, camaraId: propCamaraId, currentUserRole }: { o
             <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <select 
               value={tipoUsuario}
-              onChange={(e) => setTypeUsuario(e.target.value)}
+              onChange={(e) => setTipoUsuario(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none"
             >
               <option value="assistente">Assistente (Protocola e Vê Processos)</option>
