@@ -14,6 +14,7 @@ import { useAddHistoryEntry } from '../presentation/hooks/useHistory';
 import { Clock, ExternalLink, FileText, Download } from 'lucide-react';
 
 export default function ProcessDetails({ processId, onBack }: { processId: string, onBack: () => void }) {
+  if (!processId) return null;
   const currentUser = useAuthStore((state) => state.currentUser);
   
   // TanStack Query Hook
@@ -32,9 +33,9 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
 
   useEffect(() => {
     if (processo?.organization_id && isAdmin) {
-      carregarArbitros(processo.organization_id);
+      carregarArbitros(processo.organization_id as string);
     }
-  }, [processo?.organization_id, isAdmin]);
+  }, [processo, isAdmin]);
 
   const carregarArbitros = async (orgId?: string) => {
     if (!isAdmin || !orgId) return;
@@ -86,8 +87,8 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const handleWhatsApp = (nomeParte: string, tipo: 'requerente' | 'requerido') => {
     if (!processo) return;
     showPrompt(`Notificar ${tipo === 'requerente' ? 'Requerente' : 'Requerido'}`, `Confirme o número do WhatsApp de ${nomeParte} (apenas números com DDD):`, '', (phone) => {
-      if (!phone) return;
-      const msg = whatsappService.templates.avisoAndamento(nomeParte, processo.numero_processo, "Houve uma nova atualização no seu processo. Por favor, acesse o sistema.");
+      if (!phone || !processo) return;
+      const msg = whatsappService.templates.avisoAndamento(nomeParte, (processo as any).numero_processo || '', "Houve uma nova atualização no seu processo. Por favor, acesse o sistema.");
       whatsappService.enviarMensagem(phone, msg);
       showToast('WhatsApp aberto!', 'success');
     });
@@ -107,7 +108,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   };
 
   const handleEditField = async (field: keyof Processo, label: string, currentValue: any) => {
-    let inputType: 'text' | 'date' | 'time' | 'textarea' = 'text';
+    let inputType: 'text' | 'date' | 'time' | 'textarea' | 'select' = 'text';
     let maskType: 'doc' | 'money' | 'phone' | 'cep' | undefined = undefined;
     if (field === 'resumo_fatos') inputType = 'textarea';
     if (field.toString().startsWith('valor_')) { inputType = 'text'; maskType = 'money'; }

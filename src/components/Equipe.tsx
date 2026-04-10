@@ -271,6 +271,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const { isGlobalAdmin, isAdmin: isLocalAdmin } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
   const camaraId = propCamaraId || currentUser?.organization_id || currentUser?.camara_id;
+  if (!camaraId) return null;
 
   // Hooks do TanStack Query
   const { data: membrosRaw = [], isLoading } = useTeamMembers(camaraId);
@@ -286,7 +287,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
       if (!isLocalAdmin && m.id !== currentUser?.id) return false;
 
       // Admins da câmara não vêem gestores globais
-      const mRole = m.tipo_usuario?.toLowerCase();
+      const mRole = m.tipo_usuario?.toLowerCase() || '';
       if (isLocalAdmin && !isGlobalAdmin) {
          return !['gestor', 'controle', 'god'].includes(mRole);
       }

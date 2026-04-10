@@ -3,6 +3,16 @@ import Modal from '../components/Modal';
 import Toast from '../components/Toast';
 import { applyMask } from '../utils/masks';
 
+export type ToastType = 'success' | 'error' | 'attention' | 'warning' | 'info';
+
+const STYLE_MAP: Record<ToastType, { bg: string; icon: string }> = {
+  success: { bg: 'bg-emerald-700', icon: '✓' },
+  error: { bg: 'bg-red-700', icon: '✕' },
+  attention: { bg: 'bg-amber-600', icon: '⚠' },
+  warning: { bg: 'bg-orange-500', icon: '⚠' },
+  info: { bg: 'bg-blue-600', icon: 'ℹ' },
+};
+
 type ModalContextType = {
   showModal: (title: string, content: ReactNode, size?: 'small' | 'large') => void;
   showConfirm: (title: string, message: string, onConfirm: () => void, confirmText?: string) => void;
@@ -154,7 +164,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
 
   const hideModal = () => setModal({ ...modal, isOpen: false });
   
-  const showToast = (message: string, type?: 'success' | 'error' | 'attention') => {
+  const showToast = (message: string, type?: 'success' | 'error' | 'attention' | 'warning' | 'info') => {
     const prefixes = {
       success: 'Sucesso: ',
       error: 'Erro: ',

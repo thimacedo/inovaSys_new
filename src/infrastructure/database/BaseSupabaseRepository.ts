@@ -14,34 +14,26 @@ export abstract class BaseSupabaseRepository<T> {
   }
 
   public async create(data: Partial<T>): Promise<T> {
-    try {
-      const { data: result, error } = await this.client
-        .from(this.tableName)
-        .insert(data as any)
-        .select()
-        .single();
+    const { data: result, error } = await this.client
+      .from(this.tableName)
+      .insert([data as any])
+      .select()
+      .single();
 
-      if (error) throw error;
-      return result as T;
-    } catch (error) {
-      return this.handleError(error, 'create');
-    }
+    if (error) throw error;
+    return result as T;
   }
 
   public async update(id: string, data: Partial<T>): Promise<T> {
-    try {
-      const { data: result, error } = await this.client
-        .from(this.tableName)
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
+    const { data: result, error } = await this.client
+      .from(this.tableName)
+      .update(data as any)
+      .eq('id', id)
+      .select()
+      .single();
 
-      if (error) throw error;
-      return result as T;
-    } catch (error) {
-      return this.handleError(error, 'update');
-    }
+    if (error) throw error;
+    return result as T;
   }
 
   public async delete(id: string): Promise<void> {
