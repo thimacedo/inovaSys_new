@@ -8,7 +8,7 @@ type ModalContextType = {
   showConfirm: (title: string, message: string, onConfirm: () => void, confirmText?: string) => void;
   showPrompt: (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type?: 'text' | 'date' | 'time' | 'number' | 'textarea', maskType?: 'doc' | 'money' | 'phone' | 'cep') => void;
   hideModal: () => void;
-  showToast: (message: string, type?: 'success' | 'error' | 'attention') => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'attention' | 'warning' | 'info') => void;
 };
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-type ToastType = 'success' | 'error' | 'attention';
+type ToastType = 'success' | 'error' | 'attention' | 'warning' | 'info';
 
 interface ToastProps {
   message: string;
