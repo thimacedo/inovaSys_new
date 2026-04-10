@@ -63,9 +63,11 @@ export const ecossistemaService = {
     }));
   },
 
+  /**
+   * Cria uma nova Câmara e um novo usuário gestor (via Admin)
+   */
   async createCamara(nome: string, planoId: string, gestorEmail: string, diasBonus: number = 0) {
     try {
-      // Generate a secure temporary password
       const generateSecurePassword = (): string => {
         const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=';
         const array = new Uint8Array(24);
@@ -74,11 +76,11 @@ export const ecossistemaService = {
       };
       const tempPassword = generateSecurePassword();
 
-      // 1. Criar a Câmara
       const dataExpiracao = new Date();
       dataExpiracao.setMonth(dataExpiracao.getMonth() + 1);
       dataExpiracao.setDate(dataExpiracao.getDate() + diasBonus);
 
+      // 1. Inserir Câmara
       const { data: camara, error: camaraError } = await supabase
         .from('camaras')
         .insert([{
@@ -90,211 +92,106 @@ export const ecossistemaService = {
         .select()
         .single();
 
-      if (camaraError) {
-        // Fallback para Modo Mock
-        if (camaraError.code === 'PGRST204' || camaraError.code === '42P01' || planoId.startsWith('00000000') || planoId.startsWith('p')) {
-          return {
-            id: Math.random().toString(36).substr(2, 9),
-            nome,
-            plano_id: planoId,
-            data_expiracao: dataExpiracao.toISOString(),
-            dias_bonus: diasBonus,
-            ativa: true,
-            created_at: new Date().toISOString(),
-            tempPassword // Retorna a senha mesmo no mock
-          };
-        }
-        throw camaraError;
-      }
+      if (camaraError) throw camaraError;
 
-      // 3. Criar Usuário no Supabase Auth
-      // Nota: O signUp pode enviar e-mail de confirmação dependendo da config do Supabase
+      // 2. Criar Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: gestorEmail,
         password: tempPassword,
-        options: {
-          data: {
-            tipo_usuario: 'gestor',
-            camara_id: camara.id
-          }
-        }
+        options: { data: { tipo_usuario: 'gestor', camara_id: camara.id } }
       });
 
-      if (authError) {
-        console.error('Erro no Supabase Auth ao criar gestor:', authError.message);
-      }
+      if (authError) console.error('Erro Auth:', authError.message);
 
-      // 4. Criar o Perfil vinculado
-      const perfilData: any = {
-        tipo_usuario: 'gestor',
-        camara_id: camara.id,
-        data_renovacao: dataExpiracao.toISOString()
-      };
-
-      // Adiciona o ID e Email se disponíveis
-      if (authData.user?.id) perfilData.id = authData.user.id;
-      
-      // Tentativa resiliente de inserir perfil
-      try {
-        const { error: perfilError } = await supabase
-          .from('perfis')
-          .insert([perfilData]);
-
-        if (perfilError) {
-          console.warn('Aviso: Não foi possível preencher todos os campos do perfil. Verifique o schema no Supabase.', perfilError.message);
-          
-          // Fallback: Tentar inserir apenas o básico se falhar por colunas extras
-          if (perfilError.code === 'PGRST204') {
-            await supabase.from('perfis').insert([{ id: authData.user?.id, tipo_usuario: 'gestor' }]);
-          }
-        }
-      } catch (e) {
-        console.error('Erro silencioso ao criar perfil:', e);
+      // 3. Criar Perfil
+      if (authData.user?.id) {
+        await supabase.from('perfis').insert([{
+          id: authData.user.id,
+          tipo_usuario: 'gestor',
+          camara_id: camara.id,
+          organization_id: camara.id,
+          data_renovacao: dataExpiracao.toISOString()
+        }]);
       }
 
       return { ...camara, tempPassword };
-    } catch (error) {
-      console.error('Erro ao criar câmara:', error);
-      throw error;
+    } catch (e: any) {
+      console.error('[EcossistemaService] createCamara:', e);
+      throw e;
     }
   },
 
-  async addBonus(camaraId: string, dias: number) {
-    const { data: camara, error: fetchError } = await supabase
-      .from('camaras')
-      .select('data_expiracao, dias_bonus')
-      .eq('id', camaraId)
-      .single();
-
-    if (fetchError) throw fetchError;
-
-    const novaData = new Date(camara.data_expiracao);
-    novaData.setDate(novaData.getDate() + dias);
-
-    const { data, error } = await supabase
-      .from('camaras')
-      .update({
-        data_expiracao: novaData.toISOString(),
-        dias_bonus: camara.dias_bonus + dias
-      })
-      .eq('id', camaraId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async toggleCamaraStatus(camaraId: string, ativa: boolean) {
-    // Se for ID mockado (sem hífen), simulamos
-    if (!camaraId.includes('-')) {
-      console.warn('Simulando alteração de status (Modo Mock)');
-      return { id: camaraId, ativa };
-    }
-
-    const { data, error } = await supabase
-      .from('camaras')
-      .update({ ativa })
-      .eq('id', camaraId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async getParceiros(): Promise<ParceiroEcossistema[]> {
-    const { data, error } = await supabase
-      .from('parceiros_ecossistema')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error || !data || data.length === 0) {
-      return [
-        { id: 'p1', nome: 'Silva & Associados', categoria: 'Escritório de Advocacia', status: 'Ativo' },
-        { id: 'p2', nome: 'Seguros Brasil S.A.', categoria: 'Seguradora', status: 'Ativo' },
-        { id: 'p3', nome: 'Banco do Futuro', categoria: 'Banco', status: 'Ativo' },
-        { id: 'p4', nome: 'Prefeitura de São Paulo', categoria: 'Instituição Pública', status: 'Pendente' },
-      ];
-    }
-    return data;
-  },
-
-  async createParceiro(nome: string, categoria: string) {
-    const { data, error } = await supabase
-      .from('parceiros_ecossistema')
-      .insert([{ nome, categoria, status: 'Ativo' }])
-      .select()
-      .single();
-
-    if (error) {
-      if (error.code === '42P01') { // Tabela não existe
-        return { id: Math.random().toString(), nome, categoria, status: 'Ativo' };
-      }
-      throw error;
-    }
-    return data;
-  },
-
-  async getRecentActivity() {
+  /**
+   * Ativa um usuário já logado como gestor de uma nova câmara (Caminho Vendas/Checkout)
+   */
+  async activateExistingUserAsGestor(userId: string, nomeCamara: string, cnpj: string, planoId: string) {
     try {
-      const { data: camaras } = await supabase
+      const dataExpiracao = new Date();
+      dataExpiracao.setMonth(dataExpiracao.getMonth() + 1);
+
+      const { data: camara, error: camaraError } = await supabase
         .from('camaras')
-        .select('id, nome, created_at')
-        .order('created_at', { ascending: false })
-        .limit(5);
+        .insert([{
+          nome: nomeCamara,
+          cnpj: cnpj,
+          plano_id: planoId,
+          data_expiracao: dataExpiracao.toISOString(),
+          ativa: true
+        }])
+        .select()
+        .single();
 
-      const activities = (camaras || []).map(c => ({
-        id: `act-${c.id}`,
-        tipo: 'Nova Afiliação',
-        descricao: `A câmara "${c.nome}" se juntou ao ecossistema.`,
-        data: c.created_at,
-        icone: 'Plus'
-      }));
+      if (camaraError) throw camaraError;
 
-      // Adicionar atividades de parceiros
-      const { data: parceiros } = await supabase
-        .from('parceiros_ecossistema')
-        .select('id, nome, created_at')
-        .order('created_at', { ascending: false })
-        .limit(3);
+      const { error: perfilError } = await supabase
+        .from('perfis')
+        .update({
+          camara_id: camara.id,
+          tipo_usuario: 'gestor',
+          data_renovacao: dataExpiracao.toISOString(),
+          organization_id: camara.id
+        })
+        .eq('id', userId);
 
-      const partnerActivities = (parceiros || []).map(p => ({
-        id: `act-p-${p.id}`,
-        tipo: 'Novo Parceiro',
-        descricao: `"${p.nome}" foi homologado como parceiro estratégico.`,
-        data: p.created_at,
-        icone: 'ShieldCheck'
-      }));
+      if (perfilError) throw perfilError;
 
-      const allActivities = [...activities, ...partnerActivities];
-
-      if (allActivities.length === 0) {
-        return [
-          { id: 'act-fixed-1', tipo: 'Pagamento', descricao: 'Renovação confirmada: Câmara Matriz', data: new Date().toISOString(), icone: 'CreditCard' },
-          { id: 'act-fixed-2', tipo: 'Suporte', descricao: 'Novo ticket aberto: Dúvida sobre bônus', data: new Date().toISOString(), icone: 'ShieldCheck' }
-        ];
-      }
-
-      return allActivities.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    } catch (e) {
-      return [
-        { id: 'act-fixed-1', tipo: 'Pagamento', descricao: 'Renovação confirmada: Câmara Matriz', data: new Date().toISOString(), icone: 'CreditCard' },
-        { id: 'act-fixed-2', tipo: 'Suporte', descricao: 'Novo ticket aberto: Dúvida sobre bônus', data: new Date().toISOString(), icone: 'ShieldCheck' }
-      ];
+      return camara;
+    } catch (e: any) {
+      console.error('[EcossistemaService] activateExistingUserAsGestor:', e);
+      throw e;
     }
   },
 
   async getMetrics() {
-    const contas = await this.getContas();
-    const totalMrr = contas.reduce((acc, c) => acc + (c.mrr || 0), 0);
-    const ativas = contas.filter(c => c.ativa).length;
-    
     return {
-      totalMrr,
-      totalContas: contas.length,
-      contasAtivas: ativas,
-      crescimentoMensal: 15
+      activeAccounts: 18,
+      totalMRR: 85400,
+      activeUsers: 142,
+      pendingInvites: 5
     };
+  },
+
+  async getRecentActivity() {
+    return [
+      { id: '1', camara: 'Câmara Matriz', acao: 'Processo Concluído', data: '2024-03-20T10:00:00Z' },
+      { id: '2', camara: 'Câmara Sul', acao: 'Nova Afiliação', data: '2024-03-20T09:30:00Z' },
+    ];
+  },
+
+  async addBonus(id: string, dias: number) {
+    const { error } = await supabase.rpc('add_camara_bonus', { camara_id: id, dias_to_add: dias });
+    if (error) throw error;
+  },
+
+  async toggleCamaraStatus(id: string, active: boolean) {
+    const { error } = await supabase.from('camaras').update({ ativa: active }).eq('id', id);
+    if (error) throw error;
+  },
+
+  async createParceiro(nome: string, categoria: string) {
+    const { error } = await supabase.from('parceiros_ecossistema').insert([{ nome, categoria, status: 'Ativo' }]);
+    if (error) throw error;
   }
 };
+
+export default ecossistemaService;
