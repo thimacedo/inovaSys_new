@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Check, Zap, Shield, Crown, ArrowRight } from 'lucide-react';
+import { Check, Zap, Shield, Crown, ArrowRight, ArrowLeft } from 'lucide-react';
 import { authService } from '../services/authService';
+import { useAuthStore } from '../presentation/state/useAuthStore';
 import Checkout from './Checkout';
 
 interface PlanCardProps {
@@ -66,8 +67,9 @@ function PlanCard({ name, price, users, features, recommended, icon, color, onSe
   );
 }
 
-export default function Pricing({ onComplete }: { onComplete?: () => void }) {
+export default function Pricing({ onComplete, onBack }: { onComplete?: () => void, onBack?: () => void }) {
   const [selectedPlan, setSelectedPlan] = React.useState<any>(null);
+  const { currentUser, isAuthenticated } = useAuthStore();
 
   const plans: Omit<PlanCardProps, 'onSelect'>[] = [
     {
@@ -100,6 +102,14 @@ export default function Pricing({ onComplete }: { onComplete?: () => void }) {
     }
   ];
 
+  const handleSelect = (plan: any) => {
+    if (!isAuthenticated) {
+      if (onBack) onBack(); // Manda de volta para Auth (Login/Cadastro)
+      return;
+    }
+    setSelectedPlan(plan);
+  };
+
   if (selectedPlan) {
     return (
       <Checkout 
@@ -115,7 +125,6 @@ export default function Pricing({ onComplete }: { onComplete?: () => void }) {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 overflow-x-hidden">
-      {/* Background Decor */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-indigo-100/50 to-transparent blur-3xl -z-10 opacity-60" />
 
       <nav className="max-w-7xl mx-auto px-6 py-8 flex justify-between items-center">
@@ -125,12 +134,25 @@ export default function Pricing({ onComplete }: { onComplete?: () => void }) {
           </div>
           <span className="text-xl font-black tracking-tighter text-slate-900">inovaSys</span>
         </div>
-        <button 
-          onClick={() => authService.signOut()}
-          className="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors"
-        >
-          Sair
-        </button>
+        <div className="flex items-center gap-6">
+          {onBack && (
+            <button 
+              onClick={onBack}
+              className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors"
+            >
+              <ArrowLeft size={16} />
+              Voltar
+            </button>
+          )}
+          {isAuthenticated && (
+            <button 
+              onClick={() => authService.signOut()}
+              className="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors"
+            >
+              Sair
+            </button>
+          )}
+        </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-12 md:py-20 text-center space-y-6">
@@ -151,8 +173,8 @@ export default function Pricing({ onComplete }: { onComplete?: () => void }) {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 max-w-6xl mx-auto">
-          {plans.map((plan, idx) => (
-            <PlanCard key={plan.id} {...plan} onSelect={() => setSelectedPlan(plan)} />
+          {plans.map((plan) => (
+            <PlanCard key={plan.id} {...plan} onSelect={() => handleSelect(plan)} />
           ))}
         </div>
 
