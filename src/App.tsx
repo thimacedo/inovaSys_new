@@ -131,10 +131,4 @@ function AppContent() {
   );
 }
 
-export default function App() {
-  return (
-    <GlobalErrorBoundary>
-      <AppContent />
-    </GlobalErrorBoundary>
-  );
-}
+export default AppContent;

@@ -3,7 +3,7 @@ import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useProcesso } from '../presentation/hooks/useProcessos';
 import { userService } from '../services/userService';
 import { useProcessActions } from '../presentation/hooks/useProcessActions';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { ProcessEntity } from '../infrastructure/database/repositories/ProcessRepository';
 import { 
   Clock, 
