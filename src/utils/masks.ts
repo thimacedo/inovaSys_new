@@ -33,10 +33,22 @@ export const Masks = {
     v = v.replace(/\D/g, "");
     v = v.replace(/(\d{5})(\d)/, "$1-$2");
     return v.substring(0, 9);
+  },
+  card: (v: string) => {
+    v = v.replace(/\D/g, "");
+    v = v.replace(/(\d{4})(\d)/g, "$1 $2");
+    return v.trim().substring(0, 19);
+  },
+  expiry: (v: string) => {
+    v = v.replace(/\D/g, "");
+    v = v.replace(/(\d{2})(\d)/, "$1/$2");
+    return v.substring(0, 5);
   }
 };
 
-export const applyMask = (value: string, maskType: 'doc' | 'money' | 'phone' | 'cep') => {
+export type MaskType = 'doc' | 'money' | 'phone' | 'cep' | 'card' | 'expiry';
+
+export const applyMask = (value: string, maskType: MaskType) => {
   return Masks[maskType](value);
 };
 
