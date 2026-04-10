@@ -2,7 +2,7 @@
 
 /* 
   INOVASYS - DESIGN SYSTEM CORE 
-  Upgrade de Estética Premium (Module 4)
+  Upgrade de Estética Premium (Module 4) + Dark Mode Support
 */
 
 @theme {
@@ -11,19 +11,35 @@
   --color-accent: #4f46e5;
 }
 
+/* Configuração do Variant Dark para Tailwind v4 (Data Attribute) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --bg-app: #f8fafc;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --card-bg: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="dark"] {
+  --bg-app: #0f172a;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-color: #1e293b;
+  --card-bg: rgba(30, 41, 59, 0.7);
 }
 
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-app);
-  color: #1e293b;
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Scrollbar Customizada (Minimalista e Elegante) */
+/* Scrollbar Customizada (Adaptativa) */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -38,16 +54,28 @@ body {
   border-radius: 20px;
 }
 
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-/* Glassmorphism Utilities */
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Glassmorphism Utilities (Adaptativas) */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--card-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .glass {
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .glass-dark {

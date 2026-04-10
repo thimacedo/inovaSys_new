@@ -57,8 +57,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         whileTap={{ scale: 0.98 }}
         className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group relative ${
           isActive 
-            ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' 
-            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-lg shadow-slate-200 dark:shadow-none' 
+            : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-100'
         }`} 
         onClick={() => handleNavClick(id)}
       >
@@ -83,7 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <nav className={`w-72 glass border-r border-slate-200 h-[calc(100vh-72px)] flex flex-col fixed lg:sticky left-0 top-[72px] z-40 transition-all duration-300 overflow-y-auto ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full lg:w-0 opacity-0'}`}>
+    <nav className={`w-72 glass border-r border-slate-200 dark:border-slate-800 h-[calc(100vh-72px)] flex flex-col fixed lg:sticky left-0 top-[72px] z-40 transition-all duration-300 overflow-y-auto ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full lg:w-0 opacity-0'}`}>
       <div className="flex-1 px-4 py-8 space-y-8">
         
         {/* SECTION: GERAL */}
@@ -148,16 +148,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      <div className="mt-auto p-4 border-t border-slate-100 bg-slate-50/50">
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm mb-4">
+      <div className="mt-auto p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm mb-4">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-white font-bold text-xs shadow-md">
             {userEmail?.substring(0, 2).toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-bold text-slate-900 truncate">{userEmail}</p>
+            <p className="text-[11px] font-bold text-slate-900 dark:text-slate-100 truncate">{userEmail}</p>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-sm shadow-emerald-200"></div>
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Sessão Ativa</p>
+              <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Sessão Ativa</p>
             </div>
           </div>
         </div>

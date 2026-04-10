@@ -150,12 +150,12 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
   };
 
   return (
-    <div id="layout-shell" className="flex flex-col min-h-screen bg-slate-50 overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
-      <header id="topbar" className="sticky top-0 left-0 right-0 h-[72px] bg-white/80 backdrop-blur-md border-b border-slate-200 z-50 flex items-center justify-between px-4 md:px-8 shadow-sm">
+    <div id="layout-shell" className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
+      <header id="topbar" className="sticky top-0 left-0 right-0 h-[72px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-50 flex items-center justify-between px-4 md:px-8 shadow-sm">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-            className="p-2.5 text-slate-600 hover:bg-slate-100 rounded-xl transition-all active:scale-90"
+            className="p-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all active:scale-90"
           >
             {isSidebarOpen ? <ChevronLeft size={22} /> : <Menu size={22} />}
           </button>
@@ -164,17 +164,17 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
               <img src={camaraConfig?.logo || logoImg} className="h-6 w-auto object-contain brightness-0 invert" alt="Logo" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-slate-900 leading-tight truncate max-w-[200px] hidden sm:inline-block">
+              <span className="font-bold text-slate-900 dark:text-slate-100 leading-tight truncate max-w-[200px] hidden sm:inline-block">
                 {camaraConfig?.nome || 'InovaSys'}
               </span>
-              <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest hidden sm:block">Painel de Gestão</span>
+              <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest hidden sm:block">Painel de Gestão</span>
             </div>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl">
-             <button onClick={onToggleTheme} className="p-2 text-slate-600 rounded-lg hover:bg-white transition-all shadow-sm">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+             <button onClick={onToggleTheme} className="p-2 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-white dark:hover:bg-slate-700 transition-all shadow-sm">
               {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </button>
           </div>
@@ -184,8 +184,8 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
           <Notifications onSelectProcess={handleProcessSelect} />
           
           <div className="hidden md:flex flex-col items-end px-2">
-            <span className="text-xs font-bold text-slate-900">{session?.user?.id.substring(0, 8)}...</span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{(userProfile?.tipo_usuario || 'arbitro').toLowerCase()}</span>
+            <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{session?.user?.id.substring(0, 8)}...</span>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold">{(userProfile?.tipo_usuario || 'arbitro').toLowerCase()}</span>
           </div>
 
           <button 
