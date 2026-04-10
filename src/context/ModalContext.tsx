@@ -6,7 +6,7 @@ import { applyMask } from '../utils/masks';
 type ModalContextType = {
   showModal: (title: string, content: ReactNode, size?: 'small' | 'large') => void;
   showConfirm: (title: string, message: string, onConfirm: () => void, confirmText?: string) => void;
-  showPrompt: (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type?: 'text' | 'date' | 'time' | 'number' | 'textarea', maskType?: 'doc' | 'money' | 'phone' | 'cep') => void;
+  showPrompt: (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type?: 'text' | 'date' | 'time' | 'number' | 'textarea' | 'select', maskType?: 'doc' | 'money' | 'phone' | 'cep', options?: { label: string, value: string }[]) => void;
   hideModal: () => void;
   showToast: (message: string, type?: 'success' | 'error' | 'attention' | 'warning' | 'info') => void;
 };
@@ -79,16 +79,16 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     setModal({ isOpen: true, title: fullTitle, content, size: 'small' });
   };
 
-  const showPrompt = (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type: 'text' | 'date' | 'time' | 'number' | 'textarea' = 'textarea', maskType?: 'doc' | 'money' | 'phone' | 'cep') => {
+  const showPrompt = (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type: 'text' | 'date' | 'time' | 'number' | 'textarea' | 'select' = 'textarea', maskType?: 'doc' | 'money' | 'phone' | 'cep', options?: { label: string, value: string }[]) => {
     const camaraName = getCamaraName();
     const fullTitle = `${camaraName} | ${title}`;
     
     const PromptContent = () => {
       const [value, setValue] = useState(maskType ? applyMask(initialValue, maskType) : initialValue);
       
-      const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         let val = e.target.value;
-        if (maskType) {
+        if (maskType && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
           val = applyMask(val, maskType);
         }
         setValue(val);
@@ -105,6 +105,15 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
                 onChange={handleChange}
                 autoFocus
               />
+            ) : type === 'select' && options ? (
+              <select 
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                value={value}
+                onChange={handleChange}
+                autoFocus
+              >
+                {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
             ) : (
               <input 
                 type={maskType ? 'text' : type}

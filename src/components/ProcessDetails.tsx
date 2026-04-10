@@ -113,6 +113,17 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
     if (field.toString().startsWith('valor_')) { inputType = 'text'; maskType = 'money'; }
     if (field === 'requerente_doc' || field === 'requerido_doc') { maskType = 'doc'; }
 
+    let options: { label: string, value: string }[] | undefined = undefined;
+    if (field === 'status') {
+      inputType = 'select';
+      options = [
+        { label: 'Protocolado', value: 'Protocolado' },
+        { label: 'Em Andamento', value: 'Em Andamento' },
+        { label: 'Concluído', value: 'Concluído' },
+        { label: 'Arquivado', value: 'Arquivado' }
+      ];
+    }
+
     let initialVal = currentValue?.toString() || '';
     showPrompt('Editar Campo', label, initialVal, async (newValue) => {
       if (newValue !== null && newValue !== initialVal) {
@@ -132,7 +143,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
           showToast(`Erro ao atualizar ${label}: ` + (e as Error).message, 'error');
         }
       }
-    }, inputType as any, maskType);
+    }, inputType as any, maskType, options);
   };
 
   if (loading) return (
@@ -208,11 +219,12 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Protocolo Oficial</span>
                 <p className="text-lg font-black text-slate-900">{processo.numero_processo}</p>
               </div>
-              <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+              <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 relative group">
+                {canEditProcess && <button onClick={() => handleEditField('status', 'Situação do Processo', processo.status)} className="absolute top-4 right-4 p-2 text-slate-300 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100"><ExternalLink size={14} /></button>}
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Instância Atual</span>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                  <p className="text-lg font-black text-slate-900 uppercase">{processo.status}</p>
+                  <p className="text-lg font-black text-slate-900 uppercase">{processo.status || 'Não Informado'}</p>
                 </div>
               </div>
               <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 relative group">

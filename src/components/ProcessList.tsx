@@ -74,9 +74,18 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
   };
 
   const statusBadge = (status: string) => {
-    if (status === 'Concluído') return 'bg-green-50 text-green-700 border-green-100';
-    if (status === 'Suspenso') return 'bg-red-50 text-red-700 border-red-100';
-    return 'bg-blue-50 text-blue-700 border-blue-100';
+    switch (status) {
+      case 'Concluído':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+      case 'Em Andamento':
+        return 'bg-indigo-50 text-indigo-700 border-indigo-100';
+      case 'Arquivado':
+        return 'bg-slate-50 text-slate-500 border-slate-200';
+      case 'Protocolado':
+        return 'bg-sky-50 text-sky-700 border-sky-100';
+      default:
+        return 'bg-blue-50 text-blue-700 border-blue-100';
+    }
   };
 
   if (isError) {

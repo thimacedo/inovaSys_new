@@ -63,7 +63,8 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
         valor_causa: parseMoney(formData.valor_causa),
         user_id: session.user.id,
         camara_id: camaraId || undefined,
-        organization_id: orgId
+        organization_id: orgId,
+        status: 'Protocolado'
       };
 
       await createMutation.mutateAsync(payload, {
