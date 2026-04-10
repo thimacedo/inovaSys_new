@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { logAudit } from '../../services/auditoriaService';
 
 export abstract class BaseSupabaseRepository<T> {
   protected readonly client: SupabaseClient;
@@ -24,9 +25,7 @@ export abstract class BaseSupabaseRepository<T> {
       if (error) throw error;
       
       // Registro de Auditoria assíncrono (não bloqueante)
-      import('../../services/auditoriaService').then(({ auditoriaService }) => {
-        auditoriaService.logAudit('create', this.tableName, (result as any).id, undefined, data);
-      });
+      logAudit('create', this.tableName, (result as any).id, undefined, data).catch(() => {});
 
       return result as T;
     } catch (error) {
@@ -45,9 +44,7 @@ export abstract class BaseSupabaseRepository<T> {
 
       if (error) throw error;
 
-      import('../../services/auditoriaService').then(({ auditoriaService }) => {
-        auditoriaService.logAudit('update', this.tableName, id, undefined, data);
-      });
+      logAudit('update', this.tableName, id, undefined, data).catch(() => {});
 
       return result as T;
     } catch (error) {
@@ -64,9 +61,7 @@ export abstract class BaseSupabaseRepository<T> {
 
       if (error) throw error;
 
-      import('../../services/auditoriaService').then(({ auditoriaService }) => {
-        auditoriaService.logAudit('delete', this.tableName, id);
-      });
+      logAudit('delete', this.tableName, id).catch(() => {});
     } catch (error) {
       return this.handleError(error, 'delete');
     }
