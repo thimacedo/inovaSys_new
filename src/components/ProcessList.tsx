@@ -30,17 +30,24 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [activeStatus, setActiveStatus] = useState<string>('Todos');
 
   const camaraId = currentUser?.organization_id || currentUser?.camara_id;
 
   const { data: queryResult, isLoading: loading, isError } = useProcessos(camaraId, {
     page: currentPage,
-    pageSize: pageSize,
+    pageSize: viewMode === 'kanban' ? 100 : pageSize,
     search: debouncedSearch
   });
 
   const processos = (queryResult?.data || []) as Processo[];
   const totalCount = queryResult?.count || 0;
+
+  const statuses = ['Todos', 'Protocolado', 'Em Andamento', 'Concluído', 'Arquivado'];
+  
+  const filteredProcessos = activeStatus === 'Todos'
+    ? processos
+    : processos.filter(p => (p.status || '').toLowerCase() === activeStatus.toLowerCase());
 
   useEffect(() => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
@@ -152,9 +159,23 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
       <AnimatePresence mode="wait">
         {viewMode === 'list' ? (
           <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Processos Recentes</h4>
-              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">{totalCount} REGISTROS</span>
+            <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/50">
+              <div className="flex bg-slate-200/50 p-1 rounded-xl gap-1">
+                {statuses.map(status => (
+                  <button
+                    key={status}
+                    onClick={() => setActiveStatus(status)}
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                      activeStatus === status 
+                        ? 'bg-white text-blue-600 shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100 italic">{filteredProcessos.length} filtrados</span>
             </div>
 
             {loading ? (
@@ -174,14 +195,14 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {processos.length === 0 ? (
+                    {filteredProcessos.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-6 py-20 text-center">
-                          <p className="text-sm font-bold text-slate-500">Nenhum processo encontrado</p>
+                          <p className="text-sm font-bold text-slate-500">Nenhum processo {activeStatus !== 'Todos' ? `com status "${activeStatus}"` : ''} encontrado</p>
                         </td>
                       </tr>
                     ) : (
-                      processos.map(p => (
+                      filteredProcessos.map(p => (
                         <tr key={p.id} className="hover:bg-slate-50/80 transition-colors group">
                           <td className="px-6 py-5">
                             <span className="text-sm font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-xl border border-blue-100 shadow-sm">{p.numero_processo}</span>
@@ -215,16 +236,28 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
         ) : (
           <motion.div key="kanban" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex gap-6 overflow-x-auto pb-6 min-h-[600px] w-full max-w-full">
             {['Protocolado', 'Em Andamento', 'Concluído', 'Arquivado'].map(status => (
-              <div key={status} className="flex-shrink-0 w-80 bg-slate-100/50 rounded-2xl border border-slate-200 p-4 flex flex-col gap-4">
-                <h5 className="text-xs font-bold text-slate-500 uppercase tracking-widest px-2">{status}</h5>
+              <div key={status} className="flex-shrink-0 w-80 bg-slate-100/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-4">
+                <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2">{status}</h5>
                 <div className="flex-1 space-y-3">
-                  {loading ? [...Array(3)].map((_, i) => <ProcessRowSkeleton key={i} />) : processos.filter(p => p.status === status).map(p => (
-                    <div key={p.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => onProcessSelect(p.id)}>
-                      <span className="text-[10px] font-mono font-bold text-blue-600 block mb-2">{p.numero_processo}</span>
-                      <p className="text-sm font-bold text-slate-900 mb-1 line-clamp-1">{p.requerente_nome}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase line-clamp-1">{p.requerido_nome}</p>
-                    </div>
-                  ))}
+                  {loading ? [...Array(3)].map((_, i) => <ProcessRowSkeleton key={i} />) : 
+                    processos.filter(p => String(p.status || '').trim().toLowerCase() === status.toLowerCase()).length === 0 ? (
+                      <div className="py-10 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vazio</p>
+                      </div>
+                    ) : (
+                      processos.filter(p => String(p.status || '').trim().toLowerCase() === status.toLowerCase()).map(p => (
+                        <div 
+                          key={p.id} 
+                          className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all cursor-pointer group" 
+                          onClick={() => onProcessSelect(p.id)}
+                        >
+                          <span className="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 block mb-2">{p.numero_processo}</span>
+                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">{p.requerente_nome}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase line-clamp-1">{p.requerido_nome}</p>
+                        </div>
+                      ))
+                    )
+                  }
                 </div>
               </div>
             ))}

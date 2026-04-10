@@ -32,15 +32,15 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const canEditProcess = isAdmin || (processo && processo.arbitro_id === currentUser?.id);
 
   useEffect(() => {
-    if (processo?.organization_id && isAdmin) {
-      carregarArbitros(processo.organization_id as string);
+    if (isAdmin) {
+      carregarArbitros();
     }
-  }, [processo, isAdmin]);
+  }, [isAdmin]);
 
-  const carregarArbitros = async (orgId?: string) => {
-    if (!isAdmin || !orgId) return;
+  const carregarArbitros = async () => {
+    if (!isAdmin) return;
     try {
-      const data = await userService.getArbitrosDisponiveis(orgId);
+      const data = await userService.getArbitrosDisponiveis();
       setArbitros(data);
     } catch (e) {
       console.error('Erro ao carregar árbitros:', e);

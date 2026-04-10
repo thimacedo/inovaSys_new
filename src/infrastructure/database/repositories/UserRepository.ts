@@ -26,14 +26,15 @@ export class UserRepository extends BaseSupabaseRepository<Usuario> {
   }
 
   /**
-   * Busca especializada com Join para membros de organização (Árbitros)
+   * Lista TODOS os árbitros do sistema (correção: não filtra mais por organização)
+   * Qualquer árbitro cadastrado aparece imediatamente para atribuição em qualquer processo
    */
-  public async listArbitrosByOrg(organizationId: string) {
+  public async listAllArbitros() {
     const { data, error } = await this.client
-      .from('org_members')
-      .select(`user_id, perfil:user_id ( id, nome, cpf, email )`)
-      .eq('organization_id', organizationId)
-      .eq('role', 'arbitro');
+      .from('perfis')
+      .select(`id, nome, cpf, email`)
+      .in('tipo_usuario', ['arbitro', 'Árbitro', 'Arbitro', 'ARBITRO'])
+      .order('nome', { ascending: true });
 
     if (error) throw error;
     return data;

@@ -55,16 +55,10 @@ export const userService = {
     return await repository.delete(id);
   },
 
-  async getArbitrosDisponiveis(orgId: string) {
-    if (!orgId) return [];
-    const data = await DependencyRegistry.getUserRepository().listArbitrosByOrg(orgId);
-    
-    return data.map((m: any) => ({
-      id: m.user_id,
-      nome: m.perfil?.nome || 'Árbitro sem nome',
-      cpf: m.perfil?.cpf || '',
-      email: m.perfil?.email || ''
-    }));
+  async getArbitrosDisponiveis() {
+    // ✅ CORREÇÃO: Agora retorna TODOS os árbitros do sistema, independente de organização
+    // Qualquer árbitro cadastrado aparece imediatamente para atribuição em QUALQUER processo
+    return await DependencyRegistry.getUserRepository().listAllArbitros();
   }
 };
 
