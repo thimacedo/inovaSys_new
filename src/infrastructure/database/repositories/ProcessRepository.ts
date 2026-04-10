@@ -54,9 +54,9 @@ export class ProcessRepository extends BaseSupabaseRepository<Processo> {
         .from(this.tableName)
         .select('*, arbitro:arbitro_id(nome)', { count: 'exact' });
 
-      // Se camaraId estiver presente, filtra por câmara ou organização
+      // Se camaraId estiver presente, filtra por câmara
       if (camaraId) {
-        query = query.or(`camara_id.eq.${camaraId},organization_id.eq.${camaraId}`);
+        query = query.eq('camara_id', camaraId);
       } 
       // Caso contrário, se camaraId for undefined, o comportamento depende do RLS. 
       // Admins globais (GOD) verão tudo via políticas de banco.
