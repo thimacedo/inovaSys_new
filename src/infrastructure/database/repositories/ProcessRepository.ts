@@ -100,4 +100,18 @@ export class ProcessRepository extends BaseSupabaseRepository<ProcessEntity> {
       return this.handleError(error, 'publicSearch');
     }
   }
+  public async create(data: Omit<ProcessEntity, 'id' | 'created_at' | 'updated_at' | 'numero_processo'>): Promise<ProcessEntity> {
+    const { data: result, error } = await this.client
+      .from(this.tableName)
+      .insert([data])
+      .select('*') // Obrigatório para capturar o numero_processo gerado pela Trigger
+      .single();
+
+    if (error) {
+      console.error('[ProcessRepository] Erro ao criar processo:', error);
+      throw error;
+    }
+
+    return result as ProcessEntity;
+  }
 }
