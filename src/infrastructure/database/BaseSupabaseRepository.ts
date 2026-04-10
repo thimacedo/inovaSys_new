@@ -17,7 +17,7 @@ export abstract class BaseSupabaseRepository<T> {
     try {
       const { data: result, error } = await this.client
         .from(this.tableName)
-        .insert(data)
+        .insert(data as any)
         .select()
         .single();
 

@@ -116,7 +116,7 @@ export default function ProcessAttachments({ processoId }: { processoId: string 
                   <div>
                     <p className="text-sm font-bold text-slate-700">{file.nome_arquivo}</p>
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                      {(file.tamanho_bytes / 1024 / 1024).toFixed(2)} MB
+                      {((file.tamanho_bytes ?? 0) / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
                 </div>

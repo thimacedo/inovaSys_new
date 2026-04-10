@@ -20,7 +20,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     content: null, 
     size: 'large' 
   });
-  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' | 'attention' }>({ 
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' | 'attention' | 'warning' | 'info' }>({ 
     isOpen: false, 
     message: '',
     type: 'success'
@@ -116,7 +116,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
               </select>
             ) : (
               <input 
-                type={maskType ? 'text' : type}
+                type={maskType ? 'text' : (type === 'select' ? 'text' : type)}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" 
                 value={value} 
                 onChange={handleChange}
@@ -158,7 +158,9 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     const prefixes = {
       success: 'Sucesso: ',
       error: 'Erro: ',
-      attention: 'Atenção: '
+      attention: 'Atenção: ',
+      warning: 'Aviso: ',
+      info: 'Informação: '
     };
 
     // 1. Determine the actual type
@@ -187,7 +189,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     const prefix = prefixes[finalType];
     const fullMessage = alreadyHasPrefix ? message : `${prefix}${message}`;
     
-    setToast({ isOpen: true, message: fullMessage, type: finalType as 'success' | 'error' | 'attention' });
+    setToast({ isOpen: true, message: fullMessage, type: finalType as 'success' | 'error' | 'attention' | 'warning' | 'info' });
   };
 
   return (

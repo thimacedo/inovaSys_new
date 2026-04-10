@@ -72,7 +72,7 @@ export default function Notifications({ onSelectProcess }: { onSelectProcess: (p
                            <p className={`text-sm ${!item.lida ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{item.titulo}</p>
                            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{item.mensagem}</p>
                            <div className="mt-3 flex items-center justify-between">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase">{new Date(item.created_at).toLocaleDateString()}</span>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase">{new Date(item.created_at ?? Date.now()).toLocaleDateString()}</span>
                               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button onClick={(e) => handleWhatsAppNotify(e, item.mensagem)} className="p-1.5 bg-emerald-50 text-emerald-600 rounded-md hover:bg-emerald-100" title="Repassar via WhatsApp">
                                   <MessageCircle size={14} />
