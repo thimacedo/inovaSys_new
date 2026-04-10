@@ -22,6 +22,14 @@ const STYLE_MAP: Record<ToastType, { bg: string; icon: string }> = {
     bg: 'bg-amber-600',
     icon: '⚠',
   },
+  warning: {
+    bg: 'bg-amber-600',
+    icon: '⚠',
+  },
+  info: {
+    bg: 'bg-blue-600',
+    icon: 'ℹ',
+  },
 };
 
 const Toast: React.FC<ToastProps> = ({ message, isOpen, type = 'success', onClose }) => {

@@ -26,4 +26,15 @@ export class CamaraRepository extends BaseSupabaseRepository<CamaraEntity> {
     if (error) return this.handleError(error, 'getById');
     return data as CamaraEntity;
   }
+
+  public async getWithSubscription(id: string): Promise<CamaraEntity | null> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*, planos(limite_usuarios)')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) return this.handleError(error, 'getWithSubscription');
+    return data as CamaraEntity;
+  }
 }

@@ -3,7 +3,7 @@ import { userService } from '../../services/userService';
 import { useModal } from '../../context/ModalContext';
 import { isValidCPF } from '../../utils/validators';
 import { supabase } from '../../lib/supabase';
-
+import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
 /**
  * useTeamController
  * Hook de apresentação para separar a lógica de negócio da UI do componente Equipe.
@@ -29,11 +29,7 @@ export function useTeamController(camaraId?: string, onAdded?: (password?: strin
     setLoading(true);
     try {
       // 1. Verificação de Limites (Regra de Negócio)
-      const { data: camara } = await supabase
-        .from('camaras')
-        .select('*, planos(limite_usuarios)')
-        .eq('id', camaraId)
-        .single();
+      const camara = camaraId ? await DependencyRegistry.getCamaraRepository().getWithSubscription(camaraId) : null;
 
       if (camara) {
         const { count } = await supabase
