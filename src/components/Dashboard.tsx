@@ -99,10 +99,15 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
 
     loadConfig();
     
+    // Listener para mudanças nas configurações (Branding)
+    window.addEventListener('storage', loadConfig);
+    
     // ✅ Garante que o menu fica aberto sempre que a sessão for atualizada
     if (window.innerWidth >= 1024) {
       setIsSidebarOpen(true);
     }
+
+    return () => window.removeEventListener('storage', loadConfig);
   }, [userProfile]);
 
   const handleProcessSelect = (id: string) => {

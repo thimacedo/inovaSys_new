@@ -105,9 +105,17 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
 
       await updateSettingsMutation.mutateAsync({ id: camaraId, data: configData });
       showToast("Configurações salvas com sucesso!", 'success');
+      
+      // Força a atualização do localStorage e avisa o Dashboard
+      localStorage.removeItem('camara_config');
       window.dispatchEvent(new Event('storage'));
-    } catch (error) {
-      showToast("Erro ao salvar configurações.", 'error');
+    } catch (error: any) {
+      console.error('[CamaraConfig] Erro ao salvar:', error);
+      if (error.message?.includes('column')) {
+        showToast("Erro: Colunas faltando no banco. Execute o script de reparo.", 'error');
+      } else {
+        showToast("Erro ao salvar configurações. " + (error.message || ''), 'error');
+      }
     }
   };
 
