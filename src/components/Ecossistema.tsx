@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 import { ecossistemaService, Camara, Plano } from '../services/ecossistemaService';
+import { emailService } from '../services/emailService';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -56,6 +57,21 @@ function NovaAfiliacaoForm({ onAdded, planos }: { onAdded: () => void, planos: P
     setLoading(true);
     try {
       const result = await ecossistemaService.createCamara(nome, planoId, emailGestor, diasBonus);
+      
+      // Enviar E-mail de Boas-vindas (Background)
+      try {
+        const t = emailService.templates.boasVindasGestor(emailGestor, result.tempPassword, nome);
+        const html = emailService.generateBaseTemplate({
+          camaraNome: 'InovaSys Ecossistema',
+          destinatario: nome,
+          assunto: t.assunto,
+          corpo: t.corpo,
+          linkAction: t.link
+        });
+        await emailService.send(emailGestor, t.assunto, html);
+      } catch (e) {
+        console.error('Falha silenciosa no envio de e-mail:', e);
+      }
       
       // Fechar o modal atual primeiro
       const closeBtn = document.querySelector('button[class*="hover:text-slate-700"]');

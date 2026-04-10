@@ -74,9 +74,13 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
       await documentService.generateFromTemplate(2, {
         requerente_nome: processo.requerente_nome || 'Não informado',
         requerido_nome: processo.requerido_nome || 'Não informado',
+        requerente_doc: processo.requerente_doc || '---',
+        requerido_doc: processo.requerido_doc || '---',
         numero_processo: processo.numero_processo || processo.id,
         valor_causa: Number(processo.valor_causa || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
         arbitro_nome: (processo as any).arbitro?.nome || 'Designação Pendente',
+        camara_nome: localStorage.getItem('camara_config') ? JSON.parse(localStorage.getItem('camara_config')!).nome : 'InovaSys',
+        resumo_fatos: processo.resumo_fatos || 'Sem resumo cadastrado.',
         data_hoje: new Date().toLocaleDateString('pt-BR')
       }, `Termo_Arbitragem_${processo.numero_processo}`);
       showToast('Download iniciado!', 'success');
