@@ -28,7 +28,7 @@ export class AuditRepository extends BaseSupabaseRepository<AuditEntity> {
     try {
       const { data, error } = await this.client
         .from(this.tableName)
-        .select('*, perfis:usuario_id (nome, email)')
+        .select('*, perfil:usuario_id (nome, email)')
         .order('created_at', { ascending: false })
         .limit(limit);
 
