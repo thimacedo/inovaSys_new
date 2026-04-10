@@ -18,7 +18,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const currentUser = useAuthStore((state) => state.currentUser);
   
   // TanStack Query Hook
-  const { data: processo, isLoading: loading, isError } = useProcesso(processId);
+  const { data: processo, isLoading: loading, isError, refetch } = useProcesso(processId);
   const addHistoryMutation = useAddHistoryEntry();
 
   const [arbitros, setArbitros] = useState<any[]>([]);
@@ -98,7 +98,9 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
     if (!processo || !arbitroId) return;
     setIsAssigning(true);
     try {
+      if (!processo) return;
       await processService.assignArbitrator(processo.id, arbitroId);
+      await refetch();
       showToast('Árbitro designado com sucesso!', 'success');
     } catch (error: any) {
       showToast(error.message || 'Erro ao designar árbitro.', 'error');
