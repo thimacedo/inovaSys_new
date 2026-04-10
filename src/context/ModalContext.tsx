@@ -115,18 +115,18 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
                 onChange={handleChange}
                 autoFocus
               />
-            ) : type === 'select' && options ? (
+            ) : type === 'select' ? (
               <select 
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                 value={value}
                 onChange={handleChange}
                 autoFocus
               >
-                {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                {options?.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             ) : (
               <input 
-                type={maskType ? 'text' : (type === 'select' ? 'text' : type)}
+                type={maskType ? 'text' : type}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" 
                 value={value} 
                 onChange={handleChange}
@@ -199,7 +199,11 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     const prefix = prefixes[finalType];
     const fullMessage = alreadyHasPrefix ? message : `${prefix}${message}`;
     
-    setToast({ isOpen: true, message: fullMessage, type: finalType as 'success' | 'error' | 'attention' | 'warning' | 'info' });
+    setToast({ 
+      isOpen: true, 
+      message: fullMessage, 
+      type: finalType as 'success' | 'error' | 'attention' | 'warning' | 'info' 
+    });
   };
 
   return (

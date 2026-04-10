@@ -296,6 +296,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   }, [membrosRaw, isGlobalAdmin, isLocalAdmin, currentUser]);
 
   const handleEditTipoUsuario = (membro: any) => {
+    if (!membro?.id) return;
     const rolesPermitidas = [];
     const currentUserRole = currentUser?.tipo_usuario?.toLowerCase();
 
@@ -363,6 +364,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   };
 
   const handleDeleteMembro = (id: string) => {
+    if (!id) return;
     if (id === currentUser?.id) {
       showToast("Você não pode remover seu próprio acesso.", 'attention');
       return;
