@@ -63,7 +63,10 @@ describe('BaseSupabaseRepository', () => {
   let repository: TestRepository;
 
   beforeEach(() => {
+    // Apenas limpa chamadas e instâncias, NÃO apaga implementações
     vi.clearAllMocks();
+    mockSingle.mockClear();
+
     mockClient = {
       from: mockFrom,
     } as unknown as SupabaseClient;
@@ -105,7 +108,7 @@ describe('BaseSupabaseRepository', () => {
 
   it('deve listar registros com paginação', async () => {
     const mockData = [{ id: '1' }, { id: '2' }];
-    mockSelect.mockReturnValueOnce({ data: mockData, error: null });
+    mockRange.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await repository.list(0, 10);
 
@@ -117,12 +120,9 @@ describe('BaseSupabaseRepository', () => {
   });
 
   it('deve atualizar um registro', async () => {
-    const oldData = { id: '123', name: 'Antigo' };
     const newData = { name: 'Novo' };
     const updatedData = { id: '123', name: 'Novo' };
 
-    // Mock para buscar dados antigos
-    mockSingle.mockResolvedValueOnce({ data: oldData, error: null });
     // Mock para a atualização
     mockSingle.mockResolvedValueOnce({ data: updatedData, error: null });
 
