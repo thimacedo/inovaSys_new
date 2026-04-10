@@ -128,7 +128,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
         }
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'process_details':
-        return selectedProcessId ? <ProcessDetails processId={selectedProcessId} onBack={() => setCurrentView('dash')} camaraConfig={camaraConfig} /> : <div>Selecione um processo</div>;
+        return selectedProcessId ? <ProcessDetails processId={selectedProcessId} onBack={() => setCurrentView('dash')} /> : <div>Selecione um processo</div>;
       case 'equipe':
         return canManageTeam ? <Equipe camaraId={localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id} /> : <DashboardHome />;
       case 'camara':
