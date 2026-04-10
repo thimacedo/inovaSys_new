@@ -11,7 +11,7 @@ export abstract class BaseSupabaseRepository<T> {
 
   protected async handleError(error: any, context: string): Promise<never> {
     console.error(`[SupabaseRepositoryError] - ${context}:`, error);
-    throw new Error(`Falha na operação de banco de dados: ${error.message || 'Erro desconhecido'}`);
+    throw error;
   }
 
   public async create(data: Partial<T>): Promise<T> {
@@ -49,6 +49,41 @@ export abstract class BaseSupabaseRepository<T> {
       return result as T;
     } catch (error) {
        return this.handleError(error, 'update');
+    }
+  }
+
+  public async getById(id: string): Promise<T> {
+    try {
+      const { data, error } = await this.client
+        .from(this.tableName)
+        .select()
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      return data as T;
+    } catch (error) {
+      return this.handleError(error, 'getById');
+    }
+  }
+
+  public async list(page: number = 0, pageSize: number = 10): Promise<T[]> {
+    try {
+      const start = page * pageSize;
+      const end = start + pageSize - 1;
+
+      const { data, error } = await this.client
+        .from(this.tableName)
+        .select()
+        .order('created_at', { ascending: false })
+        .range(start, end);
+
+      if (error) throw error;
+
+      return data as T[];
+    } catch (error) {
+      return this.handleError(error, 'list');
     }
   }
 
