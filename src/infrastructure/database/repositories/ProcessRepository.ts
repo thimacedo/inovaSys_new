@@ -15,7 +15,7 @@ export class ProcessRepository extends BaseSupabaseRepository<Processo> {
     try {
       const { data, error } = await this.client
         .from(this.tableName)
-        .select('*')
+        .select('*, arbitro:arbitro_id(nome)')
         .eq('id', id)
         .single();
 

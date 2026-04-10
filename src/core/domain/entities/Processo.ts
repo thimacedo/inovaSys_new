@@ -15,5 +15,6 @@ export interface Processo {
   resumo_fatos?: string;
   created_at?: string;
   updated_at?: string;
+  arbitro?: { nome: string };
   [key: string]: any;
 }
