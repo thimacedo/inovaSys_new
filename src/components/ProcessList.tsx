@@ -34,20 +34,22 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
 
   const camaraId = currentUser?.organization_id || currentUser?.camara_id;
 
+  // No modo Kanban, carregamos um número maior de itens para garantir que o quadro esteja completo
   const { data: queryResult, isLoading: loading, isError } = useProcessos(camaraId, {
     page: currentPage,
-    pageSize: viewMode === 'kanban' ? 100 : pageSize,
+    pageSize: viewMode === 'kanban' ? 200 : pageSize,
     search: debouncedSearch
   });
 
   const processos = (queryResult?.data || []) as Processo[];
-  const totalCount = queryResult?.count || 0;
-
+  
   const statuses = ['Todos', 'Protocolado', 'Em Andamento', 'Concluído', 'Arquivado'];
   
+  const normalizeStatus = (s: string) => String(s || '').trim().toLowerCase();
+
   const filteredProcessos = activeStatus === 'Todos'
     ? processos
-    : processos.filter(p => (p.status || '').toLowerCase() === activeStatus.toLowerCase());
+    : processos.filter(p => normalizeStatus(p.status || '') === normalizeStatus(activeStatus));
 
   useEffect(() => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
@@ -244,12 +246,12 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                 <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2">{status}</h5>
                 <div className="flex-1 space-y-3">
                   {loading ? [...Array(3)].map((_, i) => <ProcessRowSkeleton key={i} />) : 
-                    processos.filter(p => String(p.status || '').trim().toLowerCase() === status.toLowerCase()).length === 0 ? (
+                    processos.filter(p => normalizeStatus(p.status || '') === normalizeStatus(status)).length === 0 ? (
                       <div className="py-10 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vazio</p>
                       </div>
                     ) : (
-                      processos.filter(p => String(p.status || '').trim().toLowerCase() === status.toLowerCase()).map(p => (
+                      processos.filter(p => normalizeStatus(p.status || '') === normalizeStatus(status)).map(p => (
                         <div 
                           key={p.id} 
                           className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all cursor-pointer group" 

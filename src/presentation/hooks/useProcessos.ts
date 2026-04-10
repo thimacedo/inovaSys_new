@@ -13,16 +13,9 @@ export function useProcessos(
   return useQuery({
     queryKey: [PROCESSOS_QUERY_KEY, camaraId, params],
     queryFn: async () => {
-      if (!camaraId) return { data: [], count: 0 };
-      
-      if (params) {
-        return await processService.getAll(camaraId, params.page, params.pageSize, params.search);
-      }
-      
-      const data = await processService.listByCamara(camaraId);
-      return { data, count: data.length };
+      return await processService.getAll(camaraId, params?.page || 1, params?.pageSize || 10, params?.search || '');
     },
-    enabled: !!camaraId,
+    enabled: true,
     staleTime: 1000 * 60 * 5,
   });
 }

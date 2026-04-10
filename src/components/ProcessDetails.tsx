@@ -1,34 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../presentation/state/useAuthStore';
-import { useModal } from '../context/ModalContext';
 import { useProcesso } from '../presentation/hooks/useProcessos';
 import { userService } from '../services/userService';
-import { documentService } from '../services/documentService';
-import { whatsappService } from '../services/whatsappService';
-import { processService, Processo } from '../services/processService';
-import { isValidDoc } from '../utils/validators';
+import { useProcessActions } from '../presentation/hooks/useProcessActions';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Clock, 
+  ExternalLink, 
+  FileText, 
+  Download, 
+  ArrowLeft, 
+  ChevronRight, 
+  MessageSquare, 
+  Send,
+  ShieldCheck,
+  Users,
+  BarChart3,
+  Wallet
+} from 'lucide-react';
+import { Button } from '../presentation/ui/components/Button';
 import FinanceiroTab from './FinanceiroTab';
 import ProcessAttachments from './ProcessAttachments';
 import ProcessTimeline from './ProcessTimeline';
-import { useAddHistoryEntry } from '../presentation/hooks/useHistory';
-import { Clock, ExternalLink, FileText, Download, ArrowLeft, ChevronRight, MessageSquare, Send } from 'lucide-react';
-import { Button } from '../presentation/ui/components/Button';
 
 export default function ProcessDetails({ processId, onBack }: { processId: string, onBack: () => void }) {
   if (!processId) return null;
   const currentUser = useAuthStore((state) => state.currentUser);
   
-  // TanStack Query Hook
   const { data: processo, isLoading: loading, isError, refetch } = useProcesso(processId);
-  const addHistoryMutation = useAddHistoryEntry();
+  const {
+    isGeneratingDoc,
+    isAssigning,
+    submitting,
+    handleGerarTermo,
+    handleWhatsApp,
+    handleAssignArbitrator,
+    handleEditField,
+    handleAddAndamento
+  } = useProcessActions(processo, refetch);
 
   const [arbitros, setArbitros] = useState<any[]>([]);
-  const [isAssigning, setIsAssigning] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
   const [novoAndamento, setNovoAndamento] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
-  const { showToast, showPrompt } = useModal();
 
   const isAdmin = ['gestor', 'admin', 'god'].includes(currentUser?.tipo_usuario?.toLowerCase() || '');
   const canEditProcess = isAdmin || (processo && processo.arbitro_id === currentUser?.id);
@@ -40,7 +53,6 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   }, [isAdmin]);
 
   const carregarArbitros = async () => {
-    if (!isAdmin) return;
     try {
       const data = await userService.getArbitrosDisponiveis();
       setArbitros(data);
@@ -49,114 +61,9 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
     }
   };
 
-  const handleAddAndamento = async () => {
-    if (!novoAndamento.trim() || !currentUser) return;
-    setSubmitting(true);
-    try {
-      await addHistoryMutation.mutateAsync({
-        processoId: processId,
-        titulo: 'Atualização do Processo',
-        tipo: 'usuario',
-        descricao: novoAndamento,
-        autorId: currentUser.id
-      });
-      setNovoAndamento('');
-      showToast('Andamento registrado com sucesso!', 'success');
-    } catch (error) {
-      showToast('Erro ao registrar andamento.', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleGerarTermo = async () => {
-    if (!processo) return;
-    setIsGeneratingDoc(true);
-    try {
-      await documentService.generateFromTemplate(2, {
-        requerente_nome: processo.requerente_nome || 'Não informado',
-        requerido_nome: processo.requerido_nome || 'Não informado',
-        requerente_doc: processo.requerente_doc || '---',
-        requerido_doc: processo.requerido_doc || '---',
-        numero_processo: processo.numero_processo || processo.id,
-        valor_causa: Number(processo.valor_causa || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-        arbitro_nome: (processo as any).arbitro?.nome || 'Designação Pendente',
-        camara_nome: localStorage.getItem('camara_config') ? JSON.parse(localStorage.getItem('camara_config')!).nome : 'InovaSys',
-        resumo_fatos: processo.resumo_fatos || 'Sem resumo cadastrado.',
-        data_hoje: new Date().toLocaleDateString('pt-BR')
-      }, `Termo_Arbitragem_${processo.numero_processo}`);
-      showToast('Download iniciado!', 'success');
-    } catch (error: any) {
-      showToast('Erro ao gerar documento: ' + error.message, 'error');
-    } finally {
-      setIsGeneratingDoc(false);
-    }
-  };
-
-  const handleWhatsApp = (nomeParte: string, tipo: 'requerente' | 'requerido') => {
-    if (!processo) return;
-    showPrompt(`Notificar ${tipo === 'requerente' ? 'Requerente' : 'Requerido'}`, `Confirme o número do WhatsApp de ${nomeParte} (apenas números com DDD):`, '', (phone) => {
-      if (!phone || !processo) return;
-      const msg = whatsappService.templates.avisoAndamento(nomeParte, (processo as any).numero_processo || '', "Houve uma nova atualização no seu processo. Por favor, acesse o sistema.");
-      whatsappService.enviarMensagem(phone, msg);
-      showToast('WhatsApp aberto!', 'success');
-    });
-  };
-
-  const handleAssignArbitrator = async (arbitroId: string) => {
-    if (!processo || !arbitroId) return;
-    setIsAssigning(true);
-    try {
-      if (!processo) return;
-      await processService.assignArbitrator(processo.id, arbitroId);
-      await refetch();
-      showToast('Árbitro designado com sucesso!', 'success');
-    } catch (error: any) {
-      showToast(error.message || 'Erro ao designar árbitro.', 'error');
-    } finally {
-      setIsAssigning(false);
-    }
-  };
-
-  const handleEditField = async (field: keyof Processo, label: string, currentValue: any) => {
-    let inputType: 'text' | 'date' | 'time' | 'textarea' | 'select' = 'text';
-    let maskType: 'doc' | 'money' | 'phone' | 'cep' | undefined = undefined;
-    if (field === 'resumo_fatos') inputType = 'textarea';
-    if (field.toString().startsWith('valor_')) { inputType = 'text'; maskType = 'money'; }
-    if (field === 'requerente_doc' || field === 'requerido_doc') { maskType = 'doc'; }
-
-    let options: { label: string, value: string }[] | undefined = undefined;
-    if (field === 'status') {
-      inputType = 'select';
-      options = [
-        { label: 'Protocolado', value: 'Protocolado' },
-        { label: 'Em Andamento', value: 'Em Andamento' },
-        { label: 'Concluído', value: 'Concluído' },
-        { label: 'Arquivado', value: 'Arquivado' }
-      ];
-    }
-
-    const initialVal = currentValue?.toString() || '';
-    showPrompt('Editar Campo', label, initialVal, async (newValue) => {
-      if (newValue !== null && newValue !== initialVal) {
-        let finalValue: any = newValue;
-        if (field === 'requerente_doc' || field === 'requerido_doc') {
-          if (!isValidDoc(newValue)) { showToast('CPF ou CNPJ inválido.', 'attention'); return; }
-          finalValue = newValue.replace(/\D/g, '');
-        }
-        if (maskType === 'money') {
-          const vRaw = newValue.replace('R$ ', '').replace(/\./g, '').replace(',', '.').trim();
-          finalValue = vRaw ? parseFloat(vRaw) : 0;
-        }
-        try {
-          if (!processo?.id) return;
-          await processService.update(processo.id, { [field]: finalValue });
-          showToast(`${label} atualizado com sucesso!`, 'success');
-        } catch (e) {
-          showToast(`Erro ao atualizar ${label}: ` + (e as Error).message, 'error');
-        }
-      }
-    }, inputType, maskType, options);
+  const handleSubmeterAndamento = () => {
+    if (!currentUser) return;
+    handleAddAndamento(novoAndamento, currentUser.id, () => setNovoAndamento(''));
   };
 
   if (loading) return (
@@ -165,6 +72,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
       <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Carregando detalhes do processo...</p>
     </div>
   );
+
   if (isError || !processo) return (
     <div className="p-20 text-center bg-white rounded-3xl border border-red-100 shadow-sm animate-in zoom-in duration-300">
       <h4 className="text-lg font-bold text-red-600">Erro: Processo não encontrado ou acesso negado.</h4>
@@ -265,6 +173,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
                     : 'border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'
                 }`}
               >
+                <tab.icon size={14} />
                 {tab.label}
               </button>
             ))}
@@ -392,7 +301,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
                             disabled={submitting} 
                           />
                           <Button 
-                            onClick={handleAddAndamento} 
+                            onClick={handleSubmeterAndamento} 
                             disabled={submitting || !novoAndamento.trim()} 
                             isLoading={submitting}
                             icon={Send}
@@ -418,6 +327,3 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
     </div>
   );
 }
-
-// Re-importing missing icons (locally scoped here for safety if not global)
-import { Users, BarChart3, Wallet } from 'lucide-react';
