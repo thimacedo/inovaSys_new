@@ -1,19 +1,10 @@
+import { Usuario } from '../../../core/domain/entities/Usuario';
 import { BaseSupabaseRepository } from '../BaseSupabaseRepository';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export interface UserEntity {
-  id: string;
-  email?: string;
-  nome?: string;
-  tipo_usuario?: string;
-  camara_id?: string;
-  organization_id?: string;
-  cpf?: string;
-  endereco?: string;
-  created_at?: string;
-}
+export type UserEntity = Usuario;
 
-export class UserRepository extends BaseSupabaseRepository<UserEntity> {
+export class UserRepository extends BaseSupabaseRepository<Usuario> {
   protected readonly tableName = 'perfis';
 
   constructor(client: SupabaseClient) {

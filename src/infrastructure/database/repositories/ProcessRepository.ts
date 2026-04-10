@@ -1,24 +1,10 @@
+import { Processo } from '../../../core/domain/entities/Processo';
 import { BaseSupabaseRepository } from '../BaseSupabaseRepository';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export interface ProcessEntity {
-  id: string;
-  numero_processo?: string;
-  status?: string;
-  camara_id?: string;
-  arbitro_id?: string;
-  requerente_id?: string;
-  requerido_id?: string;
-  requerente_nome?: string;
-  requerido_nome?: string;
-  requerente_doc?: string;
-  requerido_doc?: string;
-  valor_causa?: number;
-  created_at?: string;
-  [key: string]: any;
-}
+export type ProcessEntity = Processo;
 
-export class ProcessRepository extends BaseSupabaseRepository<ProcessEntity> {
+export class ProcessRepository extends BaseSupabaseRepository<Processo> {
   protected readonly tableName = 'processos';
 
   constructor(client: SupabaseClient) {
