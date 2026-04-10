@@ -117,12 +117,22 @@ export default function Auth({ onPublicView }: { onPublicView: () => void }) {
         </form>
 
         <div className="text-center">
-          <button 
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-xs font-bold text-blue-600 uppercase tracking-wider"
-          >
-            {isSignUp ? "Já tenho conta? Fazer Login" : "Não tem conta? Cadastre-se"}
-          </button>
+          {hasInvite && (
+            <button 
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-xs font-bold text-blue-600 uppercase tracking-wider"
+            >
+              {isSignUp ? "Já tenho conta? Fazer Login" : "Não tem conta? Cadastre-se"}
+            </button>
+          )}
+          {!hasInvite && isSignUp && (
+             <button 
+              onClick={() => setIsSignUp(false)}
+              className="text-xs font-bold text-blue-600 uppercase tracking-wider"
+            >
+              Voltar ao Login
+            </button>
+          )}
         </div>
 
         <div className="relative py-2">
