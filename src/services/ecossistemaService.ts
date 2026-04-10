@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { emailService } from './emailService';
 
 export interface Plano {
   id: string;
@@ -112,6 +113,21 @@ export const ecossistemaService = {
           organization_id: camara.id,
           data_renovacao: dataExpiracao.toISOString()
         }]);
+      }
+
+      // 4. Enviar E-mail de Boas-Vindas
+      try {
+        const welcomeEmail = emailService.templates.boasVindasGestor(gestorEmail, tempPassword, nome);
+        const html = emailService.generateBaseTemplate({
+          camaraNome: nome,
+          destinatario: gestorEmail.split('@')[0],
+          assunto: welcomeEmail.assunto,
+          corpo: welcomeEmail.corpo,
+          linkAction: welcomeEmail.link
+        });
+        await emailService.send(gestorEmail, welcomeEmail.assunto, html);
+      } catch (emailErr) {
+        console.warn('[EcossistemaService] Falha ao enviar e-mail de boas-vindas:', emailErr);
       }
 
       return { ...camara, tempPassword };
