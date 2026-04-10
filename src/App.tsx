@@ -13,7 +13,7 @@ import PublicConsultation from './components/PublicConsultation';
 import Pricing from './components/Pricing';
 import Onboarding from './components/Onboarding';
 
-function AppContent() {
+export default function AppContent() {
   // Inicializa a sincronização Sessão (Zustand) e Eventos (WebSockets)
   useAuthSync();
   useRealtimeSync();
@@ -112,10 +112,10 @@ function AppContent() {
   }
 
   if (view === 'public') return <PublicConsultation onBack={() => setView('auth')} />;
-  if (view === 'pricing') return <Pricing />;
+  if (view === 'pricing') return <Pricing onBack={() => setView('auth')} />;
   if (view === 'onboarding') return <Onboarding session={{ user: currentUser }} onComplete={() => setView('app')} onSignOut={handleSignOut} />;
   
-  if (!isAuthenticated || view === 'auth') return <Auth onPublicView={() => setView('public')} />;
+  if (!isAuthenticated || view === 'auth') return <Auth onPublicView={() => setView('public')} onPricingView={() => setView('pricing')} />;
 
   return (
     <>

@@ -3,7 +3,7 @@ import { authService } from '../services/authService';
 import { supabase } from '../lib/supabase';
 import logoImg from '../assets/logo-inovasys.png';
 
-export default function Auth({ onPublicView }: { onPublicView: () => void }) {
+export default function Auth({ onPublicView, onPricingView }: { onPublicView: () => void, onPricingView: () => void }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -152,9 +152,17 @@ export default function Auth({ onPublicView }: { onPublicView: () => void }) {
           Google Login
         </button>
 
-        <button onClick={onPublicView} className="w-full text-xs text-slate-400 font-bold uppercase tracking-widest hover:text-slate-600">
-          Consulta Pública
-        </button>
+        <div className="flex flex-col gap-3">
+          <button 
+            onClick={onPricingView}
+            className="w-full py-3 border border-slate-900 text-slate-900 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+          >
+            Conhecer Planos
+          </button>
+          <button onClick={onPublicView} className="w-full text-xs text-slate-400 font-bold uppercase tracking-widest hover:text-slate-600">
+            Consulta Pública
+          </button>
+        </div>
       </div>
     </div>
   );
