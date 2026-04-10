@@ -45,14 +45,18 @@ export class ProcessRepository extends BaseSupabaseRepository<Processo> {
     }
   }
 
-  public async listWithPagination(page = 1, pageSize = 10, search = ''): Promise<{ data: ProcessEntity[], count: number | null }> {
+  public async listWithPagination(camaraId: string | undefined, page = 1, pageSize = 10, search = ''): Promise<{ data: ProcessEntity[], count: number | null }> {
     try {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
       let query = this.client
         .from(this.tableName)
-        .select('*', { count: 'exact' });
+        .select('*, arbitro:arbitro_id(nome)', { count: 'exact' });
+
+      if (camaraId) {
+        query = query.or(`camara_id.eq.${camaraId},organization_id.eq.${camaraId}`);
+      }
 
       if (search) {
         query = query.or(`numero_processo.ilike.%${search}%,requerente_nome.ilike.%${search}%,requerido_nome.ilike.%${search}%`);

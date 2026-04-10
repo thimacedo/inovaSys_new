@@ -23,8 +23,8 @@ export const deleteProcess = async (id: string): Promise<void> => {
   return await DependencyRegistry.getProcessRepository().delete(id);
 };
 
-export const getAll = async (page = 1, pageSize = 10, search = '') => {
-  return await DependencyRegistry.getProcessRepository().listWithPagination(page, pageSize, search);
+export const getAll = async (camaraId: string | undefined, page = 1, pageSize = 10, search = '') => {
+  return await DependencyRegistry.getProcessRepository().listWithPagination(camaraId, page, pageSize, search);
 };
 
 export const assignArbitrator = async (id: string, arbitroId: string): Promise<Processo> => {

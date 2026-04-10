@@ -16,7 +16,7 @@ export function useProcessos(
       if (!camaraId) return { data: [], count: 0 };
       
       if (params) {
-        return await processService.getAll(params.page, params.pageSize, params.search);
+        return await processService.getAll(camaraId, params.page, params.pageSize, params.search);
       }
       
       const data = await processService.listByCamara(camaraId);
