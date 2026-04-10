@@ -1,5 +1,5 @@
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
-import { ProcessEntity } from '../infrastructure/database/repositories/ProcessRepository';
+import type { ProcessEntity } from '../infrastructure/database/repositories/ProcessRepository';
 
 export type Processo = ProcessEntity;
 

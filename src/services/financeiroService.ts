@@ -1,5 +1,5 @@
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
-import { FinanceiroEntity } from '../infrastructure/database/repositories/FinanceiroRepository';
+import type { FinanceiroEntity } from '../infrastructure/database/repositories/FinanceiroRepository';
 
 export interface RegistroFinanceiro extends FinanceiroEntity {}
 

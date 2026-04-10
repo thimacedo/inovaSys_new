@@ -1,5 +1,5 @@
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
-import { HistoryEntity } from '../infrastructure/database/repositories/HistoryRepository';
+import type { HistoryEntity } from '../infrastructure/database/repositories/HistoryRepository';
 
 /**
  * Facade para gestão de histórico e andamentos do processo.

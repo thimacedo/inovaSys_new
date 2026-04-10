@@ -10,26 +10,20 @@ interface State {
 }
 
 export class GlobalErrorBoundary extends Component<Props, State> {
-  public state: State;
-  public props: Props;
-
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      errorMessage: ''
-    };
-  }
+  public override state: State = {
+    hasError: false,
+    errorMessage: ''
+  };
 
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, errorMessage: error.message };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+  public override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('Uncaught error:', error, errorInfo);
   }
 
-  public render(): ReactNode {
+  public override render(): ReactNode {
     if (this.state.hasError) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">

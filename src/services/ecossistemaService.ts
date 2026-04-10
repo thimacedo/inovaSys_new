@@ -120,6 +120,10 @@ export const ecossistemaService = {
         }
       });
 
+      if (authError) {
+        console.error('Erro no Supabase Auth ao criar gestor:', authError.message);
+      }
+
       // 4. Criar o Perfil vinculado
       const perfilData: any = {
         tipo_usuario: 'gestor',

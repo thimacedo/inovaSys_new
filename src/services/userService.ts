@@ -1,6 +1,6 @@
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
 import auditService from './auditService';
-import { UserEntity } from '../infrastructure/database/repositories/UserRepository';
+import type { UserEntity } from '../infrastructure/database/repositories/UserRepository';
 
 /**
  * User Service v2.0 (Domain Orchestrator)

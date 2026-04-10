@@ -1,5 +1,5 @@
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
-import { NotificationEntity } from '../infrastructure/database/repositories/NotificationRepository';
+import type { NotificationEntity } from '../infrastructure/database/repositories/NotificationRepository';
 
 export const notificationService = {
   create: async (data: Partial<NotificationEntity>) => DependencyRegistry.getNotificationRepository().create(data),

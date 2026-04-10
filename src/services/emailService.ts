@@ -60,7 +60,7 @@ export const emailService = {
    * Simula o disparo de e-mail (Integração com API externa tipo SendGrid/Resend)
    */
   send: async (to: string, subject: string, html: string) => {
-    console.log(`[EmailService] Disparando e-mail para ${to}: ${subject}`);
+    console.log(`[EmailService] Disparando e-mail para ${to}: ${subject} (HTML Length: ${html.length})`);
     // No futuro: await supabase.functions.invoke('send-email', { body: { to, subject, html } });
     return new Promise(resolve => setTimeout(resolve, 1000));
   },
@@ -71,12 +71,12 @@ export const emailService = {
   templates: {
     novoProcesso: (partNome: string, numProc: string, camaraNome: string) => ({
       assunto: `Novo Processo Arbitral: ${numProc}`,
-      corpo: `Um novo processo arbitral (nº ${numProc}) foi iniciado na <b>${camaraNome}</b> e você foi listado como parte interessada. Clique no botão abaixo para acessar os autos e manifestar-se.`,
+      corpo: `Olá, ${partNome}. Um novo processo arbitral (nº ${numProc}) foi iniciado na <b>${camaraNome}</b> e você foi listado como parte interessada. Clique no botão abaixo para acessar os autos e manifestar-se.`,
       link: { label: 'Acessar Processo', url: '#' }
     }),
     agendamentoAudiencia: (partNome: string, numProc: string, data: string, hora: string) => ({
       assunto: `AUDIÊNCIA MARCADA - Processo ${numProc}`,
-      corpo: `Informamos que foi agendada uma audiência para o Processo nº ${numProc}. <br><br><b>Data:</b> ${data}<br><b>Hora:</b> ${hora}<br><br>Sua presença é fundamental para o andamento do rito arbitral.`,
+      corpo: `Olá, ${partNome}. Informamos que foi agendada uma audiência para o Processo nº ${numProc}. <br><br><b>Data:</b> ${data}<br><b>Hora:</b> ${hora}<br><br>Sua presença é fundamental para o andamento do rito arbitral.`,
       link: { label: 'Confirmar Presença', url: '#' }
     })
   }
