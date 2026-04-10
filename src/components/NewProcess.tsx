@@ -15,7 +15,6 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
   const createMutation = useCreateProcess();
   
   const [formData, setFormData] = useState({
-    numero_processo: '',
     requerente_nome: '',
     requerente_doc: '',
     requerente_end: '',
@@ -100,7 +99,9 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Número do Processo</label>
-              <input type="text" name="numero_processo" placeholder="Ex: 001/2024" value={formData.numero_processo} onChange={handleChange} required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-bold text-sm" />
+              <div className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-400">
+                Gerado automaticamente após o protocolo
+              </div>
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Valor da Causa (R$)</label>
