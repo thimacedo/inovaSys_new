@@ -137,13 +137,14 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
           finalValue = vRaw ? parseFloat(vRaw) : 0;
         }
         try {
-          await processService.update(processo!.id, { [field]: finalValue });
+          if (!processo?.id) return;
+          await processService.update(processo.id, { [field]: finalValue });
           showToast(`${label} atualizado com sucesso!`, 'success');
         } catch (e) {
           showToast(`Erro ao atualizar ${label}: ` + (e as Error).message, 'error');
         }
       }
-    }, inputType as any, maskType, options);
+    }, inputType, maskType, options);
   };
 
   if (loading) return (
