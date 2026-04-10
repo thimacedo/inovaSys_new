@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
+import { Analytics } from '@vercel/analytics/react';
 import { GlobalErrorBoundary } from './presentation/ui/components/GlobalErrorBoundary';
 import { useAuthSync } from './presentation/hooks/useAuthSync';
 import { useRealtimeSync } from './presentation/hooks/useRealtimeSync';
@@ -13,7 +14,7 @@ import PublicConsultation from './components/PublicConsultation';
 import Pricing from './components/Pricing';
 import Onboarding from './components/Onboarding';
 
-export default function AppContent() {
+function AppContent() {
   // Inicializa a sincronização Sessão (Zustand) e Eventos (WebSockets)
   useAuthSync();
   useRealtimeSync();
@@ -135,6 +136,7 @@ export default function App() {
   return (
     <GlobalErrorBoundary>
       <AppContent />
+      <Analytics />
     </GlobalErrorBoundary>
   );
 }
