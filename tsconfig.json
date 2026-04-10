@@ -1,57 +1,25 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "experimentalDecorators": true,
-    "useDefineForClassFields": false,
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
     "skipLibCheck": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
+    /* Bundler mode */
     "moduleResolution": "bundler",
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "allowJs": true,
-    "jsx": "react-jsx",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
     "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "noEmit": true,
-    "types": ["vite/client", "node"],
+    "jsx": "react-jsx",
 
-    // ✅ Modo Estrito - Configurações recomendadas para segurança de tipos
+    /* Linting */
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "useUnknownInCatchVariables": true,
-    "alwaysStrict": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-
-    // ✅ Verificações adicionais de qualidade
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitOverride": true,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-
-    // ✅ Configurações modernas para Vite + React 19
-    "verbatimModuleSyntax": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "vite-env.d.ts", "vitest.config.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
