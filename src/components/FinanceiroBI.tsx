@@ -145,7 +145,7 @@ export default function FinanceiroBI() {
                         </div>
                         <div>
                            <p className="text-sm font-bold text-slate-900 line-clamp-1">{reg.descricao}</p>
-                           <p className="text-[10px] text-slate-400 font-medium">Proc. {reg.processo_id?.substring(0, 8) || '---'}</p>
+                           <p className="text-[10px] text-slate-400 font-medium">Proc. {reg.processos?.numero_processo || reg.processo_id?.substring(0, 8) || '---'}</p>
                         </div>
                      </div>
                      <p className="text-sm font-black text-slate-900">R$ {Number(reg.valor).toLocaleString('pt-BR')}</p>
