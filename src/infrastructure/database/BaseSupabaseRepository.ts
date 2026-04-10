@@ -14,26 +14,45 @@ export abstract class BaseSupabaseRepository<T> {
   }
 
   public async create(data: Partial<T>): Promise<T> {
-    const { data: result, error } = await this.client
-      .from(this.tableName)
-      .insert([data as any])
-      .select()
-      .single();
+    try {
+      const { data: result, error } = await this.client
+        .from(this.tableName)
+        .insert([data as any])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return result as T;
+      if (error) throw error;
+      
+      // Registro de Auditoria assíncrono (não bloqueante)
+      import('../../services/auditoriaService').then(({ auditoriaService }) => {
+        auditoriaService.logAudit('create', this.tableName, (result as any).id, undefined, data);
+      });
+
+      return result as T;
+    } catch (error) {
+       return this.handleError(error, 'create');
+    }
   }
 
   public async update(id: string, data: Partial<T>): Promise<T> {
-    const { data: result, error } = await this.client
-      .from(this.tableName)
-      .update(data as any)
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data: result, error } = await this.client
+        .from(this.tableName)
+        .update(data as any)
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return result as T;
+      if (error) throw error;
+
+      import('../../services/auditoriaService').then(({ auditoriaService }) => {
+        auditoriaService.logAudit('update', this.tableName, id, undefined, data);
+      });
+
+      return result as T;
+    } catch (error) {
+       return this.handleError(error, 'update');
+    }
   }
 
   public async delete(id: string): Promise<void> {
@@ -44,6 +63,10 @@ export abstract class BaseSupabaseRepository<T> {
         .eq('id', id);
 
       if (error) throw error;
+
+      import('../../services/auditoriaService').then(({ auditoriaService }) => {
+        auditoriaService.logAudit('delete', this.tableName, id);
+      });
     } catch (error) {
       return this.handleError(error, 'delete');
     }

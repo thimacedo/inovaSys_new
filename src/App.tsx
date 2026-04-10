@@ -13,7 +13,7 @@ import PublicConsultation from './components/PublicConsultation';
 import Pricing from './components/Pricing';
 import Onboarding from './components/Onboarding';
 
-export default function AppContent() {
+function AppContent() {
   // Inicializa a sincronização Sessão (Zustand) e Eventos (WebSockets)
   useAuthSync();
   useRealtimeSync();

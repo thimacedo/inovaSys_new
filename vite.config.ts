@@ -49,7 +49,15 @@ export default defineConfig({
       usePolling: true,
     },
   },
-  // CORREÇÃO: Removido optimizeDeps.exclude para @tanstack/react-query.
-  // Excluir do pré-bundle sem razão específica causa re-processamento
-  // desnecessário a cada módulo que o importa no dev server.
+  // Configuração de Testes (Vitest)
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: ['node_modules/', 'src/test/setup.ts'],
+    },
+  },
 });

@@ -4,6 +4,10 @@ import App from './App.tsx';
 import './index.css';
 import { QueryProvider } from './presentation/providers/QueryProvider';
 import { ModalProvider } from './context/ModalContext.tsx';
+import { validateEnv } from './utils/env.ts';
+
+// Validação de segurança em Runtime
+validateEnv();
 
 // Auto-recuperação contra cache zumbi e 404 em Chunks dinâmicos
 window.addEventListener('vite:preloadError', (event) => {
