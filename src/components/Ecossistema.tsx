@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Globe, 
@@ -10,18 +10,15 @@ import {
   Filter, 
   ExternalLink, 
   CheckCircle2, 
-  Clock, 
-  ShieldCheck,
+  Clock,
   Plus,
-  BarChart3,
   ArrowUpRight,
   ArrowDownRight,
   Zap,
-  Activity,
-  ChevronRight
+  Activity
 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
-import { ecossistemaService, Camara, Plano, ParceiroEcossistema } from '../services/ecossistemaService';
+import { ecossistemaService, Camara, Plano } from '../services/ecossistemaService';
 import {
   Chart as ChartJS,
   CategoryScale,

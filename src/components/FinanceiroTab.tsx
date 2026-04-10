@@ -6,15 +6,12 @@ import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { usePermissions } from '../hooks/usePermissions';
 import { 
-  DollarSign, 
   Plus, 
-  Calendar, 
   CheckCircle, 
   Clock, 
   Trash2, 
   X, 
-  Save, 
-  AlertCircle,
+  Save,
   TrendingDown,
   TrendingUp
 } from 'lucide-react';

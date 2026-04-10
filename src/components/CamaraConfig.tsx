@@ -3,15 +3,11 @@ import { motion } from 'motion/react';
 import { 
   Settings, 
   Building2, 
-  Save, 
   Image as ImageIcon, 
   User, 
   Phone, 
   MapPin, 
-  Globe, 
-  Shield, 
   Zap,
-  AlertCircle,
   UploadCloud,
   Fingerprint
 } from 'lucide-react';

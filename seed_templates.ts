@@ -1,4 +1,3 @@
-import { supabase } from './src/lib/supabase';
 // Nota: Como não posso importar o documentService diretamente aqui por causa das dependências de browser/react,
 // vou extrair os templates principais para o seeding via script SQL ou rodando manualmente via console se necessário.
 // Por simplicidade imediata, vou preparar o SQL de seeding.

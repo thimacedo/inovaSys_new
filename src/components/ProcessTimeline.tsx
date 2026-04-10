@@ -5,7 +5,6 @@ import {
   User,
   Globe,
   Clock,
-  MessageSquare,
   FileText,
   AlertCircle
 } from 'lucide-react';

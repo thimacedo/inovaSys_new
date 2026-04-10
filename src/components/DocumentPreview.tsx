@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as html2pdfModule from 'html2pdf.js';
 import { useModal } from '../context/ModalContext';
 import { useAI } from '../presentation/hooks/useExternalServices';
-import { Bot, Sparkles, Download, X, PenTool, Loader2 } from 'lucide-react';
+import { Bot, Download, PenTool, Loader2 } from 'lucide-react';
 
 const html2pdf = (html2pdfModule as any).default || html2pdfModule;
 

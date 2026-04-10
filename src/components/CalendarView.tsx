@@ -1,18 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { useCalendarEvents, useCreateEvent } from '../presentation/hooks/useCalendar';
+import { useCalendarEvents } from '../presentation/hooks/useCalendar';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useModal } from '../context/ModalContext';
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Plus, 
   Calendar as CalendarIcon, 
   Clock, 
   MapPin, 
-  Video,
-  Info
+  Video
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 
 export default function CalendarView() {
   const currentUser = useAuthStore(state => state.currentUser);

@@ -13,7 +13,6 @@ import {
   LayoutGrid,
   Eye,
   Trash2,
-  ChevronRight,
   AlertCircle
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';

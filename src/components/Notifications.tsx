@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bell, Check, Info, Smartphone, MessageCircle } from 'lucide-react';
-import { pushService } from '../services/pushService';
+import { Bell, Check, Info, MessageCircle } from 'lucide-react';
 import { whatsappService } from '../services/whatsappService';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useNotifications, useMarkNotificationAsRead } from '../presentation/hooks/useNotifications';

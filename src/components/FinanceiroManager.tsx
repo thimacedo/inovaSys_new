@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useFinanceiroByOrg, useUpdateFinanceiro } from '../presentation/hooks/useFinanceiro';
 import { toast } from 'sonner';

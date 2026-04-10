@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuditLogs } from '../presentation/hooks/useSettings';
 import { 
   ShieldCheck, 
-  RefreshCw, 
   Search, 
   Plus, 
   Trash2, 
@@ -11,9 +10,7 @@ import {
   LogIn, 
   Clock,
   ChevronDown,
-  FileCode,
-  Calendar,
-  User as UserIcon
+  Calendar
 } from 'lucide-react';
 
 export default function Auditoria() {

@@ -9,7 +9,6 @@ import {
   MessageSquare, 
   BookOpen, 
   HelpCircle,
-  ChevronRight,
   Search
 } from 'lucide-react';
 import { aiService } from '../services/aiService';

@@ -1,20 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { 
   Users, 
   UserPlus, 
   Shield, 
   Mail, 
-  MoreVertical, 
   Edit2, 
   Trash2, 
   Info,
-  CheckCircle2,
   MapPin,
   Fingerprint
 } from 'lucide-react';
-import { userService } from '../services/userService';
 import { supabase } from '../lib/supabase';
 import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
