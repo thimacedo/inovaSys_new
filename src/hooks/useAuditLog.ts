@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { auditoriaService, AuditAction } from '../services/auditoriaService';
+import { logAudit, AuditAction } from '../services/auditoriaService';
 
 /**
  * @file useAuditLog.ts
@@ -14,7 +14,7 @@ export function useAuditLog() {
     antes?: Record<string, any>, 
     depois?: Record<string, any>
   ) => {
-    return auditoriaService.logAudit(acao, entidade, id, antes, depois);
+    return logAudit(acao, entidade, id, antes, depois);
   }, []);
 
   return { log };
