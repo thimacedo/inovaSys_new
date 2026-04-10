@@ -124,7 +124,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
       ];
     }
 
-    let initialVal = currentValue?.toString() || '';
+    const initialVal = currentValue?.toString() || '';
     showPrompt('Editar Campo', label, initialVal, async (newValue) => {
       if (newValue !== null && newValue !== initialVal) {
         let finalValue: any = newValue;

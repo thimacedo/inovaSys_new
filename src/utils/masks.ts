@@ -41,6 +41,6 @@ export const applyMask = (value: string, maskType: 'doc' | 'money' | 'phone' | '
 };
 
 export const parseMoney = (value: string): number => {
-  let vRaw = value.replace('R$ ', '').replace(/\./g, '').replace(',', '.').trim();
+  const vRaw = value.replace('R$ ', '').replace(/\./g, '').replace(',', '.').trim();
   return vRaw ? parseFloat(vRaw) : 0;
 };

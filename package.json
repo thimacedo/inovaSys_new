@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "clean": "node -e \"const fs = require('fs'); if (fs.existsSync('dist')) fs.rmSync('dist', { recursive: true, force: true });\""
   },
   "dependencies": {
@@ -44,9 +44,12 @@
     "eslint": "^9.21.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
     "jsdom": "^29.0.2",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
+    "typescript-eslint": "^8.58.1",
     "vite": "^6.4.2",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.1.3"
