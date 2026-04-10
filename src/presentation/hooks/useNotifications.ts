@@ -1,27 +1,66 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { notificationService } from '../../services/notificationService';
+﻿import { useState, useEffect, useCallback } from 'react';
+import { notificationService, Notification } from '../../services/notificationService';
+import { useAuthStore } from '../state/authStore';
 
-export const NOTIFICATIONS_KEY = 'notifications';
+export function useNotifications() {
+  const { user } = useAuthStore();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-export function useNotifications(userId: string | undefined) {
-  return useQuery({
-    queryKey: [NOTIFICATIONS_KEY, userId],
-    queryFn: async () => {
-      if (!userId) return [];
-      return await notificationService.listByUser(userId);
-    },
-    enabled: !!userId,
-    refetchInterval: 1000 * 60 * 2, // Polling a cada 2 minutos
-  });
-}
+  const userId = user?.id;
 
-export function useMarkNotificationAsRead() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => await notificationService.markAsRead(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_KEY] });
+  const loadNotifications = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const data = await notificationService.fetch(userId);
+      setNotifications(data);
+      setUnreadCount(data.filter((n) => !n.lida).length);
+    } catch (error) {
+      console.error('Erro ao carregar notificaÃ§Ãµes:', error);
+    } finally {
+      setLoading(false);
     }
-  });
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    loadNotifications();
+
+    const unsubscribe = notificationService.subscribe(userId, (newNotif) => {
+      setNotifications((prev) => [newNotif, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [userId, loadNotifications]);
+
+  const markAsRead = useCallback(
+    async (id: string) => {
+      await notificationService.markAsRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, lida: true } : n))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    },
+    []
+  );
+
+  const markAllAsRead = useCallback(async () => {
+    if (!userId) return;
+    await notificationService.markAllAsRead(userId);
+    setNotifications((prev) => prev.map((n) => ({ ...n, lida: true })));
+    setUnreadCount(0);
+  }, [userId]);
+
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    markAsRead,
+    markAllAsRead,
+    refresh: loadNotifications,
+  };
 }

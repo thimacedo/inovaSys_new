@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Bell, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -12,8 +12,7 @@ interface Notification {
 }
 
 interface NotificationsProps {
-  userId?: string;
-  onSelectProcess?: (id: string) => void;
+  userId: string;
 }
 
 const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
@@ -30,7 +29,7 @@ const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
       .channel('notifications')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${userId}` },
+        { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: user_id=eq. + userId },
         (payload) => {
           const newNotif = payload.new as Notification;
           setNotifications((prev) => [newNotif, ...prev]);
@@ -94,7 +93,7 @@ const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto">
           <div className="flex items-center justify-between p-3 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-800">Notificações</h3>
+            <h3 className="font-semibold text-gray-800">NotificaÃ§Ãµes</h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
@@ -109,15 +108,13 @@ const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
           {loading ? (
             <div className="p-4 text-center text-gray-500">Carregando...</div>
           ) : notifications.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">Nenhuma notificação</div>
+            <div className="p-4 text-center text-gray-500">Nenhuma notificaÃ§Ã£o</div>
           ) : (
             <div className="divide-y divide-gray-100">
               {notifications.map((item: Notification) => (
                 <div
                   key={item.id}
-                  className={`p-3 hover:bg-gray-50 transition-colors ${
-                    !item.lida ? 'bg-blue-50' : ''
-                  }`}
+                  className={p-3 hover:bg-gray-50 transition-colors }
                 >
                   <div
                     onClick={() => {

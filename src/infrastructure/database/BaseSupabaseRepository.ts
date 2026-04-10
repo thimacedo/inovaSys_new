@@ -1,104 +1,77 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+﻿import { SupabaseClient } from '@supabase/supabase-js';
 import { logAudit } from '../../services/auditoriaService';
 
-export abstract class BaseSupabaseRepository<T> {
-  protected readonly client: SupabaseClient;
-  protected abstract readonly tableName: string;
+export class BaseSupabaseRepository<T extends { id: string }> {
+  constructor(
+    protected client: SupabaseClient,
+    protected tableName: string
+  ) {}
 
-  constructor(client: SupabaseClient) {
-    this.client = client;
-  }
+  async getById(id: string): Promise<T | null> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  protected async handleError(error: any, context: string): Promise<never> {
-    console.error(`[SupabaseRepositoryError] - ${context}:`, error);
-    throw error;
-  }
-
-  public async create(data: Partial<T>): Promise<T> {
-    try {
-      const { data: result, error } = await this.client
-        .from(this.tableName)
-        .insert([data as any])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      // Registro de Auditoria assíncrono (não bloqueante)
-      logAudit('create', this.tableName, (result as any).id, undefined, data).catch(() => {});
-
-      return result as T;
-    } catch (error) {
-       return this.handleError(error, 'create');
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw error;
     }
+    return data as T;
   }
 
-  public async update(id: string, data: Partial<T>): Promise<T> {
-    try {
-      const { data: result, error } = await this.client
-        .from(this.tableName)
-        .update(data as any)
-        .eq('id', id)
-        .select()
-        .single();
+  async create(data: Partial<T>): Promise<T> {
+    const { data: result, error } = await this.client
+      .from(this.tableName)
+      .insert([data as any])
+      .select()
+      .single();
 
-      if (error) throw error;
-
-      logAudit('update', this.tableName, id, undefined, data).catch(() => {});
-
-      return result as T;
-    } catch (error) {
-       return this.handleError(error, 'update');
-    }
+    if (error) throw error;
+    await logAudit('create', this.tableName, result.id, undefined, data);
+    return result as T;
   }
 
-  public async getById(id: string): Promise<T> {
-    try {
-      const { data, error } = await this.client
-        .from(this.tableName)
-        .select()
-        .eq('id', id)
-        .single();
+  async update(id: string, data: Partial<T>): Promise<T> {
+    const oldData = await this.getById(id);
+    if (!oldData) throw new Error('Registro nÃ£o encontrado');
 
-      if (error) throw error;
+    const { data: result, error } = await this.client
+      .from(this.tableName)
+      .update(data as any)
+      .eq('id', id)
+      .select()
+      .single();
 
-      return data as T;
-    } catch (error) {
-      return this.handleError(error, 'getById');
-    }
+    if (error) throw error;
+    await logAudit('update', this.tableName, id, oldData, data);
+    return result as T;
   }
 
-  public async list(page: number = 0, pageSize: number = 10): Promise<T[]> {
-    try {
-      const start = page * pageSize;
-      const end = start + pageSize - 1;
+  async delete(id: string): Promise<void> {
+    const oldData = await this.getById(id);
+    if (!oldData) throw new Error('Registro nÃ£o encontrado');
 
-      const { data, error } = await this.client
-        .from(this.tableName)
-        .select()
-        .order('created_at', { ascending: false })
-        .range(start, end);
+    const { error } = await this.client
+      .from(this.tableName)
+      .delete()
+      .eq('id', id);
 
-      if (error) throw error;
-
-      return data as T[];
-    } catch (error) {
-      return this.handleError(error, 'list');
-    }
+    if (error) throw error;
+    await logAudit('delete', this.tableName, id, oldData, undefined);
   }
 
-  public async delete(id: string): Promise<void> {
-    try {
-      const { error } = await this.client
-        .from(this.tableName)
-        .delete()
-        .eq('id', id);
+  async list(page = 0, pageSize = 10): Promise<T[]> {
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
-      if (error) throw error;
-
-      logAudit('delete', this.tableName, id).catch(() => {});
-    } catch (error) {
-      return this.handleError(error, 'delete');
-    }
+    if (error) throw error;
+    return (data as T[]) || [];
   }
 }
