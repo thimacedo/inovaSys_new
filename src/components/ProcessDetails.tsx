@@ -76,6 +76,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
         requerido_nome: processo.requerido_nome || 'Não informado',
         numero_processo: processo.numero_processo || processo.id,
         valor_causa: Number(processo.valor_causa || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        arbitro_nome: (processo as any).arbitro?.nome || 'Designação Pendente',
         data_hoje: new Date().toLocaleDateString('pt-BR')
       }, `Termo_Arbitragem_${processo.numero_processo}`);
       showToast('Download iniciado!', 'success');
