@@ -4,6 +4,7 @@ import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useCreateProcess } from '../presentation/hooks/useProcessos';
 import { applyMask, parseMoney } from '../utils/masks';
 import { toast } from 'sonner';
+import { Button } from '../presentation/ui/components/Button';
 
 interface NewProcessProps {
   onProcessCreated?: () => void;
@@ -147,18 +148,14 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
         </fieldset>
 
         <div className="flex justify-end gap-3 mt-8">
-          <button 
+          <Button 
             type="submit" 
-            disabled={createMutation.isPending}
-            className="px-10 py-4 bg-slate-900 border-b-4 border-slate-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 active:border-b-0 active:translate-y-1 transition-all disabled:opacity-50 flex items-center gap-3"
+            isLoading={createMutation.isPending}
+            size="lg"
+            className="px-10"
           >
-            {createMutation.isPending ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                Processando...
-              </>
-            ) : 'Protocolar Processo'}
-          </button>
+            Protocolar Processo
+          </Button>
         </div>
       </form>
     </div>

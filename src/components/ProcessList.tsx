@@ -203,13 +203,17 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                       </tr>
                     ) : (
                       filteredProcessos.map(p => (
-                        <tr key={p.id} className="hover:bg-slate-50/80 transition-colors group">
+                        <tr 
+                          key={p.id} 
+                          className="hover:bg-blue-50/50 transition-all group cursor-pointer border-b border-slate-100 last:border-0"
+                          onClick={() => onProcessSelect(p.id)}
+                        >
                           <td className="px-6 py-5">
-                            <span className="text-sm font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-xl border border-blue-100 shadow-sm">{p.numero_processo}</span>
+                            <span className="text-sm font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-xl border border-blue-100 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all">{p.numero_processo}</span>
                           </td>
                           <td className="px-6 py-5">
                             <div className="flex flex-col">
-                              <span className="text-sm font-bold text-slate-900">{p.requerente_nome}</span>
+                              <span className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors">{p.requerente_nome}</span>
                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{p.requerido_nome}</span>
                             </div>
                           </td>
@@ -220,9 +224,9 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
                             <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${statusBadge(p.status || '')}`}>{p.status}</span>
                           </td>
                           <td className="px-6 py-5 text-right">
-                            <div className="flex justify-end gap-2">
-                              <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" onClick={() => onProcessSelect(p.id)}><Eye size={18} /></button>
-                              {isAtLeastAdmin && <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" onClick={() => excluirProcesso(p.id)}><Trash2 size={18} /></button>}
+                            <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                              <button className="p-2 text-slate-300 hover:text-blue-600 hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-blue-100" onClick={() => onProcessSelect(p.id)}><Eye size={18} /></button>
+                              {isAtLeastAdmin && <button className="p-2 text-slate-300 hover:text-red-600 hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-red-100" onClick={() => excluirProcesso(p.id)}><Trash2 size={18} /></button>}
                             </div>
                           </td>
                         </tr>
