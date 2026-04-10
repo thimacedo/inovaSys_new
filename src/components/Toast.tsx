@@ -23,11 +23,11 @@ const STYLE_MAP: Record<ToastType, { bg: string; icon: string }> = {
     icon: '⚠',
   },
   warning: {
-    bg: 'bg-amber-600',
+    bg: 'bg-amber-500',
     icon: '⚠',
   },
   info: {
-    bg: 'bg-blue-600',
+    bg: 'bg-indigo-600',
     icon: 'ℹ',
   },
 };
