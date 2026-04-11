@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS notificacoes (
 -- 2. Tabela Financeira (Resolvendo Erro 404: Table not found)
 CREATE TABLE IF NOT EXISTS financeiro (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    organization_id UUID NOT NULL, -- Referência à câmara/organização
+    organization_id UUID NOT NULL REFERENCES camaras(id) ON DELETE CASCADE, -- Referência à câmara/organização
     processo_id UUID REFERENCES processos(id) ON DELETE CASCADE,
     descricao TEXT NOT NULL,
     valor DECIMAL(12,2) NOT NULL,

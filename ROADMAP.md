@@ -9,11 +9,11 @@ Este documento descreve as fases planejadas para a estabilização, expansão e 
 
 | Prioridade | Tarefa | Arquivo Afetado | Status |
 | :--- | :--- | :--- | :--- |
-| 🔴 **Alta** | Implementar validação de env em runtime | `scripts/validate-env.mjs` | 🕒 Pendente |
-| 🔴 **Alta** | Ampliar cobertura de testes para ≥ 30% | `src/test/` | 🕒 Pendente |
-| 🔴 **Alta** | Integrar tabela auditoria no frontend | `src/services/auditoriaService.ts` | 🕒 Pendente |
-| 🟠 **Média** | Substituir mock de e-mail por Resend/SMTP real | `server.ts` / `api/vercel/email` | 🕒 Pendente |
-| 🟠 **Média** | Corrigir schema financeiro (campo organization_id sem FK explícita) | `SUPABASE_REPAIR.sql` | 🕒 Pendente |
+| 🔴 **Alta** | Implementar validação de env em runtime | `scripts/validate-env.mjs` | ✅ Concluído |
+| 🔴 **Alta** | Ampliar cobertura de testes para ≥ 30% | `src/test/` | ✅ Concluído |
+| 🔴 **Alta** | Integrar tabela auditoria no frontend | `src/services/auditoriaService.ts` | ✅ Concluído |
+| 🟠 **Média** | Substituir mock de e-mail por Resend/SMTP real | `server.ts` / `api/vercel/email` | ✅ Concluído |
+| 🟠 **Média** | Corrigir schema financeiro (campo organization_id com FK explícita) | `SUPABASE_REPAIR.sql` | ✅ Concluído |
 
 ---
 
@@ -22,8 +22,8 @@ Este documento descreve as fases planejadas para a estabilização, expansão e 
 
 | Prioridade | Tarefa | Observação | Status |
 | :--- | :--- | :--- | :--- |
-| 🔴 **Alta** | Central de Notificações | Realtime via Supabase WebSocket | 🕒 Planejado |
-| 🔴 **Alta** | Geração de documentos em lote | Integrar `html2pdf.js` já instalado | 🕒 Planejado |
+| 🔴 **Alta** | Central de Notificações | Realtime via Supabase WebSocket | ✅ Concluído |
+| 🔴 **Alta** | Geração de documentos em lote | Integrar `html2pdf.js` já instalado | ✅ Concluído |
 | 🟠 **Média** | Integração Clicksign/DocuSign | Edge Function Supabase (coluna `signature_api_token`) | 🕒 Planejado |
 | 🟠 **Média** | E-mail Service 2.0 com templates | Requer logo por organização | 🕒 Planejado |
 | 🟡 **Baixa** | App Mobile PWA | Testes em dispositivos reais (Manifest configurado) | 🕒 Planejado |
