@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebResourcesPaths">
+    <contentEntries>
+      <entry url="file://E:/inovasys">
+        <entryData>
+          <resourceRoots>
+            <path value="file://E:/inovasys" />
+            <path value="file://E:/inovasys/.github" />
+            <path value="file://E:/inovasys/.venv" />
+            <path value="file://E:/inovasys/.vscode" />
+            <path value="file://E:/inovasys/api" />
+            <path value="file://E:/inovasys/coverage" />
+            <path value="file://E:/inovasys/node_modules" />
+            <path value="file://E:/inovasys/public" />
+            <path value="file://E:/inovasys/scripts" />
+            <path value="file://E:/inovasys/src" />
+          </resourceRoots>
+        </entryData>
+      </entry>
+    </contentEntries>
+  </component>
+</project>

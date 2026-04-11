@@ -19,7 +19,15 @@ const IMMUTABLE_FIELDS = ['id', 'numero_processo', 'created_at', 'camara_id', 'o
 
 export const updateProcess = async (id: string, data: Partial<Processo>): Promise<Processo> => {
   const safeData = { ...data };
+  
+  // Remove campos imutáveis do payload
   IMMUTABLE_FIELDS.forEach((f) => delete (safeData as any)[f]);
+  
+  // Validação: se não houver dados para atualizar, lança erro
+  if (Object.keys(safeData).length === 0) {
+    throw new Error('Nenhum campo válido para atualização. Campos imutáveis removidos: ' + IMMUTABLE_FIELDS.join(', '));
+  }
+  
   return await DependencyRegistry.getProcessRepository().update(id, safeData);
 };
 

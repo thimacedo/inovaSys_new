@@ -62,12 +62,12 @@ describe('BaseSupabaseRepository', () => {
     expect(result).toEqual(mockData);
   });
 
-  it('deve lanÃ§ar erro se a criaÃ§Ã£o falhar', async () => {
+  it('deve lançar erro se a criação falhar', async () => {
     const mockError = { message: 'Erro no banco' };
     mockBuilder.single.mockResolvedValueOnce({ data: null, error: mockError });
 
     await expect(repository.create({ name: 'Teste' })).rejects.toThrow(
-      'Falha na operação de banco de dados: Erro no banco'
+      'Falha na operação de banco de dados (create): Erro no banco'
     );
   });
 
@@ -94,12 +94,12 @@ describe('BaseSupabaseRepository', () => {
     expect(result).toBeNull();
   });
 
-  it('deve lanÃ§ar erro em getById para outros erros', async () => {
+  it('deve lançar erro em getById para outros erros', async () => {
     const error = { code: 'OTHER', message: 'Erro qualquer' };
     mockBuilder.single.mockResolvedValueOnce({ data: null, error });
 
     await expect(repository.getById('123')).rejects.toThrow(
-      'Falha na operação de banco de dados: Erro qualquer'
+      'Falha na operação de banco de dados (getById): Erro qualquer'
     );
   });
 

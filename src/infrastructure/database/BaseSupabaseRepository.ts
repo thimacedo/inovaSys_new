@@ -15,15 +15,40 @@ export abstract class BaseSupabaseRepository<T extends { id: string }> {
    */
   protected handleError(error: unknown, context: string): never {
     let message = 'Erro desconhecido';
-    
-    if (error instanceof Error) {
+
+    if (error && typeof error === 'object') {
+      const supabaseError = error as any;
+      
+      // Erro 409 Conflict - violação de unicidade
+      if (supabaseError.status === 409) {
+        message = `409 Conflict: Violação de restrição de unicidade. O valor pode já estar em uso por outro registro.`;
+      } else if (supabaseError.code === '23505') {
+        // PostgreSQL unique violation
+        message = `409 Conflict: Valor duplicado. Este dado já está cadastrado no sistema.`;
+      } else if (supabaseError.code === '23503') {
+        // PostgreSQL foreign key violation
+        message = `Erro de integridade: Referência inválida. Verifique se o registro relacionado existe.`;
+      } else if (supabaseError.code === '23502') {
+        // PostgreSQL not null violation
+        message = `Erro de validação: Campo obrigatório não preenchido.`;
+      } else if (supabaseError.message) {
+        message = supabaseError.message;
+      }
+    } else if (error instanceof Error) {
       message = error.message;
-    } else if (error && typeof error === 'object' && 'message' in error) {
-      message = String((error as any).message);
     }
-    
+
     console.error(`[SupabaseRepositoryError] - ${context}:`, error);
-    throw new Error(`Falha na operação de banco de dados: ${message}`);
+    
+    // Adiciona contexto do Supabase se disponível
+    const errorDetails = error && typeof error === 'object' && 'details' in error 
+      ? ` Detalhes: ${(error as any).details}` 
+      : '';
+    const errorHint = error && typeof error === 'object' && 'hint' in error 
+      ? ` Dica: ${(error as any).hint}` 
+      : '';
+    
+    throw new Error(`Falha na operação de banco de dados (${context}): ${message}${errorDetails}${errorHint}`);
   }
 
   async getById(id: string): Promise<T | null> {

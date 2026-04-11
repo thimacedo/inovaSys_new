@@ -65,9 +65,17 @@ export function useProcessActions(processo: Processo | null | undefined, refetch
 
   const handleEditField = async (field: keyof Processo, label: string, currentValue: unknown) => {
     if (!processo) return;
+    
+    // Previne edição de campos imutáveis
+    const IMMUTABLE_FIELDS = ['id', 'numero_processo', 'created_at', 'camara_id', 'organization_id'];
+    if (IMMUTABLE_FIELDS.includes(field as string)) {
+      showToast(`O campo "${label}" não pode ser editado.`, 'attention');
+      return;
+    }
+    
     let inputType: 'text' | 'date' | 'time' | 'textarea' | 'select' = 'text';
     let maskType: 'doc' | 'money' | 'phone' | 'cep' | undefined = undefined;
-    
+
     if (field === 'resumo_fatos') inputType = 'textarea';
     if (field.toString().startsWith('valor_')) { inputType = 'text'; maskType = 'money'; }
     if (field === 'requerente_doc' || field === 'requerido_doc') { maskType = 'doc'; }
@@ -101,7 +109,15 @@ export function useProcessActions(processo: Processo | null | undefined, refetch
           showToast(`${label} atualizado com sucesso!`, 'success');
         } catch (e: unknown) {
           const message = e instanceof Error ? e.message : 'Erro desconhecido';
-          showToast(`Erro ao atualizar ${label}: ` + message, 'error');
+          
+          // Tratamento específico para erro 409 Conflict
+          if (message.includes('409') || message.toLowerCase().includes('conflict')) {
+            showToast(`Erro: O valor "${label}" entraria em conflito com um registro existente. Verifique se já não está em uso.`, 'error');
+          } else if (message.includes('Nenhum campo válido')) {
+            showToast(`Este campo não pode ser atualizado.`, 'attention');
+          } else {
+            showToast(`Erro ao atualizar ${label}: ${message}`, 'error');
+          }
         }
       }
     }, inputType, maskType, options);
