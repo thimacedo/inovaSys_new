@@ -7,9 +7,17 @@ export class BaseSupabaseRepository<T extends { id: string }> {
     protected tableName: string
   ) {}
 
-  protected handleError(error: any): Error {
-    const message = error?.message || 'Erro desconhecido';
-    return new Error(`Falha na operação de banco de dados: ${message}`);
+  /**
+   * Manipulador de erros padrão para operações de banco de dados
+   * @param error Erro capturado da operação Supabase
+   * @param context Contexto da operação (create, update, delete, getById, list)
+   * @throws Error formatado com mensagem amigável
+   * @returns never - essa função NUNCA retorna, sempre lança exceção
+   */
+  protected handleError(error: unknown, context: string): never {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error(`[SupabaseRepositoryError] - ${this.tableName} - ${context}:`, error);
+    throw new Error(`Falha na operação de banco de dados: ${message}`);
   }
 
   async getById(id: string): Promise<T | null> {
@@ -24,7 +32,7 @@ export class BaseSupabaseRepository<T extends { id: string }> {
       if (error.code === 'PGRST116') {
         return null;
       }
-      throw this.handleError(error);
+      this.handleError(error, 'getById');
     }
     return data as T;
   }
@@ -36,7 +44,7 @@ export class BaseSupabaseRepository<T extends { id: string }> {
       .select()
       .single();
 
-    if (error) throw this.handleError(error);
+    if (error) this.handleError(error, 'create');
     await logAudit('create', this.tableName, result.id, undefined, data);
     return result as T;
   }
@@ -54,7 +62,7 @@ export class BaseSupabaseRepository<T extends { id: string }> {
       .select()
       .single();
 
-    if (error) throw this.handleError(error);
+    if (error) this.handleError(error, 'update');
     await logAudit('update', this.tableName, id, oldData, data);
     return result as T;
   }
@@ -70,7 +78,7 @@ export class BaseSupabaseRepository<T extends { id: string }> {
       .delete()
       .eq('id', id);
 
-    if (error) throw this.handleError(error);
+    if (error) this.handleError(error, 'delete');
     await logAudit('delete', this.tableName, id, oldData, undefined);
   }
 
@@ -84,7 +92,7 @@ export class BaseSupabaseRepository<T extends { id: string }> {
       .order('created_at', { ascending: false })
       .range(from, to);
 
-    if (error) throw this.handleError(error);
+    if (error) this.handleError(error, 'list');
     return (data as T[]) || [];
   }
 }
