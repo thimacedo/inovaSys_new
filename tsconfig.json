@@ -18,7 +18,10 @@
 
     /* Linting */
     "strict": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Tipos */
+    "types": ["@vercel/node"]
   },
   "include": ["src", "vite-env.d.ts", "vitest.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]

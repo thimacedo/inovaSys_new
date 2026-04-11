@@ -190,10 +190,20 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
           
           <Notifications userId={(user as any)?.id || ''} onSelectProcess={handleProcessSelect} />
           
-          <div className="hidden md:flex flex-col items-end px-2">
-            <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{session?.user?.id.substring(0, 8)}...</span>
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold">{(userProfile?.tipo_usuario || 'arbitro').toLowerCase()}</span>
-          </div>
+           <div className="hidden md:flex flex-col items-end px-2">
+             <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{camaraConfig?.nome || 'InovaSys'}</span>
+             <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold">
+               {(() => {
+                 const roles: Record<string, string> = {
+                   admin: 'Administrador',
+                   arbitro: 'Árbitro',
+                   secretario: 'Secretário',
+                   operador: 'Operador'
+                 };
+                 return roles[userProfile?.tipo_usuario] || userProfile?.tipo_usuario || 'Usuário';
+               })()}
+             </span>
+           </div>
 
           <button 
             onClick={onSignOut} 
