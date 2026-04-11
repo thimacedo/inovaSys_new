@@ -69,4 +69,10 @@ O projeto utiliza **GitHub Actions** (`.github/workflows/ci.yml`). Qualquer cód
 
 ---
 
+## 📅 Roadmap de Evolução
+O plano de desenvolvimento detalhado, dividido por fases de estabilização, funcionalidades core e expansão enterprise, pode ser consultado no arquivo [ROADMAP.md](./ROADMAP.md).
+
+---
+
 **Nota Técnica:** O sistema foi blindado contra falhas de produção via script de pré-build que audita variáveis de ambiente obrigatórias.
+
