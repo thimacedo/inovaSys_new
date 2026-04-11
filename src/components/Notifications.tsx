@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -29,7 +29,7 @@ const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
       .channel('notifications')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: user_id=eq. + userId },
+        { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${userId}` },
         (payload) => {
           const newNotif = payload.new as Notification;
           setNotifications((prev) => [newNotif, ...prev]);
@@ -114,7 +114,7 @@ const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
               {notifications.map((item: Notification) => (
                 <div
                   key={item.id}
-                  className={p-3 hover:bg-gray-50 transition-colors }
+                  className={`p-3 hover:bg-gray-50 transition-colors ${!item.lida ? 'bg-blue-50' : ''}`}
                 >
                   <div
                     onClick={() => {
