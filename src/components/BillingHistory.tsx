@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Download, ExternalLink } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 interface Fatura {
   id: string;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Check, Zap, Shield, Crown, ArrowRight, ArrowLeft, Users, Globe } from 'lucide-react';
+import { Check, Zap, Shield, Crown, ArrowRight, ArrowLeft, Users } from 'lucide-react';
 import { authService } from '../services/authService';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import Checkout from './Checkout';

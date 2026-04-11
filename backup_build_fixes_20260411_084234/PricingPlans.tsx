@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useSubscription } from '../hooks/useSubscription';
 import { useAuthStore } from '../presentation/state/authStore';
 import { Check } from 'lucide-react';
 

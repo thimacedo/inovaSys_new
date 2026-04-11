@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
-import { GlobalErrorBoundary } from './presentation/ui/components/GlobalErrorBoundary';
 import { useAuthSync } from './presentation/hooks/useAuthSync';
 import { useRealtimeSync } from './presentation/hooks/useRealtimeSync';
 import { useAuthStore } from './presentation/state/useAuthStore';

@@ -271,12 +271,13 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const { isGlobalAdmin, isAdmin: isLocalAdmin } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
   const camaraId = propCamaraId || currentUser?.organization_id || currentUser?.camara_id;
-  if (!camaraId) return null;
 
-  // Hooks do TanStack Query
-  const { data: membrosRaw = [], isLoading } = useTeamMembers(camaraId);
+  // Hooks do TanStack Query - DEVEM ser chamados antes de qualquer retorno condicional
+  const { data: membrosRaw = [], isLoading } = useTeamMembers(camaraId || '');
   const updateRoleMutation = useUpdateUserRole();
   const removeUserMutation = useRemoveUser();
+
+  if (!camaraId) return null;
 
   // Memória calculada para filtragem de permissões
   const membros = useMemo(() => {

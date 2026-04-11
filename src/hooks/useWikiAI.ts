@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { askSystemQuestion, checkOllamaHealth, WikiResponse } from '../services/knowledgeService';
+import { askSystemQuestion, checkOllamaHealth } from '../services/knowledgeService';
 
 export interface Message {
   id: string;

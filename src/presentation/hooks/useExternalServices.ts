@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { askAI, askAIsuggestClausula, askAIimproveDraft } from '../../services/aiService';
+import { askAIsuggestClausula, askAIimproveDraft } from '../../services/aiService';
 import { signatureService, SignatureRequest } from '../../services/signatureService';
 import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
 
