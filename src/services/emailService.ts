@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabase';
 import logoImg from '../assets/logo-inovasys.png';
 
 interface EmailTemplateProps {
@@ -57,12 +58,31 @@ export const emailService = {
   },
 
   /**
-   * Simula o disparo de e-mail (Integração com API externa tipo SendGrid/Resend)
+   * Dispara o e-mail via Supabase Edge Functions (Resend/SMTP)
    */
   send: async (to: string, subject: string, html: string) => {
-    console.log(`[EmailService] Disparando e-mail para ${to}: ${subject} (HTML Length: ${html.length})`);
-    // No futuro: await supabase.functions.invoke('send-email', { body: { to, subject, html } });
-    return new Promise(resolve => setTimeout(resolve, 1000));
+    console.log(`[EmailService] Disparando e-mail para ${to}: ${subject}`);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: { to, subject, html },
+      });
+
+      if (error) {
+        console.error('[EmailService] Erro ao invocar função de e-mail:', error);
+        return { success: false, error };
+      }
+
+      return { success: true, data };
+    } catch (err) {
+      console.error('[EmailService] Exceção ao enviar e-mail:', err);
+      // Fallback para desenvolvimento caso a função não esteja deployada
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ Função "send-email" não encontrada. Verifique se as Edge Functions foram deployadas.');
+        return { success: true, mock: true };
+      }
+      return { success: false, error: err };
+    }
   },
 
   /**
