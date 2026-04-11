@@ -128,3 +128,17 @@ Utilize linguagem formal e adequada ao contexto jurídico.`;
 
   return response.text;
 }
+
+// Funções exportadas para compatibilidade com componentes
+export async function askAI(prompt: string): Promise<string> {
+  const response = await ollamaClient.generate({ prompt });
+  return response.text;
+}
+
+export async function askAIsuggestClausula(context: string, prompt: string): Promise<string> {
+  return askLegalAI(prompt, context);
+}
+
+export async function askAIimproveDraft(text: string): Promise<string> {
+  return askLegalAI(`Melhore o seguinte texto jurídico, mantendo o tom formal e preciso: ${text}`);
+}

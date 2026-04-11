@@ -18,7 +18,7 @@ export const PricingPlans: React.FC = () => {
   const [planos, setPlanos] = useState<Plano[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
-  const camaraId = user?.camara_id;
+  const camaraId = (user as any)?.camara_id;
 
   const handleSubscribe = async (priceId: string) => {
     if (!user) {
@@ -32,7 +32,7 @@ export const PricingPlans: React.FC = () => {
       body: JSON.stringify({
         priceId,
         camaraId,
-        userId: user.id,
+        userId: (user as any)?.id,
         successUrl: `${window.location.origin}/dashboard?checkout=success`,
         cancelUrl: `${window.location.origin}/planos?checkout=canceled`,
       }),
