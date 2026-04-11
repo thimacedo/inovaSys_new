@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-type ToastType = 'success' | 'error' | 'attention' | 'warning' | 'info';
+type ToastType = 'success' | 'error' | 'attention';
 
 interface ToastProps {
   message: string;
@@ -21,14 +21,6 @@ const STYLE_MAP: Record<ToastType, { bg: string; icon: string }> = {
   attention: {
     bg: 'bg-amber-600',
     icon: '⚠',
-  },
-  warning: {
-    bg: 'bg-amber-600',
-    icon: '⚠',
-  },
-  info: {
-    bg: 'bg-blue-600',
-    icon: 'ℹ',
   },
 };
 
