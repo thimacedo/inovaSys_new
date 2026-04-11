@@ -1,32 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, X, Send, Loader2, Sparkles, Scale } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, Sparkles, HelpCircle } from 'lucide-react';
 import { useWikiAI } from '../hooks/useWikiAI';
 
 export const WikiAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const { messages, isLoading, error, sendQuestion, clearConversation, isOllamaAvailable, checkHealth } = useWikiAI();
-  const [context, setContext] = useState('');
 
   useEffect(() => {
     checkHealth();
-    // Opcional: obter contexto da página atual (ex.: tipo de processo)
-    const pageContext = document.title;
-    setContext(`Usuário está na página: ${pageContext}`);
   }, [checkHealth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-    await sendQuestion(input, context);
+    await sendQuestion(input);
     setInput('');
   };
 
   const quickQuestions = [
-    'O que é cláusula compromissória?',
-    'Qual o prazo para apresentar defesa?',
-    'Como funciona a escolha do árbitro?',
-    'O que é sentença arbitral parcial?',
+    'Como criar um novo processo?',
+    'Como enviar um documento para assinatura?',
+    'Como funciona o Kanban?',
+    'Como gerar documentos em lote?',
+    'Como adicionar um novo árbitro?',
+    'Onde vejo as notificações?',
   ];
 
   return (
@@ -35,9 +33,9 @@ export const WikiAssistant: React.FC = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-all"
-        aria-label="Ajuda IA"
+        aria-label="Ajuda do Sistema"
       >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        {isOpen ? <X className="w-6 h-6" /> : <HelpCircle className="w-6 h-6" />}
       </button>
 
       {/* Painel de chat */}
@@ -46,12 +44,12 @@ export const WikiAssistant: React.FC = () => {
           {/* Cabeçalho */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-4 py-3 text-white">
             <div className="flex items-center gap-2">
-              <Scale className="w-5 h-5" />
-              <h3 className="font-semibold">Assistente Jurídico IA</h3>
+              <HelpCircle className="w-5 h-5" />
+              <h3 className="font-semibold">Assistente InovaSys</h3>
             </div>
             <p className="text-xs opacity-90 mt-1">
               {isOllamaAvailable === false && '⚠️ IA offline - usando fallback'}
-              {isOllamaAvailable === true && '✓ IA local ativa'}
+              {isOllamaAvailable === true && '✓ Assistente ativo'}
             </p>
           </div>
 
@@ -60,9 +58,10 @@ export const WikiAssistant: React.FC = () => {
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 mt-8">
                 <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>Pergunte sobre arbitragem, leis ou procedimentos.</p>
+                <p>Olá! Sou o assistente do InovaSys.</p>
+                <p className="text-sm mt-1">Pergunte-me como usar qualquer funcionalidade do sistema.</p>
                 <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                  {quickQuestions.map((q, i) => (
+                  {quickQuestions.slice(0, 4).map((q, i) => (
                     <button
                       key={i}
                       onClick={() => { setInput(q); }}
@@ -115,7 +114,7 @@ export const WikiAssistant: React.FC = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Digite sua dúvida jurídica..."
+                placeholder="Como posso ajudar?"
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isLoading}
               />
@@ -136,6 +135,17 @@ export const WikiAssistant: React.FC = () => {
                 Limpar conversa
               </button>
             )}
+            <div className="mt-2 flex flex-wrap gap-1">
+              {quickQuestions.slice(4).map((q, i) => (
+                <button
+                  key={i}
+                  onClick={() => setInput(q)}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </form>
         </div>
       )}
