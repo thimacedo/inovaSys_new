@@ -296,7 +296,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
                          disabled={isAssigning}
                          className="w-full bg-transparent border-none p-0 text-sm font-bold text-indigo-900 focus:ring-0 outline-none cursor-pointer"
                        >
-                         <option value="">NÃO DESIGNADO</option>
+                         <option value="">Selecione o Árbitro</option>
                          {arbitros.map(a => <option key={a.id} value={a.id}>{a.nome}</option>)}
                        </select>
                     ) : (
