@@ -49,6 +49,23 @@ export default defineConfig({
       usePolling: true,
     },
   },
+  // Otimização de Build: Divisão automática de Chunks
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // Separa dependências grandes para melhor cache e carregamento
+            if (id.includes('framer-motion')) return 'vendor-framer';
+            if (id.includes('recharts')) return 'vendor-recharts';
+            if (id.includes('@supabase')) return 'vendor-supabase';
+            if (id.includes('lucide-react')) return 'vendor-icons';
+            return 'vendor';
+          }
+        },
+      },
+    },
+  },
   // Configuração de Testes (Vitest)
   test: {
     globals: true,

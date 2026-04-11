@@ -12,7 +12,7 @@ import Dashboard from './components/Dashboard';
 import PublicConsultation from './components/PublicConsultation';
 import Pricing from './components/Pricing';
 import Onboarding from './components/Onboarding';
-
+import { WikiAssistant } from './components/WikiAssistant';
 function AppContent() {
   // Inicializa a sincronização Sessão (Zustand) e Eventos (WebSockets)
   useAuthSync();
@@ -127,6 +127,7 @@ function AppContent() {
         theme={theme}
         onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
       />
+      <WikiAssistant />
     </>
   );
 }
