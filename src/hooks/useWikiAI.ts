@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { askSystemQuestion, checkOllamaHealth, WikiResponse } from '../services/knowledgeService';
 
-interface Message {
+export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;

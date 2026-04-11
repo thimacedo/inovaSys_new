@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HelpCircle, X, Send, Loader2, Sparkles } from 'lucide-react';
-import { useWikiAI } from '@/hooks/useWikiAI';
-import { Button } from '@/components/Button';
+import { useWikiAI, Message } from '../hooks/useWikiAI';
+import { Button } from '../presentation/ui/components/Button';
 
 export const WikiAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -88,7 +88,7 @@ export const WikiAssistant: React.FC = () => {
                 </div>
               </div>
             ) : (
-              messages.map((msg) => (
+              messages.map((msg: Message) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -152,7 +152,7 @@ export const WikiAssistant: React.FC = () => {
                   type="button"
                   key={i}
                   onClick={() => setInput(q)}
-                  className="text-xs blue-600 hover:underline"
+                  className="text-xs text-blue-600 hover:underline"
                 >
                   {q}
                 </button>
