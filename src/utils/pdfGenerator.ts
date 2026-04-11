@@ -1,4 +1,4 @@
-﻿// @ts-ignore
+﻿// @ts-expect-error - jsPDF não possui tipos TypeScript definidos
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 

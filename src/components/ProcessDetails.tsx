@@ -43,8 +43,6 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const [activeTab, setActiveTab] = useState('resumo');
   const [novoAndamento, setNovoAndamento] = useState('');
 
-  if (!processId) return null;
-
   const isAdmin = ['gestor', 'admin', 'god'].includes(currentUser?.tipo_usuario?.toLowerCase() || '');
   const canEditProcess = isAdmin || (processo && (processo as any).arbitro_id === currentUser?.id);
 
@@ -53,6 +51,8 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
       carregarArbitros();
     }
   }, [isAdmin]);
+
+  if (!processId) return null;
 
   const carregarArbitros = async () => {
     try {
