@@ -1,14 +1,15 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import Modal from '../components/Modal';
 import Toast from '../components/Toast';
+import { ToastType } from '../types/toast';
 import { applyMask } from '../utils/masks';
 
 type ModalContextType = {
   showModal: (title: string, content: ReactNode, size?: 'small' | 'large') => void;
   showConfirm: (title: string, message: string, onConfirm: () => void, confirmText?: string) => void;
-  showPrompt: (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type?: 'text' | 'date' | 'time' | 'number' | 'textarea', maskType?: 'doc' | 'money' | 'phone' | 'cep') => void;
+  showPrompt: (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type?: 'text' | 'date' | 'time' | 'number' | 'textarea' | 'select', maskType?: 'doc' | 'money' | 'phone' | 'cep', options?: { label: string, value: string }[]) => void;
   hideModal: () => void;
-  showToast: (message: string, type?: 'success' | 'error' | 'attention') => void;
+  showToast: (message: string, type?: ToastType) => void;
 };
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -20,7 +21,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     content: null, 
     size: 'large' 
   });
-  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' | 'attention' }>({ 
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>({ 
     isOpen: false, 
     message: '',
     type: 'success'
@@ -79,14 +80,14 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     setModal({ isOpen: true, title: fullTitle, content, size: 'small' });
   };
 
-  const showPrompt = (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type: 'text' | 'date' | 'time' | 'number' | 'textarea' = 'textarea', maskType?: 'doc' | 'money' | 'phone' | 'cep') => {
+  const showPrompt = (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type: 'text' | 'date' | 'time' | 'number' | 'textarea' | 'select' = 'textarea', maskType?: 'doc' | 'money' | 'phone' | 'cep', options?: { label: string, value: string }[]) => {
     const camaraName = getCamaraName();
     const fullTitle = `${camaraName} | ${title}`;
     
     const PromptContent = () => {
       const [value, setValue] = useState(maskType ? applyMask(initialValue, maskType) : initialValue);
       
-      const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         let val = e.target.value;
         if (maskType) {
           val = applyMask(val, maskType);
@@ -105,6 +106,17 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
                 onChange={handleChange}
                 autoFocus
               />
+            ) : type === 'select' ? (
+              <select
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                value={value}
+                onChange={handleChange}
+                autoFocus
+              >
+                {options?.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
             ) : (
               <input 
                 type={maskType ? 'text' : type}
@@ -145,31 +157,31 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
 
   const hideModal = () => setModal({ ...modal, isOpen: false });
   
-  const showToast = (message: string, type?: 'success' | 'error' | 'attention') => {
-    const prefixes = {
+  const showToast = (message: string, type?: ToastType) => {
+    const prefixes: Record<ToastType, string> = {
       success: 'Sucesso: ',
       error: 'Erro: ',
-      attention: 'Atenção: '
+      attention: 'Atenção: ',
+      warning: 'Atenção: ',
+      info: 'Info: '
     };
 
     // 1. Determine the actual type
-    let finalType = type;
+    let finalType: ToastType = type || 'success';
     const msgLower = message.toLowerCase();
     
     // Force error type if message contains error keywords and no type was provided
-    if (!finalType) {
+    if (!type) {
       if (msgLower.includes('erro') || msgLower.includes('falha')) {
         finalType = 'error';
       } else if (msgLower.includes('atenção') || msgLower.includes('aviso')) {
         finalType = 'attention';
-      } else {
-        finalType = 'success';
       }
     }
 
     // 2. Check if it already has a prefix or starts with a base word
     const allPrefixes = Object.values(prefixes).map(p => p.toLowerCase());
-    const baseWords = ['sucesso', 'erro', 'atenção', 'aviso', 'falha'];
+    const baseWords = ['sucesso', 'erro', 'atenção', 'aviso', 'falha', 'info'];
     
     const alreadyHasPrefix = allPrefixes.some(p => msgLower.startsWith(p)) || 
                              baseWords.some(w => msgLower.startsWith(w.toLowerCase()));
@@ -178,7 +190,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     const prefix = prefixes[finalType];
     const fullMessage = alreadyHasPrefix ? message : `${prefix}${message}`;
     
-    setToast({ isOpen: true, message: fullMessage, type: finalType as 'success' | 'error' | 'attention' });
+    setToast({ isOpen: true, message: fullMessage, type: finalType });
   };
 
   return (
