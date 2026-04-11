@@ -24,9 +24,9 @@ Este documento descreve as fases planejadas para a estabilização, expansão e 
 | :--- | :--- | :--- | :--- |
 | 🔴 **Alta** | Central de Notificações | Realtime via Supabase WebSocket | ✅ Concluído |
 | 🔴 **Alta** | Geração de documentos em lote | Integrar `html2pdf.js` já instalado | ✅ Concluído |
-| 🟠 **Média** | Integração Clicksign/DocuSign | Edge Function Supabase (coluna `signature_api_token`) | 🕒 Planejado |
-| 🟠 **Média** | E-mail Service 2.0 com templates | Requer logo por organização | 🕒 Planejado |
-| 🟡 **Baixa** | App Mobile PWA | Testes em dispositivos reais (Manifest configurado) | 🕒 Planejado |
+| 🟠 **Média** | Integração Clicksign/DocuSign | `signatureService.ts` implementado | ✅ Concluído |
+| 🟠 **Média** | E-mail Service 2.0 com templates | Templates HTML reativos integrados | ✅ Concluído |
+| 🟡 **Baixa** | App Mobile PWA | `vite-plugin-pwa` configurado e ativo | ✅ Concluído |
 
 ---
 
@@ -35,10 +35,10 @@ Este documento descreve as fases planejadas para a estabilização, expansão e 
 
 | Prioridade | Tarefa | Observação | Status |
 | :--- | :--- | :--- | :--- |
-| 🟠 **Média** | Wiki IA (Central de Ajuda) para árbitros | Integrar `@google/generative-ai` já instalado | 🕒 Futuro |
-| 🟠 **Média** | Dashboard executivo amplo | `DashboardHome` — ampliar métricas com filtros | 🕒 Futuro |
-| 🟡 **Baixa** | Módulo de planos/faturamento | Integração Stripe ou Pagar.me (`planos` table existe) | 🕒 Futuro |
-| 🟡 **Baixa** | Exportação de relatórios (CSV/PDF) | Usar `html2pdf.js` + dados filtrados | 🕒 Futuro |
+| 🟠 **Média** | Wiki IA (Central de Ajuda) para árbitros | Integrado com Ollama / DeepSeek | ✅ Concluído |
+| 🟠 **Média** | Dashboard executivo amplo | `DashboardHome` com gráficos em tempo real | ✅ Concluído |
+| 🟡 **Baixa** | Módulo de planos/faturamento | `FinanceiroManager` e `FinanceiroBI` ativos | ✅ Concluído |
+| 🟡 **Baixa** | Exportação de relatórios (CSV/PDF) | Integrado via `html2pdf.js` | ✅ Concluído |
 
 ---
 

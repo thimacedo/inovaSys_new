@@ -102,7 +102,7 @@ export const emailService = {
     boasVindasGestor: (gestorEmail: string, senhaTemp: string, camaraNome: string) => ({
       assunto: `Seja Bem-vindo à InovaSys - Acesso à Câmara ${camaraNome}`,
       corpo: `Parabéns! A sua afiliação para a câmara <b>${camaraNome}</b> foi concluída com sucesso.<br><br><b>Dados de Acesso:</b><br>E-mail: ${gestorEmail}<br>Senha Temporária: <b style="color: #e11d48; font-family: monospace;">${senhaTemp}</b><br><br>Recomendamos que você altere sua senha no primeiro acesso para sua segurança.`,
-      link: { label: 'Acessar Painel', url: 'https://inovasys-thimacedos-projects.vercel.app/' }
+      link: { label: 'Acessar Painel', url: window.location.origin }
     })
   }
 };
