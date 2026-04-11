@@ -1,5 +1,9 @@
 # InovaSys 2.0 - Plataforma de Gestão Arbitral
 
+🔗 **Deploy:** https://vercel.com/thimacedos-projects/inovasys/
+📦 **Repositório:** https://github.com/thimacedo/inovaSys_new
+🗄️ **Supabase:** https://tsgbvhfdceyjbyfstjol.supabase.co
+
 O **InovaSys** é uma plataforma corporativa de classe mundial desenhada para modernizar e automatizar operações de Câmaras de Arbitragem. O sistema evoluiu de uma arquitetura legada para um ecossistema reativo, resiliente e escalável, focado em governança de dados e produtividade jurídica.
 
 ## 🚀 Stack Tecnológica
@@ -50,7 +54,7 @@ Localizados em `src/presentation/hooks`.
 
 ### Variáveis de Ambiente Necessárias (.env)
 ```env
-VITE_SUPABASE_URL=https://sua-url.supabase.co
+VITE_SUPABASE_URL=https://tsgbvhfdceyjbyfstjol.supabase.co
 VITE_SUPABASE_ANON_KEY=seu-anon-key
 ```
 
