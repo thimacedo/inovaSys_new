@@ -84,7 +84,7 @@ BEGIN
         v_numero := 1;
     END IF;
 
-    RETURN v_prefixo || '/' || v_ano || '/' || LPAD(v_numero::TEXT, 4, '0');
+    RETURN v_prefixo || '/' || v_ano || '/' || LPAD(v_numero::TEXT, 3, '0');
 END;
 $$;
 
