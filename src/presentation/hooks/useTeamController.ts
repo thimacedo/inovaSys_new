@@ -4,6 +4,13 @@ import { useModal } from '../../context/ModalContext';
 import { isValidCPF } from '../../utils/validators';
 import { supabase } from '../../lib/supabase';
 import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
+import type { CamaraEntity } from '../../core/domain/entities/Camara';
+
+interface CamaraComPlano extends CamaraEntity {
+  planos?: { limite_usuarios?: number };
+  limite_usuarios_extra?: number;
+}
+
 /**
  * useTeamController
  * Hook de apresentação para separar a lógica de negócio da UI do componente Equipe.
@@ -37,7 +44,8 @@ export function useTeamController(camaraId?: string, onAdded?: (password?: strin
           .select('*', { count: 'exact', head: true })
           .eq('camara_id', camaraId);
 
-        const limiteTotal = ((camara as any).planos?.limite_usuarios || 0) + ((camara as any).limite_usuarios_extra || 0);
+        const camaraWithPlan = camara as CamaraComPlano;
+        const limiteTotal = (camaraWithPlan.planos?.limite_usuarios || 0) + (camaraWithPlan.limite_usuarios_extra || 0);
         
         if (count && count >= limiteTotal) {
           showToast(`Limite atingido (${limiteTotal} usuários).`, 'attention');
@@ -68,8 +76,9 @@ export function useTeamController(camaraId?: string, onAdded?: (password?: strin
         if (onAdded) onAdded(tempPassword);
         return true;
       }
-    } catch (err: any) {
-      showToast(err.message || 'Erro ao processar cadastro.', 'error');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      showToast(message || 'Erro ao processar cadastro.', 'error');
     } finally {
       setLoading(false);
     }

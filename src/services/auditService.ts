@@ -6,13 +6,13 @@ export interface AuditLog {
   acao: string;
   tabela: string;
   registro_id?: string;
-  dados_antigos?: any;
-  dados_novos?: any;
+  dados_antigos?: Record<string, unknown>;
+  dados_novos?: Record<string, unknown>;
   created_at: string;
 }
 
 export const auditService = {
-  async log(acao: string, detalhes: any = {}, tabela: string = 'sistema', registroId?: string) {
+  async log(acao: string, detalhes: Record<string, unknown> = {}, tabela: string = 'sistema', registroId?: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;

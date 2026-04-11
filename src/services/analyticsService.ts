@@ -8,7 +8,7 @@ export interface DashboardMetrics {
   processosPorStatus: Array<{ status: string; count: number }>;
   processosPorMes: Array<{ mes: string; count: number }>;
   processosPorArbitro: Array<{ arbitro: string; count: number }>;
-  processosRecentes: Array<any>;
+  processosRecentes: Array<{ id: string; numero?: string; titulo?: string; status?: string; created_at?: string }>;
 }
 
 export const analyticsService = {
@@ -82,7 +82,7 @@ export const analyticsService = {
       .from('processos')
       .select('arbitro_id, arbitro:arbitro_id(nome)')
       .eq('camara_id', camaraId);
-    arbitrosData?.forEach((p: any) => {
+    arbitrosData?.forEach((p: { arbitro?: { nome?: string } | null }) => {
       const nome = p.arbitro?.nome || 'Não atribuído';
       arbitroMap.set(nome, (arbitroMap.get(nome) || 0) + 1);
     });

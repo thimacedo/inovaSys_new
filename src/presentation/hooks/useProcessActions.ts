@@ -24,14 +24,15 @@ export function useProcessActions(processo: Processo | null | undefined, refetch
         requerido_doc: processo.requerido_doc || '---',
         numero_processo: processo.numero_processo || processo.id,
         valor_causa: Number(processo.valor_causa || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-        arbitro_nome: (processo as any).arbitro?.nome || 'Designação Pendente',
+        arbitro_nome: processo.arbitro?.nome || 'Designação Pendente',
         camara_nome: localStorage.getItem('camara_config') ? JSON.parse(localStorage.getItem('camara_config')!).nome : 'InovaSys',
         resumo_fatos: processo.resumo_fatos || 'Sem resumo cadastrado.',
         data_hoje: new Date().toLocaleDateString('pt-BR')
       }, `Termo_Arbitragem_${processo.numero_processo}`);
       showToast('Download iniciado!', 'success');
-    } catch (error: any) {
-      showToast('Erro ao gerar documento: ' + error.message, 'error');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      showToast('Erro ao gerar documento: ' + message, 'error');
     } finally {
       setIsGeneratingDoc(false);
     }
@@ -54,14 +55,15 @@ export function useProcessActions(processo: Processo | null | undefined, refetch
       await processService.assignArbitrator(processo.id, arbitroId);
       if (refetch) await refetch();
       showToast('Árbitro designado com sucesso!', 'success');
-    } catch (error: any) {
-      showToast(error.message || 'Erro ao designar árbitro.', 'error');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      showToast(message || 'Erro ao designar árbitro.', 'error');
     } finally {
       setIsAssigning(false);
     }
   };
 
-  const handleEditField = async (field: keyof Processo, label: string, currentValue: any) => {
+  const handleEditField = async (field: keyof Processo, label: string, currentValue: unknown) => {
     if (!processo) return;
     let inputType: 'text' | 'date' | 'time' | 'textarea' | 'select' = 'text';
     let maskType: 'doc' | 'money' | 'phone' | 'cep' | undefined = undefined;
@@ -84,7 +86,7 @@ export function useProcessActions(processo: Processo | null | undefined, refetch
     const initialVal = currentValue?.toString() || '';
     showPrompt('Editar Campo', label, initialVal, async (newValue) => {
       if (newValue !== null && newValue !== initialVal) {
-        let finalValue: any = newValue;
+        let finalValue: string | number = newValue;
         if (field === 'requerente_doc' || field === 'requerido_doc') {
           if (!isValidDoc(newValue)) { showToast('CPF ou CNPJ inválido.', 'attention'); return; }
           finalValue = newValue.replace(/\D/g, '');
@@ -97,8 +99,9 @@ export function useProcessActions(processo: Processo | null | undefined, refetch
           await processService.update(processo.id, { [field]: finalValue });
           if (refetch) await refetch();
           showToast(`${label} atualizado com sucesso!`, 'success');
-        } catch (e: any) {
-          showToast(`Erro ao atualizar ${label}: ` + e.message, 'error');
+        } catch (e: unknown) {
+          const message = e instanceof Error ? e.message : 'Erro desconhecido';
+          showToast(`Erro ao atualizar ${label}: ` + message, 'error');
         }
       }
     }, inputType, maskType, options);
