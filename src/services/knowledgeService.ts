@@ -1,4 +1,6 @@
-const OLLAMA_URL = 'http://localhost:11434/api/generate';
+const OLLAMA_URL = import.meta.env.PROD 
+  ? null 
+  : 'http://localhost:11434/api/generate';
 const MODEL = 'deepseek-r1:7b'; // ou 'llama3.2:3b' para respostas mais rápidas
 
 export interface WikiResponse {
@@ -72,6 +74,13 @@ Seu conhecimento se limita EXCLUSIVAMENTE a estas funcionalidades. Qualquer perg
  * Faz uma pergunta sobre o funcionamento do sistema.
  */
 export async function askSystemQuestion(question: string): Promise<WikiResponse> {
+  if (!OLLAMA_URL) {
+    return {
+      answer: 'O assistente IA está disponível apenas na versão local do sistema.',
+      model: 'offline',
+    };
+  }
+
   const response = await fetch(OLLAMA_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -103,6 +112,10 @@ export async function askSystemQuestion(question: string): Promise<WikiResponse>
  * Verifica se o Ollama está acessível.
  */
 export async function checkOllamaHealth(): Promise<boolean> {
+  if (!OLLAMA_URL) {
+    return false;
+  }
+  
   try {
     const res = await fetch('http://localhost:11434/api/tags');
     return res.ok;
