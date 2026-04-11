@@ -46,14 +46,6 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const isAdmin = ['gestor', 'admin', 'god'].includes(currentUser?.tipo_usuario?.toLowerCase() || '');
   const canEditProcess = isAdmin || (processo && (processo as any).arbitro_id === currentUser?.id);
 
-  useEffect(() => {
-    if (isAdmin) {
-      carregarArbitros();
-    }
-  }, [isAdmin]);
-
-  if (!processId) return null;
-
   const carregarArbitros = async () => {
     try {
       const data = await userService.getArbitrosDisponiveis();
@@ -62,6 +54,12 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
       console.error('Erro ao carregar árbitros:', e);
     }
   };
+
+  useEffect(() => {
+    if (isAdmin) {
+      carregarArbitros();
+    }
+  }, [isAdmin]);
 
   const handleSubmeterAndamento = () => {
     if (!currentUser) return;

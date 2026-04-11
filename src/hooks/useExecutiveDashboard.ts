@@ -29,6 +29,7 @@ export function useExecutiveDashboard({ camaraId, dataInicio, dataFim }: UseExec
 
   useEffect(() => {
     loadMetrics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camaraId, dataInicio, dataFim]);
 
   return { metrics, loading, error, refresh: loadMetrics };

@@ -31,10 +31,6 @@ export default function FinanceiroTab({ processoId, organizationId }: { processo
   const { isAtLeastAdmin } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
 
-  useEffect(() => {
-    carregarRegistros();
-  }, [processoId]);
-
   const carregarRegistros = async () => {
     setLoading(true);
     try {
@@ -46,6 +42,11 @@ export default function FinanceiroTab({ processoId, organizationId }: { processo
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    carregarRegistros();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processoId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

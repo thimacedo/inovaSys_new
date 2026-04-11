@@ -20,6 +20,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ html, fileName, onSig
 
   useEffect(() => {
     if (!contentRef.current) return;
+    const element = contentRef.current;
     const handleEditableClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target && target.classList && target.classList.contains('editable-field')) {
@@ -29,8 +30,9 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ html, fileName, onSig
         });
       }
     };
-    contentRef.current.addEventListener('click', handleEditableClick);
-    return () => contentRef.current?.removeEventListener('click', handleEditableClick);
+    element.addEventListener('click', handleEditableClick);
+    return () => element?.removeEventListener('click', handleEditableClick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [html]);
 
   const handleAIHelp = async () => {

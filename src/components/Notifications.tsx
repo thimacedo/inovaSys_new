@@ -22,34 +22,6 @@ const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      setNotifications([]);
-      setUnreadCount(0);
-      return;
-    }
-    
-    fetchNotifications();
-
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${userId}` },
-        (payload) => {
-          const newNotif = payload.new as Notification;
-          setNotifications((prev) => [newNotif, ...prev]);
-          setUnreadCount((prev) => prev + 1);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId]);
-
   const fetchNotifications = async () => {
     setLoading(true);
     try {
@@ -73,6 +45,34 @@ const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+
+    fetchNotifications();
+
+    const channel = supabase
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${userId}` },
+        (payload) => {
+          const newNotif = payload.new as Notification;
+          setNotifications((prev) => [newNotif, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   const markAsRead = async (id: string) => {
     await supabase.from('notificacoes').update({ lida: true }).eq('id', id);

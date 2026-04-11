@@ -25,10 +25,6 @@ export default function TemplateManager() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
 
-  useEffect(() => {
-    carregarTemplates();
-  }, []);
-
   const carregarTemplates = async () => {
     setLoading(true);
     try {
@@ -36,7 +32,7 @@ export default function TemplateManager() {
         .from('templates_documentos')
         .select('*')
         .order('tipo_documento', { ascending: true });
-      
+
       if (error) throw error;
       setTemplates(data || []);
     } catch (e: any) {
@@ -45,6 +41,11 @@ export default function TemplateManager() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    carregarTemplates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSelectTemplate = (t: Template) => {
     setSelectedTemplate(t);

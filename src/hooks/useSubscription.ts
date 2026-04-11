@@ -11,24 +11,25 @@ export function useSubscription(camaraId: string) {
   const loadStatus = async () => {
     if (!camaraId) return;
     setLoading(true);
-    
+
     const { data } = await supabase
       .from('camaras')
       .select('status_assinatura, plano_id, stripe_subscription_id')
       .eq('id', camaraId)
       .single();
-      
+
     if (data) {
       setStatus(data.status_assinatura);
       setPlanoId(data.plano_id);
       setSubscriptionId(data.stripe_subscription_id);
     }
-    
+
     setLoading(false);
   };
 
   useEffect(() => {
     loadStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camaraId]);
 
   const subscribe = async (priceId: string, userId: string) => {

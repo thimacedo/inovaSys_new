@@ -29,20 +29,20 @@ export default function CalendarView() {
   const daysInMonth = useMemo(() => {
     const days = [];
     const firstDayOfWeek = startOfMonth.getDay();
-    
+
     // Fill previous month days
     for (let i = 0; i < firstDayOfWeek; i++) {
       days.push({ day: null, date: null });
     }
-    
+
     // Fill current month days
     for (let i = 1; i <= endOfMonth.getDate(); i++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
       days.push({ day: i, date });
     }
-    
+
     return days;
-  }, [currentDate]);
+  }, [currentDate, startOfMonth, endOfMonth]);
 
   const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
