@@ -1,4 +1,4 @@
-﻿import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { logAudit } from '../../services/auditoriaService';
 
 export class BaseSupabaseRepository<T extends { id: string }> {
@@ -6,6 +6,11 @@ export class BaseSupabaseRepository<T extends { id: string }> {
     protected client: SupabaseClient,
     protected tableName: string
   ) {}
+
+  protected handleError(error: any): Error {
+    const message = error?.message || 'Erro desconhecido';
+    return new Error(`Falha na operação de banco de dados: ${message}`);
+  }
 
   async getById(id: string): Promise<T | null> {
     const { data, error } = await this.client
@@ -15,8 +20,11 @@ export class BaseSupabaseRepository<T extends { id: string }> {
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw error;
+      // Código PGRST116 indica que nenhum registro foi encontrado (single() com 0 resultados)
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      throw this.handleError(error);
     }
     return data as T;
   }
@@ -28,14 +36,16 @@ export class BaseSupabaseRepository<T extends { id: string }> {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) throw this.handleError(error);
     await logAudit('create', this.tableName, result.id, undefined, data);
     return result as T;
   }
 
   async update(id: string, data: Partial<T>): Promise<T> {
     const oldData = await this.getById(id);
-    if (!oldData) throw new Error('Registro nÃ£o encontrado');
+    if (!oldData) {
+      throw new Error(`Registro não encontrado para id ${id}`);
+    }
 
     const { data: result, error } = await this.client
       .from(this.tableName)
@@ -44,34 +54,37 @@ export class BaseSupabaseRepository<T extends { id: string }> {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) throw this.handleError(error);
     await logAudit('update', this.tableName, id, oldData, data);
     return result as T;
   }
 
   async delete(id: string): Promise<void> {
     const oldData = await this.getById(id);
-    if (!oldData) throw new Error('Registro nÃ£o encontrado');
+    if (!oldData) {
+      throw new Error(`Registro não encontrado para id ${id}`);
+    }
 
     const { error } = await this.client
       .from(this.tableName)
       .delete()
       .eq('id', id);
 
-    if (error) throw error;
+    if (error) throw this.handleError(error);
     await logAudit('delete', this.tableName, id, oldData, undefined);
   }
 
   async list(page = 0, pageSize = 10): Promise<T[]> {
     const from = page * pageSize;
     const to = from + pageSize - 1;
+
     const { data, error } = await this.client
       .from(this.tableName)
       .select('*')
       .order('created_at', { ascending: false })
       .range(from, to);
 
-    if (error) throw error;
+    if (error) throw this.handleError(error);
     return (data as T[]) || [];
   }
 }

@@ -2,153 +2,170 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BaseSupabaseRepository } from './BaseSupabaseRepository';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-// Mock do cliente Supabase
-const mockFrom = vi.fn();
-const mockSelect = vi.fn();
-const mockInsert = vi.fn();
-const mockUpdate = vi.fn();
-const mockDelete = vi.fn();
-const mockEq = vi.fn();
-const mockSingle = vi.fn();
-const mockOrder = vi.fn();
-const mockRange = vi.fn();
+// Mock do builder de query do Supabase
+const createQueryBuilderMock = () => {
+  const builder: any = {
+    select: vi.fn(() => builder),
+    insert: vi.fn(() => builder),
+    update: vi.fn(() => builder),
+    delete: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    order: vi.fn(() => builder),
+    range: vi.fn(() => builder),
+    single: vi.fn(),
+  };
 
-// Constrói a cadeia de mocks com encadeamento correto
-mockFrom.mockImplementation(() => ({
-  select: mockSelect,
-  insert: mockInsert,
-  update: mockUpdate,
-  delete: mockDelete,
-}));
+  // Garante que todos os métodos de encadeamento retornem o próprio builder
+  builder.select.mockReturnValue(builder);
+  builder.insert.mockReturnValue(builder);
+  builder.update.mockReturnValue(builder);
+  builder.delete.mockReturnValue(builder);
+  builder.eq.mockReturnValue(builder);
+  builder.order.mockReturnValue(builder);
+  builder.range.mockReturnValue(builder);
 
-mockInsert.mockImplementation(() => ({
-  select: mockSelect,
-}));
-
-mockUpdate.mockImplementation(() => ({
-  eq: mockEq,
-}));
-
-mockDelete.mockImplementation(() => ({
-  eq: mockEq,
-}));
-
-mockSelect.mockImplementation(() => ({
-  eq: mockEq,
-  order: mockOrder,
-  range: mockRange,
-  single: mockSingle,
-}));
-
-mockEq.mockImplementation(() => ({
-  select: mockSelect,
-  single: mockSingle,
-}));
-
-mockOrder.mockImplementation(() => ({
-  range: mockRange,
-}));
-
-mockRange.mockImplementation(() => ({
-  select: mockSelect,
-}));
-
-// Classe concreta para teste (já que Base é abstract)
-class TestRepository extends BaseSupabaseRepository<any> {
-  protected readonly tableName = 'test_table';
-}
+  return builder;
+};
 
 describe('BaseSupabaseRepository', () => {
   let mockClient: SupabaseClient;
-  let repository: TestRepository;
+  let mockBuilder: ReturnType<typeof createQueryBuilderMock>;
+  let repository: BaseSupabaseRepository<any>;
 
   beforeEach(() => {
-    // Apenas limpa chamadas e instâncias, NÃO apaga implementações
     vi.clearAllMocks();
-    mockSingle.mockClear();
+    mockBuilder = createQueryBuilderMock();
 
     mockClient = {
-      from: mockFrom,
+      from: vi.fn(() => mockBuilder),
     } as unknown as SupabaseClient;
-    repository = new TestRepository(mockClient);
+
+    repository = new BaseSupabaseRepository(mockClient, 'test_table');
   });
 
   it('deve criar um registro e retornar os dados', async () => {
     const mockData = { id: '123', name: 'Teste' };
-    mockSingle.mockResolvedValueOnce({ data: mockData, error: null });
+    mockBuilder.single.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await repository.create({ name: 'Teste' });
 
-    expect(mockFrom).toHaveBeenCalledWith('test_table');
-    expect(mockInsert).toHaveBeenCalledWith([{ name: 'Teste' }]);
-    expect(mockSelect).toHaveBeenCalled();
-    expect(mockSingle).toHaveBeenCalled();
+    expect(mockClient.from).toHaveBeenCalledWith('test_table');
+    expect(mockBuilder.insert).toHaveBeenCalledWith([{ name: 'Teste' }]);
+    expect(mockBuilder.select).toHaveBeenCalled();
+    expect(mockBuilder.single).toHaveBeenCalled();
     expect(result).toEqual(mockData);
   });
 
   it('deve lançar erro se a criação falhar', async () => {
     const mockError = { message: 'Erro no banco' };
-    mockSingle.mockResolvedValueOnce({ data: null, error: mockError });
+    mockBuilder.single.mockResolvedValueOnce({ data: null, error: mockError });
 
-    await expect(repository.create({ name: 'Teste' })).rejects.toEqual(mockError);
+    await expect(repository.create({ name: 'Teste' })).rejects.toThrow(
+      'Falha na operação de banco de dados: Erro no banco'
+    );
   });
 
   it('deve buscar um registro por ID', async () => {
     const mockData = { id: '123', name: 'Teste' };
-    mockSingle.mockResolvedValueOnce({ data: mockData, error: null });
+    mockBuilder.single.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await repository.getById('123');
 
-    expect(mockFrom).toHaveBeenCalledWith('test_table');
-    expect(mockSelect).toHaveBeenCalled();
-    expect(mockEq).toHaveBeenCalledWith('id', '123');
-    expect(mockSingle).toHaveBeenCalled();
+    expect(mockClient.from).toHaveBeenCalledWith('test_table');
+    expect(mockBuilder.select).toHaveBeenCalled();
+    expect(mockBuilder.eq).toHaveBeenCalledWith('id', '123');
+    expect(mockBuilder.single).toHaveBeenCalled();
     expect(result).toEqual(mockData);
+  });
+
+  it('deve retornar null se getById não encontrar (código PGRST116)', async () => {
+    mockBuilder.single.mockResolvedValueOnce({
+      data: null,
+      error: { code: 'PGRST116', message: 'Not found' },
+    });
+
+    const result = await repository.getById('999');
+    expect(result).toBeNull();
+  });
+
+  it('deve lançar erro em getById para outros erros', async () => {
+    const error = { code: 'OTHER', message: 'Erro qualquer' };
+    mockBuilder.single.mockResolvedValueOnce({ data: null, error });
+
+    await expect(repository.getById('123')).rejects.toThrow(
+      'Falha na operação de banco de dados: Erro qualquer'
+    );
   });
 
   it('deve listar registros com paginação', async () => {
     const mockData = [{ id: '1' }, { id: '2' }];
-    mockRange.mockResolvedValueOnce({ data: mockData, error: null });
+    mockBuilder.range.mockReturnValueOnce({
+      data: mockData,
+      error: null,
+    });
 
     const result = await repository.list(0, 10);
 
-    expect(mockFrom).toHaveBeenCalledWith('test_table');
-    expect(mockSelect).toHaveBeenCalled();
-    expect(mockOrder).toHaveBeenCalledWith('created_at', { ascending: false });
-    expect(mockRange).toHaveBeenCalledWith(0, 9);
+    expect(mockClient.from).toHaveBeenCalledWith('test_table');
+    expect(mockBuilder.select).toHaveBeenCalled();
+    expect(mockBuilder.order).toHaveBeenCalledWith('created_at', { ascending: false });
+    expect(mockBuilder.range).toHaveBeenCalledWith(0, 9);
     expect(result).toEqual(mockData);
   });
 
   it('deve atualizar um registro', async () => {
+    const oldData = { id: '123', name: 'Antigo' };
     const newData = { name: 'Novo' };
     const updatedData = { id: '123', name: 'Novo' };
 
-    // Mock para a atualização
-    mockSingle.mockResolvedValueOnce({ data: updatedData, error: null });
+    // getById (primeira chamada)
+    mockBuilder.single.mockResolvedValueOnce({ data: oldData, error: null });
+    // update (segunda chamada)
+    mockBuilder.single.mockResolvedValueOnce({ data: updatedData, error: null });
 
     const result = await repository.update('123', newData);
 
-    expect(mockFrom).toHaveBeenCalledWith('test_table');
-    expect(mockUpdate).toHaveBeenCalledWith(newData);
-    expect(mockEq).toHaveBeenCalledWith('id', '123');
+    expect(mockClient.from).toHaveBeenCalledWith('test_table');
+    expect(mockBuilder.select).toHaveBeenCalled();
+    expect(mockBuilder.eq).toHaveBeenCalledWith('id', '123');
+    expect(mockBuilder.single).toHaveBeenCalledTimes(2);
+    expect(mockBuilder.update).toHaveBeenCalledWith(newData);
     expect(result).toEqual(updatedData);
+  });
+
+  it('deve lançar erro ao atualizar registro inexistente', async () => {
+    // getById retorna null
+    mockBuilder.single.mockResolvedValueOnce({
+      data: null,
+      error: { code: 'PGRST116' },
+    });
+
+    await expect(repository.update('999', { name: 'Novo' })).rejects.toThrow(
+      'Registro não encontrado para id 999'
+    );
   });
 
   it('deve deletar um registro', async () => {
     const oldData = { id: '123', name: 'Antigo' };
-    mockSingle.mockResolvedValueOnce({ data: oldData, error: null });
-    mockEq.mockResolvedValueOnce({ error: null });
+    mockBuilder.single.mockResolvedValueOnce({ data: oldData, error: null });
+    // delete: eq retorna objeto com error null
+    mockBuilder.eq.mockReturnValueOnce({ error: null });
 
     await repository.delete('123');
 
-    expect(mockFrom).toHaveBeenCalledWith('test_table');
-    expect(mockDelete).toHaveBeenCalled();
-    expect(mockEq).toHaveBeenCalledWith('id', '123');
+    expect(mockClient.from).toHaveBeenCalledWith('test_table');
+    expect(mockBuilder.delete).toHaveBeenCalled();
+    expect(mockBuilder.eq).toHaveBeenCalledWith('id', '123');
   });
 
-  it('deve lançar erro se o registro não for encontrado ao buscar por ID', async () => {
-    mockSingle.mockResolvedValueOnce({ data: null, error: { message: 'Not found' } });
+  it('deve lançar erro ao deletar registro inexistente', async () => {
+    mockBuilder.single.mockResolvedValueOnce({
+      data: null,
+      error: { code: 'PGRST116' },
+    });
 
-    await expect(repository.getById('999')).rejects.toEqual({ message: 'Not found' });
+    await expect(repository.delete('999')).rejects.toThrow(
+      'Registro não encontrado para id 999'
+    );
   });
 });
