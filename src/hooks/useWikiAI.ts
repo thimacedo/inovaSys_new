@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { askLegalQuestion, checkOllamaHealth, WikiResponse } from '../services/knowledgeService';
+import { askSystemQuestion, checkOllamaHealth, WikiResponse } from '../services/knowledgeService';
 
 interface Message {
   id: string;
@@ -14,17 +14,15 @@ export function useWikiAI() {
   const [error, setError] = useState<string | null>(null);
   const [isOllamaAvailable, setIsOllamaAvailable] = useState<boolean | null>(null);
 
-  // Verifica saúde do Ollama ao iniciar
   const checkHealth = useCallback(async () => {
     const available = await checkOllamaHealth();
     setIsOllamaAvailable(available);
     return available;
   }, []);
 
-  const sendQuestion = useCallback(async (question: string, context?: string) => {
+  const sendQuestion = useCallback(async (question: string) => {
     if (!question.trim()) return;
 
-    // Adiciona mensagem do usuário
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -36,7 +34,7 @@ export function useWikiAI() {
     setError(null);
 
     try {
-      const response = await askLegalQuestion(question, context);
+      const response = await askSystemQuestion(question);
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -45,7 +43,7 @@ export function useWikiAI() {
       };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Erro ao consultar a IA';
+      const errorMsg = err instanceof Error ? err.message : 'Erro ao consultar o assistente';
       setError(errorMsg);
       console.error(err);
     } finally {
