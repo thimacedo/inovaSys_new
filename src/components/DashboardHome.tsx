@@ -29,7 +29,7 @@ export default function DashboardHome() {
     // Processos
     const procs = processosData?.data || [];
     const totalProcessos = procs.length;
-    const processosAtivos = procs.filter(p => p.status !== 'Concluído' && p.status !== 'Arquivado').length;
+    const processosAtivos = procs.filter((p: any) => p.status !== 'Concluído' && p.status !== 'Arquivado').length;
 
     // Financeiro
     const finance = financeiroData || [];

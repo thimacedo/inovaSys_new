@@ -1,9 +1,11 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { notificationService, Notification } from '../../services/notificationService';
-import { useAuthStore } from '../state/authStore';
+import { useAuthStore } from '../state/useAuthStore';
+
+export const NOTIFICATIONS_KEY = 'notifications';
 
 export function useNotifications() {
-  const { user } = useAuthStore();
+  const { currentUser: user } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
