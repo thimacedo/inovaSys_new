@@ -7,10 +7,6 @@ export class ProcessRepository extends BaseSupabaseRepository<Processo> {
     super(client, 'processos');
   }
 
-  async getById(id: string): Promise<Processo | null> {
-    return super.getById(id);
-  }
-
   // Exemplo: listar processos de uma câmara com dados do árbitro
   async listByCamara(camaraId: string, page = 0, pageSize = 10): Promise<Processo[]> {
     const from = page * pageSize;

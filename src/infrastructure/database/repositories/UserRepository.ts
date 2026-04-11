@@ -7,10 +7,6 @@ export class UserRepository extends BaseSupabaseRepository<Usuario> {
     super(client, 'usuarios');
   }
 
-  async getById(id: string): Promise<Usuario | null> {
-    return super.getById(id);
-  }
-
   // Exemplo: buscar usuário por email
   async findByEmail(email: string): Promise<Usuario | null> {
     const { data, error } = await this.client

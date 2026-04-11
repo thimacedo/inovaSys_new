@@ -147,15 +147,30 @@ describe('BaseSupabaseRepository', () => {
 
   it('deve deletar um registro', async () => {
     const oldData = { id: '123', name: 'Antigo' };
+    // Primeira chamada: getById dentro de delete
     mockBuilder.single.mockResolvedValueOnce({ data: oldData, error: null });
-    // delete: eq retorna objeto com error null
-    mockBuilder.eq.mockReturnValueOnce({ error: null });
+    // Para delete: eq() deve retornar Promise com { error: null }
+    // Mas primeiro, quando getById chama eq(), ele precisa retornar builder para chain
+    // Vamos usar mockImplementationOnce para controlar isso
+    let eqCallCount = 0;
+    mockBuilder.eq.mockImplementation(() => {
+      eqCallCount++;
+      if (eqCallCount === 1) {
+        // Primeira chamada: de getById, retorna builder para chain
+        return mockBuilder;
+      } else {
+        // Segunda chamada: de delete, retorna Promise com { error: null }
+        return Promise.resolve({ error: null });
+      }
+    });
 
     await repository.delete('123');
 
     expect(mockClient.from).toHaveBeenCalledWith('test_table');
     expect(mockBuilder.delete).toHaveBeenCalled();
     expect(mockBuilder.eq).toHaveBeenCalledWith('id', '123');
+    // eq foi chamado 2 vezes: uma no getById e outra no delete
+    expect(eqCallCount).toBe(2);
   });
 
   it('deve lançar erro ao deletar registro inexistente', async () => {
