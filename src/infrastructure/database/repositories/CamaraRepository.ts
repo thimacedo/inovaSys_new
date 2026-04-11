@@ -2,7 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { BaseSupabaseRepository } from '../BaseSupabaseRepository';
 import { CamaraEntity } from '../../../core/domain/entities/Camara';
 
-export { CamaraEntity };
+export type { CamaraEntity };
 
 export class CamaraRepository extends BaseSupabaseRepository<CamaraEntity> {
   protected readonly tableName = 'camaras';
