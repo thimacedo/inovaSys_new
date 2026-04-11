@@ -95,19 +95,36 @@ export const ecossistemaService = {
 
       if (camaraError) throw camaraError;
 
-      // 2. Criar Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: gestorEmail,
-        password: tempPassword,
-        options: { data: { tipo_usuario: 'gestor', camara_id: camara.id } }
+      // 2. Criar Auth (via Fetch para evitar logout automático do Admin/Gestor logado)
+      // O Supabase Client faz o login automático do novo usuário se usarmos auth.signUp
+      // Por isso, usamos fetch direto à API de Auth para o signup silencioso
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: gestorEmail.trim(),
+          password: tempPassword,
+          data: { tipo_usuario: 'gestor', camara_id: camara.id }
+        })
       });
 
-      if (authError) console.error('Erro Auth:', authError.message);
+      const json = await res.json();
+
+      if (!res.ok) {
+        console.error('Erro Auth (Silent Signup):', json.msg || json.message);
+        throw new Error(json.msg || json.message || 'Erro ao criar conta do gestor');
+      }
 
       // 3. Criar Perfil
-      if (authData.user?.id) {
+      if (json.user?.id) {
         await supabase.from('perfis').insert([{
-          id: authData.user.id,
+          id: json.user.id,
           tipo_usuario: 'gestor',
           camara_id: camara.id,
           organization_id: camara.id,

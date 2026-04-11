@@ -53,18 +53,34 @@ export function useTeamController(camaraId?: string, onAdded?: (password?: strin
         }
       }
 
-      // 2. Criação de Usuário Auth (Lógica de Infra em transição)
+      // 2. Criação de Usuário Auth (via Fetch para evitar logout automático do Gestor logado)
+      // O Supabase Client faz o login automático do novo usuário se usarmos auth.signUp
+      // Por isso, usamos fetch direto à API de Auth para o signup silencioso
       const tempPassword = Math.random().toString(36).slice(-12);
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: tempPassword,
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: tempPassword
+        })
       });
 
-      if (authError) throw authError;
+      const json = await res.json();
 
-      if (authData.user) {
+      if (!res.ok) {
+        throw new Error(json.msg || json.message || 'Erro ao criar conta do membro');
+      }
+
+      if (json.user) {
         // 3. Persistência via Service Modularizado
-        await userService.update(authData.user.id, {
+        await userService.update(json.user.id, {
           nome: nome.trim(),
           tipo_usuario: tipoUsuario,
           camara_id: camaraId,
