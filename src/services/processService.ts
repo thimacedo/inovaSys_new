@@ -15,8 +15,12 @@ export const getProcessosByCamara = async (camaraId: string): Promise<Processo[]
   return await DependencyRegistry.getProcessRepository().listByCamara(camaraId);
 };
 
+const IMMUTABLE_FIELDS = ['id', 'numero_processo', 'created_at', 'camara_id', 'organization_id'] as const;
+
 export const updateProcess = async (id: string, data: Partial<Processo>): Promise<Processo> => {
-  return await DependencyRegistry.getProcessRepository().update(id, data);
+  const safeData = { ...data };
+  IMMUTABLE_FIELDS.forEach((f) => delete (safeData as any)[f]);
+  return await DependencyRegistry.getProcessRepository().update(id, safeData);
 };
 
 export const deleteProcess = async (id: string): Promise<void> => {
@@ -28,7 +32,8 @@ export const getAll = async (camaraId: string | undefined, page = 1, pageSize = 
 };
 
 export const assignArbitrator = async (id: string, arbitroId: string): Promise<Processo> => {
-  return await DependencyRegistry.getProcessRepository().update(id, { arbitro_id: arbitroId });
+  const value = arbitroId && arbitroId.trim() !== '' ? arbitroId : null;
+  return await DependencyRegistry.getProcessRepository().update(id, { arbitro_id: value } as any);
 };
 
 export const publicSearch = async (query: string): Promise<Processo[]> => {
