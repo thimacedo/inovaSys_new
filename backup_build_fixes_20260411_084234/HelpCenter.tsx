@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, 
@@ -11,7 +11,7 @@ import {
   HelpCircle,
   Search
 } from 'lucide-react';
-import { askAI } from '../services/aiService';
+import { aiService } from '../services/aiService';
 
 interface Message {
   id: string;
@@ -25,7 +25,7 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
     {
       id: '1',
       role: 'assistant',
-      content: 'OlÃ¡! Sou o Assistente IA da InovaSys. Como posso ajudar vocÃª hoje com dÃºvidas sobre o sistema ou procedimentos arbitrais?',
+      content: 'Olá! Sou o Assistente IA da InovaSys. Como posso ajudar você hoje com dúvidas sobre o sistema ou procedimentos arbitrais?',
       timestamp: new Date()
     }
   ]);
@@ -54,7 +54,7 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
     setIsTyping(true);
 
     try {
-      const response = await askAIsuggestClausula('Wiki Ajuda', input);
+      const response = await aiService.suggestClausula('Wiki Ajuda', input);
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -207,7 +207,7 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Escreva sua dÃºvida aqui..."
+                  placeholder="Escreva sua dúvida aqui..."
                   className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all"
                 />
                 <button 
@@ -220,7 +220,7 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
               </div>
               <p className="text-[10px] text-center text-slate-400 mt-4 flex items-center justify-center gap-1">
                 <HelpCircle size={10} />
-                IA treinada com normas da CÃ¢mara InovaSys
+                IA treinada com normas da Câmara InovaSys
               </p>
             </div>
           </motion.div>
@@ -231,4 +231,3 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
 };
 
 export default HelpCenter;
-

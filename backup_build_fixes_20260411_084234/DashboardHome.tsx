@@ -18,7 +18,7 @@ export default function DashboardHome() {
   const { isGod } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
   
-  // IdentificaÁ„o da C‚mara/OrganizaÁ„o
+  // Identifica√ß√£o da C√¢mara/Organiza√ß√£o
   const camaraId = currentUser?.organization_id || currentUser?.camara_id;
 
   // Hooks reativos (TanStack Query)
@@ -27,21 +27,21 @@ export default function DashboardHome() {
 
   const stats = useMemo(() => {
     // Processos
-    const procs = processosData || [];
+    const procs = processosData?.data || [];
     const totalProcessos = procs.length;
-    const processosAtivos = procs.filter((p: any) => p.status !== 'ConcluÌdo' && p.status !== 'Arquivado').length;
+    const processosAtivos = procs.filter((p: any) => p.status !== 'Conclu√≠do' && p.status !== 'Arquivado').length;
 
     // Financeiro
     const finance = financeiroData || [];
     const totalFinanceiro = finance
-      .filter((f: any) => f.status === 'Pago')
+      .filter(f => f.status === 'Pago')
       .reduce((acc, curr) => acc + Number(curr.valor), 0);
 
     return {
       totalProcessos,
       processosAtivos,
       totalFinanceiro,
-      totalUsuarios: isGod ? 'Global' : 1, // Placeholder para usu·rios se n„o houver hook especÌfico solicitado
+      totalUsuarios: isGod ? 'Global' : 1, // Placeholder para usu√°rios se n√£o houver hook espec√≠fico solicitado
       totalCamaras: isGod ? 'Global' : 1
     };
   }, [processosData, financeiroData, isGod]);
@@ -50,8 +50,8 @@ export default function DashboardHome() {
 
   const statCards = [
     { label: 'Processos Ativos', value: stats.processosAtivos, icon: Files, color: 'blue' },
-    { label: 'Usu·rios no Sistema', value: stats.totalUsuarios, icon: Users, color: 'purple' },
-    { label: isGod ? 'C‚maras Registradas' : 'Status da C‚mara', value: isGod ? stats.totalCamaras : 'Ativa', icon: Building2, color: 'amber' },
+    { label: 'Usu√°rios no Sistema', value: stats.totalUsuarios, icon: Users, color: 'purple' },
+    { label: isGod ? 'C√¢maras Registradas' : 'Status da C√¢mara', value: isGod ? stats.totalCamaras : 'Ativa', icon: Building2, color: 'amber' },
     { label: 'Volume Financeiro (Pago)', value: `R$ ${stats.totalFinanceiro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'emerald' },
   ];
 
@@ -62,7 +62,7 @@ export default function DashboardHome() {
           <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
             Seja bem-vindo, <span className="text-blue-600 dark:text-blue-400">{currentUser?.nome?.split(' ')[0]}</span>
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Aqui est· o resumo do que est· acontecendo no {isGod ? 'ecossistema InovaSys' : 'seu painel'}.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Aqui est√° o resumo do que est√° acontecendo no {isGod ? 'ecossistema InovaSys' : 'seu painel'}.</p>
         </div>
         <div className="flex gap-2">
            <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-100 dark:border-blue-800 flex items-center gap-2">
@@ -99,7 +99,7 @@ export default function DashboardHome() {
                  Progresso Mensal
               </h3>
               <select className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs font-bold px-3 py-1 text-slate-500 dark:text-slate-400 focus:ring-0">
-                 <option>⁄ltimos 6 meses</option>
+                 <option>√öltimos 6 meses</option>
                  <option>Este ano</option>
               </select>
            </div>
@@ -129,20 +129,20 @@ export default function DashboardHome() {
            
            <div>
               <h3 className="text-xl font-bold mb-2">Ecossistema Digital</h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-6">VocÍ est· operando na plataforma InovaSys v2.0. Novas funcionalidades de IA e assinatura digital est„o sendo integradas hoje.</p>
+              <p className="text-slate-400 text-sm leading-relaxed mb-6">Voc√™ est√° operando na plataforma InovaSys v2.0. Novas funcionalidades de IA e assinatura digital est√£o sendo integradas hoje.</p>
               
               <div className="space-y-4">
                  <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
                        <CheckCircle size={16} />
                     </div>
-                    <span className="text-xs font-medium">Backup autom·tico ativo</span>
+                    <span className="text-xs font-medium">Backup autom√°tico ativo</span>
                  </div>
                  <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                        <DollarSign size={16} />
                     </div>
-                    <span className="text-xs font-medium">Certificado SSL V·lido</span>
+                    <span className="text-xs font-medium">Certificado SSL V√°lido</span>
                  </div>
               </div>
            </div>
@@ -155,4 +155,3 @@ export default function DashboardHome() {
     </div>
   );
 }
-

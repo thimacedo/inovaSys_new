@@ -37,7 +37,7 @@ export function useTeamController(camaraId?: string, onAdded?: (password?: strin
           .select('*', { count: 'exact', head: true })
           .eq('camara_id', camaraId);
 
-        const limiteTotal = (camara.planos?.limite_usuarios || 0) + (camara.limite_usuarios_extra || 0);
+        const limiteTotal = ((camara as any).planos?.limite_usuarios || 0) + ((camara as any).limite_usuarios_extra || 0);
         
         if (count && count >= limiteTotal) {
           showToast(`Limite atingido (${limiteTotal} usuários).`, 'attention');

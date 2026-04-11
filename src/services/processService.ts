@@ -1,4 +1,4 @@
-import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
+﻿import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
 import { Processo } from '../core/domain/entities/Processo';
 
 export type { Processo };
@@ -24,7 +24,7 @@ export const deleteProcess = async (id: string): Promise<void> => {
 };
 
 export const getAll = async (camaraId: string | undefined, page = 1, pageSize = 10, search = '') => {
-  return await DependencyRegistry.getProcessRepository().listWithPagination(camaraId, page, pageSize, search);
+  return await DependencyRegistry.getProcessRepository().listWithPagination(page, pageSize);
 };
 
 export const assignArbitrator = async (id: string, arbitroId: string): Promise<Processo> => {
@@ -52,3 +52,4 @@ export const processService = {
 };
 
 export default processService;
+

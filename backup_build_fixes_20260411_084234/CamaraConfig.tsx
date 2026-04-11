@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   Settings, 
@@ -38,18 +38,18 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
 
   useEffect(() => {
     if (camaraData) {
-      setNome((camaraData as any).nome || '');
-      setCnpj((camaraData as any).cnpj || '');
-      setLogradouro((camaraData as any).logradouro || '');
-      setBairro((camaraData as any).bairro || '');
-      setCidade((camaraData as any).cidade || '');
-      setEstado((camaraData as any).estado || '');
-      setCep((camaraData as any).cep || '');
-      setFone((camaraData as any).fone || '');
-      setPresidenteNome((camaraData as any).presidente_nome || '');
-      setWebhookUrl((camaraData as any).webhook_url || '');
-      setWebhookToken((camaraData as any).webhook_token || '');
-      setLogo((camaraData as any).logo || '');
+      setNome(camaraData.nome || '');
+      setCnpj(camaraData.cnpj || '');
+      setLogradouro(camaraData.logradouro || '');
+      setBairro(camaraData.bairro || '');
+      setCidade(camaraData.cidade || '');
+      setEstado(camaraData.estado || '');
+      setCep(camaraData.cep || '');
+      setFone(camaraData.fone || '');
+      setPresidenteNome(camaraData.presidente_nome || '');
+      setWebhookUrl(camaraData.webhook_url || '');
+      setWebhookToken(camaraData.webhook_token || '');
+      setLogo(camaraData.logo || '');
     }
   }, [camaraData]);
 
@@ -80,7 +80,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cnpj && !isValidDoc(cnpj)) {
-      showToast('CNPJ invÃ¡lido.', 'attention');
+      showToast('CNPJ inválido.', 'attention');
       return;
     }
 
@@ -104,9 +104,9 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
       };
 
       await updateSettingsMutation.mutateAsync({ id: camaraId, data: configData });
-      showToast("ConfiguraÃ§Ãµes salvas com sucesso!", 'success');
+      showToast("Configurações salvas com sucesso!", 'success');
       
-      // ForÃ§a a atualizaÃ§Ã£o do localStorage e avisa o Dashboard
+      // Força a atualização do localStorage e avisa o Dashboard
       localStorage.removeItem('camara_config');
       window.dispatchEvent(new Event('storage'));
     } catch (error: any) {
@@ -114,7 +114,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
       if (error.message?.includes('column')) {
         showToast("Erro: Colunas faltando no banco. Execute o script de reparo.", 'error');
       } else {
-        showToast("Erro ao salvar configuraÃ§Ãµes. " + (error.message || ''), 'error');
+        showToast("Erro ao salvar configurações. " + (error.message || ''), 'error');
       }
     }
   };
@@ -132,7 +132,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
         body: JSON.stringify({ event: 'test', timestamp: new Date().toISOString() })
       });
       if (response.ok) showToast('Webhook conectado!', 'success');
-      else showToast('Erro na conexÃ£o do Webhook.', 'error');
+      else showToast('Erro na conexão do Webhook.', 'error');
     } catch (error) {
       showToast('Falha ao conectar com o Webhook.', 'error');
     } finally {
@@ -144,7 +144,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
     return (
       <div className="flex flex-col items-center justify-center py-24 space-y-4">
         <div className="w-12 h-12 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin"></div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando configuraÃ§Ãµes...</p>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando configurações...</p>
       </div>
     );
   }
@@ -159,9 +159,9 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
         <div className="space-y-1">
           <h2 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
             <Settings className="text-blue-600" size={32} />
-            CONFIGURAÃ‡Ã•ES DA CÃ‚MARA
+            CONFIGURAÇÕES DA CÂMARA
           </h2>
-          <p className="text-slate-500 font-medium">Personalize os dados e a identidade visual da sua instituiÃ§Ã£o.</p>
+          <p className="text-slate-500 font-medium">Personalize os dados e a identidade visual da sua instituição.</p>
         </div>
       </div>
 
@@ -172,7 +172,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
               <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
                 <Building2 size={24} />
               </div>
-              <h4>InformaÃ§Ãµes da InstituiÃ§Ã£o</h4>
+              <h4>Informações da Instituição</h4>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -233,7 +233,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Logradouro (Rua, NÂº, Complemento)</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Logradouro (Rua, Nº, Complemento)</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input 
@@ -265,7 +265,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
             
             <div className="flex flex-col md:flex-row items-center gap-10">
               <div className="flex-1 space-y-4">
-                <p className="text-sm text-slate-500">FaÃ§a o upload da logomarca (PNG ou SVG transparente recomendado).</p>
+                <p className="text-sm text-slate-500">Faça o upload da logomarca (PNG ou SVG transparente recomendado).</p>
                 <input type="file" id="logo-upload" className="hidden" accept="image/*" onChange={handleLogoChange} />
                 <label htmlFor="logo-upload" className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 rounded-2xl bg-white hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer group">
                   <UploadCloud className="text-slate-400 group-hover:text-blue-600 mb-2" size={32} />
@@ -284,7 +284,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
               <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
                 <Zap size={24} />
               </div>
-              <h4>IntegraÃ§Ãµes Webhook</h4>
+              <h4>Integrações Webhook</h4>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -304,7 +304,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
               disabled={updateSettingsMutation.isPending}
               className="px-10 py-4 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 flex items-center gap-2"
             >
-              {updateSettingsMutation.isPending ? 'Salvando...' : 'Salvar AlteraÃ§Ãµes'}
+              {updateSettingsMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
             </button>
           </div>
         </form>
@@ -312,4 +312,3 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
     </motion.div>
   );
 }
-

@@ -41,7 +41,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
     search: debouncedSearch
   });
 
-  const processos = (queryResult || []) as Processo[];
+  const processos = (queryResult?.data || []) as Processo[];
   
   const statuses = ['Todos', 'Protocolado', 'Em Andamento', 'Concluído', 'Arquivado'];
   

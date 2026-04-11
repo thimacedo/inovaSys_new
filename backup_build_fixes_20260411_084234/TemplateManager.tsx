@@ -1,10 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { useModal } from '../context/ModalContext';
 import { Save, FileText, ChevronRight, AlertCircle, RefreshCw, Sparkles, Send } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
-import { askAI } from '../services/aiService';
+import { aiService } from '../services/aiService';
 
 interface Template {
   id: string;
@@ -71,7 +71,7 @@ export default function TemplateManager() {
   };
 
   const resetToDefault = () => {
-     showToast('Funcionalidade de restauraÃ§Ã£o em breve. Por enquanto, edite manualmente.', 'attention');
+     showToast('Funcionalidade de restauração em breve. Por enquanto, edite manualmente.', 'attention');
   };
 
   const handleAiAssist = async () => {
@@ -79,11 +79,11 @@ export default function TemplateManager() {
     setIsAiLoading(true);
     setAiResponse('');
     try {
-      const resp = await askAIsuggestClausula(editContent, aiPrompt);
+      const resp = await aiService.suggestClausula(editContent, aiPrompt);
       setAiResponse(resp as string);
-      showToast('SugestÃ£o de IA gerada!', 'success');
+      showToast('Sugestão de IA gerada!', 'success');
     } catch (e: any) {
-      showToast('IA indisponÃ­vel no momento.', 'error');
+      showToast('IA indisponível no momento.', 'error');
     } finally {
       setIsAiLoading(false);
     }
@@ -165,7 +165,7 @@ export default function TemplateManager() {
                   {isSaving ? 'Salvando...' : (
                     <>
                       <Save size={14} />
-                      Salvar AlteraÃ§Ãµes
+                      Salvar Alterações
                     </>
                   )}
                 </button>
@@ -177,7 +177,7 @@ export default function TemplateManager() {
                 <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl mb-4 flex gap-3">
                   <AlertCircle size={18} className="text-blue-600 shrink-0" />
                   <p className="text-[10px] text-blue-800 leading-tight">
-                    <strong>Dica:</strong> Use as tags automÃ¡ticas como <code>{`{requerente_nome}`}</code>, <code>{`{requerido_nome}`}</code> e <code>{`{numero_processo}`}</code> para personalizaÃ§Ã£o dinÃ¢mica. O suporte ao CKEditor serÃ¡ adicionado em breve.
+                    <strong>Dica:</strong> Use as tags automáticas como <code>{`{requerente_nome}`}</code>, <code>{`{requerido_nome}`}</code> e <code>{`{numero_processo}`}</code> para personalização dinâmica. O suporte ao CKEditor será adicionado em breve.
                   </p>
                 </div>
                 <textarea
@@ -199,14 +199,14 @@ export default function TemplateManager() {
                    value={aiPrompt}
                    onChange={(e) => setAiPrompt(e.target.value)}
                    className="w-full h-24 p-2 text-xs border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-purple-500/20 mb-2 resize-none"
-                   placeholder="Ex: Sugira uma clÃ¡usula compromissÃ³ria cheia..."
+                   placeholder="Ex: Sugira uma cláusula compromissória cheia..."
                 />
                 <button 
                   onClick={handleAiAssist}
                   disabled={isAiLoading || !aiPrompt.trim()}
                   className="w-full py-2 bg-purple-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-purple-700 transition-all disabled:opacity-50"
                 >
-                  {isAiLoading ? 'Pensando...' : <><Send size={14} /> Pedir SugestÃ£o</>}
+                  {isAiLoading ? 'Pensando...' : <><Send size={14} /> Pedir Sugestão</>}
                 </button>
 
                 <div className="mt-4 flex-1 overflow-y-auto">
@@ -221,7 +221,7 @@ export default function TemplateManager() {
                          </button>
                       </div>
                    ) : (
-                      <p className="text-[10px] text-slate-400 italic text-center mt-8">A IA pode ajudar vocÃª a redigir termos jurÃ­dicos precisos mais rÃ¡pido.</p>
+                      <p className="text-[10px] text-slate-400 italic text-center mt-8">A IA pode ajudar você a redigir termos jurídicos precisos mais rápido.</p>
                    )}
                 </div>
               </div>
@@ -230,11 +230,10 @@ export default function TemplateManager() {
         ) : (
           <div className="h-[650px] flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400">
             <FileText size={64} className="mb-4 opacity-10" />
-            <p className="font-medium">Selecione um modelo Ã  esquerda para comeÃ§ar a editar.</p>
+            <p className="font-medium">Selecione um modelo à esquerda para começar a editar.</p>
           </div>
         )}
       </div>
     </div>
   );
 }
-

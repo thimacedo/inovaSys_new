@@ -1,5 +1,4 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
-import { useAuthStore } from '../presentation/state/authStore';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import logoImg from '../assets/logo-inovasys.png';
@@ -31,7 +30,6 @@ const FinanceiroManager = lazy(() => import('./FinanceiroManager'));
 const CalendarView = lazy(() => import('./CalendarView'));
 
 export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: any, userProfile: any, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
-  const { user } = useAuthStore();
   const { canManageTeam, canCreateProcess, canSeeAudit, isGlobalAdmin, isAtLeastAdmin } = usePermissions();
   const [currentView, setCurrentView] = useState('dash');
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
@@ -40,18 +38,18 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   useEffect(() => {
-    // VerificaÃ§Ã£o inicial
+    // Verificação inicial
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
     }
     
     // Listener para redimensionamento da janela
     const handleResize = () => {
-      // âœ… MantÃ©m o menu SEMPRE aberto em telas grandes, independente do tempo logado
+      // ✅ Mantém o menu SEMPRE aberto em telas grandes, independente do tempo logado
       if (window.innerWidth >= 1024) {
         setIsSidebarOpen(prev => {
-          // âœ… CorreÃ§Ã£o definitiva: NUNCA fecha automaticamente no desktop
-          // Se o usuÃ¡rio fechou manualmente, respeita a escolha
+          // ✅ Correção definitiva: NUNCA fecha automaticamente no desktop
+          // Se o usuário fechou manualmente, respeita a escolha
           return prev === false ? false : true;
         });
       }
@@ -59,11 +57,11 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
     
     window.addEventListener('resize', handleResize);
     
-    // âœ… ProteÃ§Ã£o final: VerificaÃ§Ã£o a cada 15 segundos para recuperar estado se for perdido
+    // ✅ Proteção final: Verificação a cada 15 segundos para recuperar estado se for perdido
     const interval = setInterval(() => {
       if (window.innerWidth >= 1024 && document.visibilityState === 'visible') {
         setIsSidebarOpen(prev => {
-          // Se por algum motivo ficou fechado sem aÃ§Ã£o do usuÃ¡rio, reabre
+          // Se por algum motivo ficou fechado sem ação do usuário, reabre
           return prev === false ? false : true;
         });
       }
@@ -101,10 +99,10 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
 
     loadConfig();
     
-    // Listener para mudanÃ§as nas configuraÃ§Ãµes (Branding)
+    // Listener para mudanças nas configurações (Branding)
     window.addEventListener('storage', loadConfig);
     
-    // âœ… Garante que o menu fica aberto sempre que a sessÃ£o for atualizada
+    // ✅ Garante que o menu fica aberto sempre que a sessão for atualizada
     if (window.innerWidth >= 1024) {
       setIsSidebarOpen(true);
     }
@@ -174,7 +172,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
               <span className="font-bold text-slate-900 dark:text-slate-100 leading-tight truncate max-w-[200px] hidden sm:inline-block">
                 {camaraConfig?.nome || 'InovaSys'}
               </span>
-              <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest hidden sm:block">Painel de GestÃ£o</span>
+              <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest hidden sm:block">Painel de Gestão</span>
             </div>
           </div>
         </div>
@@ -188,7 +186,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
           
           <div className="w-[1px] h-8 bg-slate-200 mx-1 hidden sm:block"></div>
           
-          <Notifications userId={user?.id || ''} onSelectProcess={handleProcessSelect} />
+          <Notifications onSelectProcess={handleProcessSelect} />
           
           <div className="hidden md:flex flex-col items-end px-2">
             <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{session?.user?.id.substring(0, 8)}...</span>
@@ -229,7 +227,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
                     <ShieldCheck size={24} />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-indigo-300">Modo de VisualizaÃ§Ã£o Ativo</p>
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-indigo-300">Modo de Visualização Ativo</p>
                     <p className="text-base font-bold">Gerenciando: <span className="text-amber-400">{camaraConfig?.nome}</span></p>
                   </div>
                 </div>
@@ -237,7 +235,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
                   onClick={handleExitImpersonation} 
                   className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all border border-white/10 backdrop-blur-sm active:scale-95"
                 >
-                  Encerrar VisualizaÃ§Ã£o
+                  Encerrar Visualização
                 </button>
               </motion.div>
             )}
@@ -251,7 +249,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
                   <div className="w-8 h-8 bg-slate-100 rounded-lg animate-pulse"></div>
                 </div>
               </div>
-              <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Orquestrando MÃ³dulos...</p>
+              <p className="text-xs font-bold uppercase tracking-widest animate-pulse">Orquestrando Módulos...</p>
             </div>
           }>
             <motion.div 
@@ -284,6 +282,4 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
     </div>
   );
 }
-
-
 

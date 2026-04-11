@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BaseSupabaseRepository } from './BaseSupabaseRepository';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -15,7 +15,7 @@ const createQueryBuilderMock = () => {
     single: vi.fn(),
   };
 
-  // Garante que todos os mÃ©todos de encadeamento retornem o prÃ³prio builder
+  // Garante que todos os métodos de encadeamento retornem o próprio builder
   builder.select.mockReturnValue(builder);
   builder.insert.mockReturnValue(builder);
   builder.update.mockReturnValue(builder);
@@ -40,7 +40,7 @@ describe('BaseSupabaseRepository', () => {
       from: vi.fn(() => mockBuilder),
     } as unknown as SupabaseClient;
 
-    repository = new (class extends BaseSupabaseRepository<any> {})(mockClient, 'test_table');
+    repository = new BaseSupabaseRepository(mockClient, 'test_table');
   });
 
   it('deve criar um registro e retornar os dados', async () => {
@@ -56,12 +56,12 @@ describe('BaseSupabaseRepository', () => {
     expect(result).toEqual(mockData);
   });
 
-  it('deve lanÃ§ar erro se a criaÃ§Ã£o falhar', async () => {
+  it('deve lançar erro se a criação falhar', async () => {
     const mockError = { message: 'Erro no banco' };
     mockBuilder.single.mockResolvedValueOnce({ data: null, error: mockError });
 
     await expect(repository.create({ name: 'Teste' })).rejects.toThrow(
-      'Falha na operaÃ§Ã£o de banco de dados: Erro no banco'
+      'Falha na operação de banco de dados: Erro no banco'
     );
   });
 
@@ -78,7 +78,7 @@ describe('BaseSupabaseRepository', () => {
     expect(result).toEqual(mockData);
   });
 
-  it('deve retornar null se getById nÃ£o encontrar (cÃ³digo PGRST116)', async () => {
+  it('deve retornar null se getById não encontrar (código PGRST116)', async () => {
     mockBuilder.single.mockResolvedValueOnce({
       data: null,
       error: { code: 'PGRST116', message: 'Not found' },
@@ -88,16 +88,16 @@ describe('BaseSupabaseRepository', () => {
     expect(result).toBeNull();
   });
 
-  it('deve lanÃ§ar erro em getById para outros erros', async () => {
+  it('deve lançar erro em getById para outros erros', async () => {
     const error = { code: 'OTHER', message: 'Erro qualquer' };
     mockBuilder.single.mockResolvedValueOnce({ data: null, error });
 
     await expect(repository.getById('123')).rejects.toThrow(
-      'Falha na operaÃ§Ã£o de banco de dados: Erro qualquer'
+      'Falha na operação de banco de dados: Erro qualquer'
     );
   });
 
-  it('deve listar registros com paginaÃ§Ã£o', async () => {
+  it('deve listar registros com paginação', async () => {
     const mockData = [{ id: '1' }, { id: '2' }];
     mockBuilder.range.mockReturnValueOnce({
       data: mockData,
@@ -133,7 +133,7 @@ describe('BaseSupabaseRepository', () => {
     expect(result).toEqual(updatedData);
   });
 
-  it('deve lanÃ§ar erro ao atualizar registro inexistente', async () => {
+  it('deve lançar erro ao atualizar registro inexistente', async () => {
     // getById retorna null
     mockBuilder.single.mockResolvedValueOnce({
       data: null,
@@ -141,7 +141,7 @@ describe('BaseSupabaseRepository', () => {
     });
 
     await expect(repository.update('999', { name: 'Novo' })).rejects.toThrow(
-      'Registro nÃ£o encontrado para id 999'
+      'Registro não encontrado para id 999'
     );
   });
 
@@ -173,15 +173,14 @@ describe('BaseSupabaseRepository', () => {
     expect(eqCallCount).toBe(2);
   });
 
-  it('deve lanÃ§ar erro ao deletar registro inexistente', async () => {
+  it('deve lançar erro ao deletar registro inexistente', async () => {
     mockBuilder.single.mockResolvedValueOnce({
       data: null,
       error: { code: 'PGRST116' },
     });
 
     await expect(repository.delete('999')).rejects.toThrow(
-      'Registro nÃ£o encontrado para id 999'
+      'Registro não encontrado para id 999'
     );
   });
 });
-

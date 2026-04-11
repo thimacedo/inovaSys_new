@@ -70,7 +70,7 @@ export default function ProcessAttachments({ processoId }: { processoId: string 
             await sendMutation.mutateAsync({
               documentBase64: base64data,
               documentName: file.nome_arquivo.replace('.pdf', ''),
-              signers: [{ name: email.split('@')[0], email,  }]
+              signers: [{ name: email.split('@')[0], email, role: 'signer' }]
             });
             
             showToast("Documento enviado para assinatura!", 'success');
