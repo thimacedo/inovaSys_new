@@ -13,6 +13,7 @@ interface Notification {
 
 interface NotificationsProps {
   userId: string;
+  onSelectProcess?: (id: string) => void;
 }
 
 const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
