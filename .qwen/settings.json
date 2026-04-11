@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm run *)",
-      "Bash(select-string *)"
+      "Bash(select-string *)",
+      "Bash(findstr *)",
+      "Bash(select-object *)"
     ]
   },
   "$version": 3
