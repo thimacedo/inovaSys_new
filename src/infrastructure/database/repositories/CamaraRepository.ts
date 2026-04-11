@@ -1,40 +1,29 @@
-import { BaseSupabaseRepository } from '../BaseSupabaseRepository';
 import { SupabaseClient } from '@supabase/supabase-js';
-
-export interface CamaraEntity {
-  id: string;
-  nome?: string;
-  cnpj?: string;
-  signature_provider?: string;
-  [key: string]: any;
-}
+import { BaseSupabaseRepository } from '../BaseSupabaseRepository';
+import { CamaraEntity } from '../../../core/domain/entities/Camara';
 
 export class CamaraRepository extends BaseSupabaseRepository<CamaraEntity> {
-  protected readonly tableName = 'camaras';
-
   constructor(client: SupabaseClient) {
-    super(client);
+    super(client, 'camaras');
   }
 
-  public async getById(id: string): Promise<CamaraEntity | null> {
+  // Sobrescreve getById para manter compatibilidade com a nova assinatura (T | null)
+  async getById(id: string): Promise<CamaraEntity | null> {
+    return super.getById(id);
+  }
+
+  // Métodos específicos da câmara (ex.: buscar por domínio, etc.)
+  async findByDomain(domain: string): Promise<CamaraEntity | null> {
     const { data, error } = await this.client
       .from(this.tableName)
       .select('*')
-      .eq('id', id)
-      .maybeSingle();
+      .eq('domain', domain)
+      .single();
 
-    if (error) return this.handleError(error, 'getById');
-    return data as CamaraEntity;
-  }
-
-  public async getWithSubscription(id: string): Promise<CamaraEntity | null> {
-    const { data, error } = await this.client
-      .from(this.tableName)
-      .select('*, planos(limite_usuarios)')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) return this.handleError(error, 'getWithSubscription');
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
     return data as CamaraEntity;
   }
 }
