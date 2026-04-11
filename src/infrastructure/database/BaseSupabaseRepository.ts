@@ -1,11 +1,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { logAudit } from '../../services/auditoriaService';
 
-export class BaseSupabaseRepository<T extends { id: string }> {
-  constructor(
-    protected client: SupabaseClient,
-    protected tableName: string
-  ) {}
+export abstract class BaseSupabaseRepository<T extends { id: string }> {
+  protected abstract readonly tableName: string;
+
+  constructor(protected client: SupabaseClient) {}
 
   /**
    * Manipulador de erros padrão para operações de banco de dados
@@ -16,7 +15,7 @@ export class BaseSupabaseRepository<T extends { id: string }> {
    */
   protected handleError(error: unknown, context: string): never {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error(`[SupabaseRepositoryError] - ${this.tableName} - ${context}:`, error);
+    console.error(`[SupabaseRepositoryError] - ${context}:`, error);
     throw new Error(`Falha na operação de banco de dados: ${message}`);
   }
 
