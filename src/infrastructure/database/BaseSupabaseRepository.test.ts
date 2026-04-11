@@ -67,7 +67,7 @@ describe('BaseSupabaseRepository', () => {
     mockBuilder.single.mockResolvedValueOnce({ data: null, error: mockError });
 
     await expect(repository.create({ name: 'Teste' })).rejects.toThrow(
-      'Falha na operaÃ§Ã£o de banco de dados: Erro no banco'
+      'Falha na operação de banco de dados: Erro no banco'
     );
   });
 
@@ -99,7 +99,7 @@ describe('BaseSupabaseRepository', () => {
     mockBuilder.single.mockResolvedValueOnce({ data: null, error });
 
     await expect(repository.getById('123')).rejects.toThrow(
-      'Falha na operaÃ§Ã£o de banco de dados: Erro qualquer'
+      'Falha na operação de banco de dados: Erro qualquer'
     );
   });
 
@@ -147,7 +147,7 @@ describe('BaseSupabaseRepository', () => {
     });
 
     await expect(repository.update('999', { name: 'Novo' })).rejects.toThrow(
-      'Registro nÃ£o encontrado para id 999'
+      'Registro não encontrado para id 999'
     );
   });
 
@@ -186,7 +186,7 @@ describe('BaseSupabaseRepository', () => {
     });
 
     await expect(repository.delete('999')).rejects.toThrow(
-      'Registro nÃ£o encontrado para id 999'
+      'Registro não encontrado para id 999'
     );
   });
 });

@@ -14,7 +14,14 @@ export abstract class BaseSupabaseRepository<T extends { id: string }> {
    * @returns never - essa função NUNCA retorna, sempre lança exceção
    */
   protected handleError(error: unknown, context: string): never {
-    const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    let message = 'Erro desconhecido';
+    
+    if (error instanceof Error) {
+      message = error.message;
+    } else if (error && typeof error === 'object' && 'message' in error) {
+      message = String((error as any).message);
+    }
+    
     console.error(`[SupabaseRepositoryError] - ${context}:`, error);
     throw new Error(`Falha na operação de banco de dados: ${message}`);
   }
