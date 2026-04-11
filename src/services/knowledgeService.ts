@@ -1,6 +1,5 @@
-const OLLAMA_URL = import.meta.env.PROD 
-  ? null 
-  : 'http://localhost:11434/api/generate';
+const OLLAMA_URL = import.meta.env.VITE_OLLAMA_URL || (import.meta.env.PROD ? null : 'http://localhost:11434');
+const OLLAMA_GENERATE_ENDPOINT = OLLAMA_URL ? `${OLLAMA_URL}/api/generate` : null;
 const MODEL = 'deepseek-r1:7b'; // ou 'llama3.2:3b' para respostas mais rápidas
 
 export interface WikiResponse {
@@ -74,38 +73,46 @@ Seu conhecimento se limita EXCLUSIVAMENTE a estas funcionalidades. Qualquer perg
  * Faz uma pergunta sobre o funcionamento do sistema.
  */
 export async function askSystemQuestion(question: string): Promise<WikiResponse> {
-  if (!OLLAMA_URL) {
+  if (!OLLAMA_GENERATE_ENDPOINT) {
     return {
-      answer: 'O assistente IA está disponível apenas na versão local do sistema.',
+      answer: 'O assistente IA está disponível apenas na versão local ou quando configurado em produção.',
       model: 'offline',
     };
   }
 
-  const response = await fetch(OLLAMA_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: MODEL,
-      prompt: question,
-      system: SYSTEM_GUIDE,
-      stream: false,
-      options: {
-        temperature: 0.1, // Baixa criatividade para respostas consistentes
-        num_predict: 1024,
-      },
-    }),
-  });
+  try {
+    const response = await fetch(OLLAMA_GENERATE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        prompt: question,
+        system: SYSTEM_GUIDE,
+        stream: false,
+        options: {
+          temperature: 0.1, // Baixa criatividade para respostas consistentes
+          num_predict: 1024,
+        },
+      }),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Ollama retornou erro ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Ollama retornou erro ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      answer: data.response,
+      model: data.model,
+      tokensUsed: data.eval_count,
+    };
+  } catch (error) {
+    console.warn('Erro ao consultar assistente IA:', error);
+    return {
+      answer: 'Ocorreu um erro ao conectar com o assistente. Verifique se o serviço está ativo.',
+      model: 'error',
+    };
   }
-
-  const data = await response.json();
-  return {
-    answer: data.response,
-    model: data.model,
-    tokensUsed: data.eval_count,
-  };
 }
 
 /**
@@ -117,7 +124,7 @@ export async function checkOllamaHealth(): Promise<boolean> {
   }
   
   try {
-    const res = await fetch('http://localhost:11434/api/tags');
+    const res = await fetch(`${OLLAMA_URL}/api/tags`);
     return res.ok;
   } catch {
     return false;
