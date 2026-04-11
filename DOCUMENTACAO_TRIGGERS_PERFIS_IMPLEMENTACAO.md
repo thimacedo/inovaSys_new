@@ -56,10 +56,14 @@ Se o fluxo do Antigravity faz **atualizações parciais** (altera apenas nome/te
 
 > ✅ **Ajuste Recomendado no Trigger:**
 > ```sql
-> CREATE OR REPLACE TRIGGER trg_sync_perfis_email
->   BEFORE INSERT OR UPDATE ON public.perfis
->   FOR EACH ROW
->   EXECUTE FUNCTION public.sync_perfis_email_from_auth();
+> -- No Postgres é necessário remover primeiro o trigger existente
+> drop trigger if exists trg_sync_perfis_email on public.perfis;
+> 
+> create trigger trg_sync_perfis_email
+>   before insert or update
+>   on public.perfis
+>   for each row
+>   execute function public.sync_perfis_email_from_auth();
 > ```
 > Isto garante que QUALQUER atualização no perfil dispare a sincronização do email.
 
