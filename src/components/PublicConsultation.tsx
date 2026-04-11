@@ -12,8 +12,15 @@ export default function PublicConsultation({ onBack }: { onBack: () => void }) {
 
   const handleConsult = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!isValidDoc(doc)) {
+
+    // Validação: precisa de pelo menos um dos campos
+    if (!doc && !num) {
+      setError('Informe o CPF/CNPJ ou o número do processo.');
+      return;
+    }
+
+    // Validação de documento se preenchido
+    if (doc && !isValidDoc(doc)) {
       setError('Atenção: CPF ou CNPJ inválido.');
       return;
     }
@@ -24,7 +31,37 @@ export default function PublicConsultation({ onBack }: { onBack: () => void }) {
 
     try {
       const cleanDoc = doc.replace(/\D/g, '');
-      const data = await processService.publicSearch(num);
+      
+      // Busca por número do processo E/OU documento
+      let data: any = null;
+      
+      if (num && cleanDoc) {
+        // Busca com ambos filtros
+        const results = await processService.publicSearch(num);
+        // Filtra por documento manualmente
+        const filtered = Array.isArray(results) 
+          ? results.filter((p: any) => 
+              p.requerente_doc?.replace(/\D/g, '') === cleanDoc || 
+              p.requerido_doc?.replace(/\D/g, '') === cleanDoc
+            )
+          : [];
+        data = filtered.length > 0 ? filtered[0] : null;
+      } else if (num) {
+        // Busca apenas por número
+        data = await processService.publicSearch(num);
+      } else if (cleanDoc) {
+        // Busca apenas por documento - usa service diferente ou query direta
+        const { supabase } = await import('../lib/supabase');
+        const { data: results, error } = await supabase
+          .from('processos')
+          .select('*')
+          .or(`requerente_doc.ilike.%${cleanDoc}%,requerido_doc.ilike.%${cleanDoc}%`)
+          .limit(1)
+          .maybeSingle();
+        
+        if (error) throw error;
+        data = results;
+      }
 
       if (!data) {
         setError('Processo não encontrado ou documento inválido para este processo.');

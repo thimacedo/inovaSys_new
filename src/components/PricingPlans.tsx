@@ -21,7 +21,8 @@ export const PricingPlans: React.FC = () => {
 
   const handleSubscribe = async (priceId: string) => {
     if (!user) {
-      window.location.href = '/login';
+      // Redireciona para tela de login via estado
+      window.location.href = '/?view=auth';
       return;
     }
     

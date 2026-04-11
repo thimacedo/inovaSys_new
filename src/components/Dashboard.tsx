@@ -1,9 +1,9 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
-import { useAuthStore } from '../presentation/state/authStore';
+import { useAuthStore } from '../presentation/state/useAuthStore';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import logoImg from '../assets/logo-inovasys.png';
-import { 
+import {
   LogOut,
   ShieldCheck,
   Moon,
@@ -31,7 +31,7 @@ const FinanceiroManager = lazy(() => import('./FinanceiroManager'));
 const CalendarView = lazy(() => import('./CalendarView'));
 
 export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: any, userProfile: any, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
-  const { user } = useAuthStore();
+  const { currentUser } = useAuthStore();
   const { canManageTeam, canCreateProcess, canSeeAudit, isGlobalAdmin, isAtLeastAdmin } = usePermissions();
   const [currentView, setCurrentView] = useState('dash');
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
@@ -188,7 +188,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
           
           <div className="w-[1px] h-8 bg-slate-200 mx-1 hidden sm:block"></div>
           
-          <Notifications userId={(user as any)?.id || ''} onSelectProcess={handleProcessSelect} />
+          <Notifications userId={currentUser?.id || ''} onSelectProcess={handleProcessSelect} />
           
            <div className="hidden md:flex flex-col items-end px-2">
              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{camaraConfig?.nome || 'InovaSys'}</span>

@@ -79,7 +79,8 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ camara
           ) : (
             <button
               onClick={() => {
-                window.location.href = '/planos';
+                // Navega para a view de pricing via estado global
+                window.location.href = '/?view=pricing';
               }}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition font-medium"
             >

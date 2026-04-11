@@ -60,16 +60,15 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
           >
             Cancelar
           </button>
-          <button 
+          <button
             onClick={() => {
-              console.log('Botão de confirmação clicado no modal');
               if (typeof onConfirm === 'function') {
                 onConfirm();
               } else {
-                console.error('onConfirm não é uma função:', onConfirm);
+                console.error('[ModalContext] onConfirm não é uma função:', onConfirm);
               }
               hideModal();
-            }} 
+            }}
             className={`px-4 py-2 rounded-lg font-semibold transition-colors shadow-sm ${confirmText.includes('Excluir') ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
           >
             {confirmText}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { applyMask } from '../utils/masks';
+import { isValidCPF } from '../utils/validators';
 
 interface OnboardingProps {
   session: any;
@@ -32,8 +33,22 @@ export default function Onboarding({ session, onComplete, onSignOut }: Onboardin
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    // Validação de nome
+    if (formData.nome.trim().length < 3) {
+      setError('Por favor, informe seu nome completo (mínimo 3 caracteres).');
+      return;
+    }
+
+    // Validação de CPF
+    const cleanDoc = formData.documento.replace(/\D/g, '');
+    if (!isValidCPF(cleanDoc)) {
+      setError('CPF inválido. Verifique os números digitados.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       // O banco de dados utiliza a coluna 'cpf' e não 'documento'

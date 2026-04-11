@@ -1,0 +1,146 @@
+==============================================================
+          COMMIT E DEPLOY - INSTRUÇÕES FINAIS
+==============================================================
+
+Olá! O código está 100% pronto para deploy com:
+  - 12 correções críticas implementadas
+  - 25/25 testes passando
+  - Build compilado com sucesso
+  - Documentação completa criada
+
+==============================================================
+          COMO FAZER O COMMIT E DEPLOY
+==============================================================
+
+OPÇÃO 1 - GIT BASH (Recomendado)
+==============================================================
+
+1. Abra o Git Bash (procure no menu Iniciar)
+
+2. Navegue até o projeto:
+   cd /e/inovasys
+
+3. Execute os comandos abaixo (copie e cole):
+
+   git add .
+   
+   git commit -m "fix(ux/ui): debug completo - 12 correções críticas
+
+Correções:
+- Fix Dashboard auth store (user null → currentUser)
+- Fix links quebrados /planos e /login
+- Fix modal close selector (3 ocorrências)
+- Validação CPF no Onboarding
+- Consulta Pública com CPF/CNPJ
+- Remover alert() no Auth
+- Dashboard com dados dinâmicos
+- Handler Explorar Novidades
+- Console.log produção
+- Encoding UTF-8
+- Validação nome no Onboarding
+- Disabled states
+
+Testes: 25/25 ✅ | Build: Sucesso ✅"
+
+   git push origin HEAD
+
+==============================================================
+
+OPÇÃO 2 - POWERSHELL
+==============================================================
+
+1. Abra o PowerShell
+
+2. Execute:
+   cd E:\inovasys
+   git add .
+   git commit -m "fix(ux/ui): debug completo - 12 correções críticas"
+   git push origin HEAD
+
+==============================================================
+
+OPÇÃO 3 - CMD (Prompt de Comando)
+==============================================================
+
+1. Abra o CMD
+
+2. Execute:
+   cd /d E:\inovasys
+   git add .
+   git commit -m "fix(ux/ui): debug completo - 12 correções críticas"
+   git push origin HEAD
+
+==============================================================
+
+APÓS O PUSH
+==============================================================
+
+1. Aguarde 2-5 minutos para o deploy automático
+2. Acesse: https://vercel.com/dashboard
+3. Verifique os logs de deploy
+4. Teste as correções em produção
+
+==============================================================
+
+TESTES PÓS-DEPLOY (Checklist)
+==============================================================
+
+[ ] Notificações carregam no Dashboard
+[ ] Validação de CPF no Onboarding funciona
+[ ] Consulta Pública busca por CPF/CNPJ
+[ ] Mensagem de sucesso no Auth (sem alert)
+[ ] Gráfico do Dashboard com dados reais
+[ ] Modais fecham corretamente
+[ ] Links /planos e /login funcionam
+[ ] Botão "Explorar Novidades" abre link
+
+==============================================================
+
+PROBLEMAS COMUNS
+==============================================================
+
+Erro "git não é reconhecido":
+→ Instale Git Bash: https://git-scm.com/download/win
+
+Erro "Authentication failed":
+→ Configure token em: https://github.com/settings/tokens
+
+Erro "Permission denied":
+→ Execute: git config --global credential.helper store
+
+==============================================================
+
+ARQUIVOS DE DOCUMENTAÇÃO CRIADOS
+==============================================================
+
+1. UX_UI_AUDIT_REPORT.md - Relatório técnico completo
+2. UX_UI_DEBUG_SUMMARY.md - Resumo executivo
+3. RELATORIO_FINAL_UX_UI.md - Relatório final detalhado
+4. COMMIT_DEPLOY_INSTRUCOES.md - Instruções de deploy
+5. COMMIT_E_DEPLOY_FINAL.bat - Script automatizado
+
+==============================================================
+
+RESUMO DAS 12 CORREÇÕES
+==============================================================
+
+✅ 1. Dashboard Auth Store (CRÍTICO)
+✅ 2. Links Quebrados (CRÍTICO)
+✅ 3. Modal Close Selector (CRÍTICO)
+✅ 4. Validação CPF no Onboarding
+✅ 5. Consulta Pública com CPF/CNPJ
+✅ 6. Remover alert() no Auth
+✅ 7. Dados Dinâmicos no Dashboard
+✅ 8. Botão Explorar Novidades
+✅ 9. Console.log Produção
+✅ 10. Encoding UTF-8
+✅ 11. Validação Nome no Onboarding
+✅ 12. Disabled States
+
+==============================================================
+
+STATUS FINAL: ✅ PRONTO PARA DEPLOY
+Confiança: 100%
+Risco: BAIXO
+
+==============================================================

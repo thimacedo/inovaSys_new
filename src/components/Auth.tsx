@@ -10,6 +10,7 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
   const [nome, setNome] = useState(''); // Novo campo para validação
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [hasInvite, setHasInvite] = useState(false);
 
   useEffect(() => {
@@ -24,9 +25,17 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
       if (isSignUp) {
+        // Validação de nome
+        if (nome.trim().length < 3) {
+          setError('Por favor, informe seu nome completo (mínimo 3 caracteres).');
+          setLoading(false);
+          return;
+        }
+
         // No cadastro, passamos o nome como data para o perfil
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
@@ -36,7 +45,7 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
           }
         });
         if (signUpError) throw signUpError;
-        alert("Cadastro realizado! Verifique seu e-mail para confirmar a conta.");
+        setSuccessMessage('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.');
       } else {
         await authService.signIn(email.trim(), password);
       }
@@ -67,6 +76,7 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
         </div>
         
         {error && <div className="bg-red-50 text-red-700 p-3 rounded-xl text-xs border border-red-100">{error}</div>}
+        {successMessage && <div className="bg-green-50 text-green-700 p-3 rounded-xl text-xs border border-green-100">{successMessage}</div>}
 
         <form onSubmit={handleAuth} className="space-y-4">
           {isSignUp && (

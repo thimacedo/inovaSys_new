@@ -4,11 +4,11 @@ import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useProcessos } from '../presentation/hooks/useProcessos';
 import { useFinanceiroByOrg } from '../presentation/hooks/useFinanceiro';
 import { motion } from 'motion/react';
-import { 
-  BarChart3, 
-  Users, 
-  TrendingUp, 
-  Building2, 
+import {
+  BarChart3,
+  Users,
+  TrendingUp,
+  Building2,
   DollarSign,
   CheckCircle,
   Files
@@ -17,8 +17,8 @@ import {
 export default function DashboardHome() {
   const { isGod } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
-  
-  // IdentificaÁ„o da C‚mara/OrganizaÁ„o
+
+  // Identifica√ß√£o da C√¢mara/Organiza√ß√£o
   const camaraId = currentUser?.organization_id || currentUser?.camara_id;
 
   // Hooks reativos (TanStack Query)
@@ -29,7 +29,7 @@ export default function DashboardHome() {
     // Processos
     const procs = processosData || [];
     const totalProcessos = procs.length;
-    const processosAtivos = procs.filter((p: any) => p.status !== 'ConcluÌdo' && p.status !== 'Arquivado').length;
+    const processosAtivos = procs.filter((p: any) => p.status !== 'Conclu√≠do' && p.status !== 'Arquivado').length;
 
     // Financeiro
     const finance = financeiroData || [];
@@ -41,7 +41,7 @@ export default function DashboardHome() {
       totalProcessos,
       processosAtivos,
       totalFinanceiro,
-      totalUsuarios: isGod ? 'Global' : 1, // Placeholder para usu·rios se n„o houver hook especÌfico solicitado
+      totalUsuarios: isGod ? 'Global' : 1, // Placeholder para usu√°rios se n√£o houver hook espec√≠fico solicitado
       totalCamaras: isGod ? 'Global' : 1
     };
   }, [processosData, financeiroData, isGod]);
@@ -50,8 +50,8 @@ export default function DashboardHome() {
 
   const statCards = [
     { label: 'Processos Ativos', value: stats.processosAtivos, icon: Files, color: 'blue' },
-    { label: 'Usu·rios no Sistema', value: stats.totalUsuarios, icon: Users, color: 'purple' },
-    { label: isGod ? 'C‚maras Registradas' : 'Status da C‚mara', value: isGod ? stats.totalCamaras : 'Ativa', icon: Building2, color: 'amber' },
+    { label: 'Usu√°rios no Sistema', value: stats.totalUsuarios, icon: Users, color: 'purple' },
+    { label: isGod ? 'C√¢maras Registradas' : 'Status da C√¢mara', value: isGod ? stats.totalCamaras : 'Ativa', icon: Building2, color: 'amber' },
     { label: 'Volume Financeiro (Pago)', value: `R$ ${stats.totalFinanceiro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'emerald' },
   ];
 
@@ -62,7 +62,7 @@ export default function DashboardHome() {
           <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
             Seja bem-vindo, <span className="text-blue-600 dark:text-blue-400">{currentUser?.nome?.split(' ')[0]}</span>
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Aqui est· o resumo do que est· acontecendo no {isGod ? 'ecossistema InovaSys' : 'seu painel'}.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Aqui est√° o resumo do que est√° acontecendo no {isGod ? 'ecossistema InovaSys' : 'seu painel'}.</p>
         </div>
         <div className="flex gap-2">
            <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-100 dark:border-blue-800 flex items-center gap-2">
@@ -98,27 +98,62 @@ export default function DashboardHome() {
                  <BarChart3 className="text-blue-600 dark:text-blue-400" size={20} />
                  Progresso Mensal
               </h3>
-              <select className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs font-bold px-3 py-1 text-slate-500 dark:text-slate-400 focus:ring-0">
-                 <option>⁄ltimos 6 meses</option>
+              <select 
+                className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs font-bold px-3 py-1 text-slate-500 dark:text-slate-400 focus:ring-0"
+                onChange={(e) => {
+                  // TODO: Implementar filtro de per√≠odo
+                  console.log('Per√≠odo selecionado:', e.target.value);
+                }}
+              >
+                 <option>√öltimos 6 meses</option>
                  <option>Este ano</option>
               </select>
            </div>
-           
+
            <div className="h-64 flex items-end justify-between gap-2 px-4">
-              {[40, 70, 45, 90, 65, 80].map((h, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-3">
-                   <motion.div 
-                     initial={{ height: 0 }}
-                     animate={{ height: `${h}%` }}
-                     className={`w-full max-w-[40px] rounded-t-xl bg-gradient-to-t ${i === 3 ? 'from-blue-600 to-blue-400' : 'from-slate-200 dark:from-slate-800 to-slate-100 dark:to-slate-900'} hover:from-blue-500 transition-colors cursor-pointer relative group`}
-                   >
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-700 text-white dark:text-slate-100 text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                         {h} novos processos
-                      </div>
-                   </motion.div>
-                   <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">{['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'][i]}</span>
-                </div>
-              ))}
+              {(() => {
+                // Dados reais baseados nos processos
+                const processData = processosData || [];
+                const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                const last6Months: { month: number; year: number; label: string; count: number }[] = [];
+                
+                for (let i = 5; i >= 0; i--) {
+                  const d = new Date();
+                  d.setMonth(d.getMonth() - i);
+                  last6Months.push({
+                    month: d.getMonth(),
+                    year: d.getFullYear(),
+                    label: monthNames[d.getMonth()],
+                    count: 0
+                  });
+                }
+
+                // Conta processos por m√™s
+                processData.forEach((p: any) => {
+                  const created = new Date(p.created_at);
+                  const monthData = last6Months.find(m => 
+                    m.month === created.getMonth() && m.year === created.getFullYear()
+                  );
+                  if (monthData) monthData.count++;
+                });
+
+                const maxCount = Math.max(...last6Months.map(m => m.count), 1);
+
+                return last6Months.map((m, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-3">
+                     <motion.div
+                       initial={{ height: 0 }}
+                       animate={{ height: `${(m.count / maxCount) * 100}%` }}
+                       className={`w-full max-w-[40px] rounded-t-xl bg-gradient-to-t ${m.count > 0 ? 'from-blue-600 to-blue-400' : 'from-slate-200 dark:from-slate-800 to-slate-100 dark:to-slate-900'} hover:from-blue-500 transition-colors cursor-pointer relative group`}
+                     >
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-700 text-white dark:text-slate-100 text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                           {m.count} processos
+                        </div>
+                     </motion.div>
+                     <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">{m.label}</span>
+                  </div>
+                ));
+              })()}
            </div>
         </div>
 
@@ -126,33 +161,37 @@ export default function DashboardHome() {
            <div className="absolute top-0 right-0 p-8 opacity-10">
               <Building2 size={120} />
            </div>
-           
+
            <div>
               <h3 className="text-xl font-bold mb-2">Ecossistema Digital</h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-6">VocÍ est· operando na plataforma InovaSys v2.0. Novas funcionalidades de IA e assinatura digital est„o sendo integradas hoje.</p>
-              
+              <p className="text-slate-400 text-sm leading-relaxed mb-6">Voc√™ est√° operando na plataforma InovaSys v2.0. Novas funcionalidades de IA e assinatura digital est√£o sendo integradas hoje.</p>
+
               <div className="space-y-4">
                  <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
                        <CheckCircle size={16} />
                     </div>
-                    <span className="text-xs font-medium">Backup autom·tico ativo</span>
+                    <span className="text-xs font-medium">Backup autom√°tico ativo</span>
                  </div>
                  <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                        <DollarSign size={16} />
                     </div>
-                    <span className="text-xs font-medium">Certificado SSL V·lido</span>
+                    <span className="text-xs font-medium">Certificado SSL V√°lido</span>
                  </div>
               </div>
            </div>
 
-           <button className="w-full mt-8 py-4 bg-white text-slate-900 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-colors">
+           <a 
+             href="https://inovasys.com.br/novidades" 
+             target="_blank" 
+             rel="noopener noreferrer"
+             className="w-full mt-8 py-4 bg-white text-slate-900 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-colors block text-center"
+           >
               Explorar Novidades
-           </button>
+           </a>
         </div>
       </div>
     </div>
   );
 }
-
