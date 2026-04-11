@@ -23,7 +23,13 @@ const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+    
     fetchNotifications();
 
     const channel = supabase
@@ -46,17 +52,26 @@ const Notifications: React.FC<NotificationsProps> = ({ userId }) => {
 
   const fetchNotifications = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('notificacoes')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('notificacoes')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    if (!error && data) {
-      setNotifications(data as Notification[]);
-      setUnreadCount(data.filter((n: Notification) => !n.lida).length);
+      if (!error && data) {
+        setNotifications(data as Notification[]);
+        setUnreadCount(data.filter((n: Notification) => !n.lida).length);
+      } else {
+        setNotifications([]);
+        setUnreadCount(0);
+      }
+    } catch {
+      setNotifications([]);
+      setUnreadCount(0);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const markAsRead = async (id: string) => {
