@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { useModal } from '../context/ModalContext';
@@ -79,7 +79,7 @@ export default function TemplateManager() {
     setIsAiLoading(true);
     setAiResponse('');
     try {
-      const resp = await askAIsuggestClausula(editContent, aiPrompt);
+      const resp = await askAI(`Template: ${editContent}\nPrompt: ${aiPrompt}`);
       setAiResponse(resp as string);
       showToast('SugestÃ£o de IA gerada!', 'success');
     } catch (e: any) {

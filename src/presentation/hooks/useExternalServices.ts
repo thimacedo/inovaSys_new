@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { askAI } from '../../services/aiService';
+import { askAI, askAIsuggestClausula, askAIimproveDraft } from '../../services/aiService';
 import { signatureService, SignatureRequest } from '../../services/signatureService';
 import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
 
@@ -26,7 +26,7 @@ export function useSignature(camaraId: string | undefined) {
   const sendMutation = useMutation({
     mutationFn: async (request: SignatureRequest) => {
       if (!config) throw new Error("Configurações da Câmara não carregadas.");
-      return await signatureService.createEnvelope(config, request);
+      return await signatureService.createEnvelope(request);
     }
   });
 

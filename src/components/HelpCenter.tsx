@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, 
@@ -54,7 +54,7 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
     setIsTyping(true);
 
     try {
-      const response = await askAIsuggestClausula('Wiki Ajuda', input);
+      const response = await askAI(`Wiki Ajuda: ${input}`);
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',

@@ -7,7 +7,9 @@ export interface Signer {
 }
 
 export interface SignatureRequest {
-  documentKey: string;
+  documentKey?: string;          // chave do documento já existente (opcional)
+  documentBase64?: string;       // conteúdo em base64 (opcional)
+  documentName?: string;         // nome do documento (opcional)
   signers: Signer[];
   message?: string;
   urlAccess?: boolean;

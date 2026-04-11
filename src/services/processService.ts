@@ -1,4 +1,4 @@
-﻿import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
+import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
 import { Processo } from '../core/domain/entities/Processo';
 
 export type { Processo };
@@ -31,7 +31,7 @@ export const assignArbitrator = async (id: string, arbitroId: string): Promise<P
   return await DependencyRegistry.getProcessRepository().update(id, { arbitro_id: arbitroId });
 };
 
-export const publicSearch = async (query: string): Promise<Processo | null> => {
+export const publicSearch = async (query: string): Promise<Processo[]> => {
   return await DependencyRegistry.getProcessRepository().publicSearch(query);
 };
 

@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BaseSupabaseRepository } from './BaseSupabaseRepository';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -40,7 +40,13 @@ describe('BaseSupabaseRepository', () => {
       from: vi.fn(() => mockBuilder),
     } as unknown as SupabaseClient;
 
-    repository = new (class extends BaseSupabaseRepository<any> {})(mockClient, 'test_table');
+    class TestRepository extends BaseSupabaseRepository<any> {
+      protected tableName = 'test_table';
+      constructor(client: any) {
+        super(client);
+      }
+    }
+    repository = new TestRepository(mockClient);
   });
 
   it('deve criar um registro e retornar os dados', async () => {

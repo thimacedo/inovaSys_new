@@ -188,7 +188,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
           
           <div className="w-[1px] h-8 bg-slate-200 mx-1 hidden sm:block"></div>
           
-          <Notifications userId={user?.id || ''} onSelectProcess={handleProcessSelect} />
+          <Notifications userId={(user as any)?.id || ''} onSelectProcess={handleProcessSelect} />
           
           <div className="hidden md:flex flex-col items-end px-2">
             <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{session?.user?.id.substring(0, 8)}...</span>
