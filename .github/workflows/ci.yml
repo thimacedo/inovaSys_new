@@ -1,40 +1,61 @@
-name: InovaSys CI
+name: CI - Testes e Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [main, Inova]
   pull_request:
-    branches: [ main ]
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    branches: [main, Inova]
 
 jobs:
-  build-and-test:
+  test:
+    name: 🧪 Testes (Vitest + Cypress)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Instalar dependências
         run: npm ci
 
-      - name: Check Environment Variables (Mock for CI)
-        run: |
-          echo "VITE_SUPABASE_URL=http://localhost" >> .env
-          echo "VITE_SUPABASE_ANON_KEY=mock-key" >> .env
+      - name: Rodar testes unitários (Vitest)
+        run: npm run test:unit -- --run
 
-      - name: Lint Check
-        run: npm run lint
+      - name: Cypress run (E2E)
+        uses: cypress-io/github-action@v6
+        with:
+          build: npm run build
+          start: npm run preview
+          wait-on: 'http://localhost:4173'
+          browser: chrome
+        env:
+          CYPRESS_baseUrl: http://localhost:4173
 
-      - name: Type Check
-        run: npm run build # O comando build já executa tsc
+  deploy:
+    name: 🚀 Deploy no Vercel (apenas se testes passarem)
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/Inova'
 
-      - name: Run Unit Tests
-        run: npm run test:coverage
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Deploy para Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
