@@ -18,7 +18,7 @@ type ModalContextType = {
   showConfirm: (title: string, message: string, onConfirm: () => void, confirmText?: string) => void;
   showPrompt: (title: string, label: string, initialValue: string, onConfirm: (value: string) => void, type?: 'text' | 'date' | 'time' | 'number' | 'textarea' | 'select', maskType?: 'doc' | 'money' | 'phone' | 'cep', options?: { label: string, value: string }[]) => void;
   hideModal: () => void;
-  showToast: (message: string, type?: 'success' | 'error' | 'attention') => void;
+  showToast: (message: string, type?: ToastType) => void;
 };
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -164,8 +164,8 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
 
   const hideModal = () => setModal({ ...modal, isOpen: false });
   
-  const showToast = (message: string, type?: 'success' | 'error' | 'attention' | 'warning' | 'info') => {
-    const prefixes = {
+  const showToast = (message: string, type?: ToastType) => {
+    const prefixes: Record<ToastType, string> = {
       success: 'Sucesso: ',
       error: 'Erro: ',
       attention: 'Atenção: ',
@@ -174,17 +174,15 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // 1. Determine the actual type
-    let finalType = type;
+    let finalType: ToastType = type || 'success';
     const msgLower = message.toLowerCase();
     
     // Force error type if message contains error keywords and no type was provided
-    if (!finalType) {
+    if (!type) {
       if (msgLower.includes('erro') || msgLower.includes('falha')) {
         finalType = 'error';
       } else if (msgLower.includes('atenção') || msgLower.includes('aviso')) {
         finalType = 'attention';
-      } else {
-        finalType = 'success';
       }
     }
 
@@ -202,7 +200,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     setToast({ 
       isOpen: true, 
       message: fullMessage, 
-      type: finalType as 'success' | 'error' | 'attention' | 'warning' | 'info' 
+      type: finalType 
     });
   };
 
