@@ -5,6 +5,7 @@ import './index.css';
 import { QueryProvider } from './presentation/providers/QueryProvider';
 import { ModalProvider } from './context/ModalContext.tsx';
 import { validateEnv } from './utils/env.ts';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Validação de segurança em Runtime
 validateEnv();
@@ -28,10 +29,12 @@ if ('serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QueryProvider>
-      <ModalProvider>
-        <App />
-      </ModalProvider>
-    </QueryProvider>
+    <ErrorBoundary>
+      <QueryProvider>
+        <ModalProvider>
+          <App />
+        </ModalProvider>
+      </QueryProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 );
