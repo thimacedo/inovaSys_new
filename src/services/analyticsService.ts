@@ -82,8 +82,8 @@ export const analyticsService = {
       .from('processos')
       .select('arbitro_id, arbitro:arbitro_id(nome)')
       .eq('camara_id', camaraId);
-    arbitrosData?.forEach((p: { arbitro?: { nome?: string } | null }) => {
-      const nome = p.arbitro?.nome || 'Não atribuído';
+    arbitrosData?.forEach((p: { arbitro: Array<{ nome?: string }> }) => {
+      const nome = p.arbitro?.[0]?.nome || 'Não atribuído';
       arbitroMap.set(nome, (arbitroMap.get(nome) || 0) + 1);
     });
     const processosPorArbitro = Array.from(arbitroMap.entries())
