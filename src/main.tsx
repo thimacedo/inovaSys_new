@@ -8,7 +8,8 @@ import { validateEnv } from './utils/env.ts';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Validação de segurança em Runtime
-validateEnv();
+// Removida a chamada de topo de nível para evitar crash antes do ErrorBoundary carregar.
+// A validação agora ocorre dentro do ValidateEnvWrapper.
 
 // Auto-recuperação contra cache zumbi e 404 em Chunks dinâmicos
 window.addEventListener('vite:preloadError', (event) => {
@@ -30,11 +31,28 @@ if ('serviceWorker' in navigator) {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <QueryProvider>
-        <ModalProvider>
-          <App />
-        </ModalProvider>
-      </QueryProvider>
+      {/* Movendo a validação para dentro do ErrorBoundary via um componente wrapper */}
+      <ValidateEnvWrapper>
+        <QueryProvider>
+          <ModalProvider>
+            <App />
+          </ModalProvider>
+        </QueryProvider>
+      </ValidateEnvWrapper>
     </ErrorBoundary>
   </React.StrictMode>,
 );
+
+function ValidateEnvWrapper({ children }: { children: React.ReactNode }) {
+  // Executa a validação apenas uma vez no mount do componente
+  React.useLayoutEffect(() => {
+    try {
+      validateEnv();
+    } catch (e) {
+      console.error('ValidateEnvWrapper caught error:', e);
+      throw e; // Relançar para o ErrorBoundary
+    }
+  }, []);
+
+  return <>{children}</>;
+}

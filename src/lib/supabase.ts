@@ -13,7 +13,20 @@ export const supabase: SupabaseClient = (supabaseUrl && supabaseAnonKey)
       }
     })
   : new Proxy({} as SupabaseClient, {
-      get: () => {
-        throw new Error('CONFIG_ERROR: Faltam variáveis de ambiente do Supabase (VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY). Verifique as configurações no Vercel e faça Redeploy.');
+      get: (target, prop) => {
+        if (prop === 'auth') {
+          return {
+            getSession: async () => ({ data: { session: null }, error: null }),
+            onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+            getUser: async () => ({ data: { user: null }, error: null }),
+            signOut: async () => ({ error: null }),
+          };
+        }
+        // Para outras chamadas (from, rpc, etc) lançamos o erro original
+        return () => {
+          const errorMsg = 'CONFIG_ERROR: Faltam variáveis de ambiente do Supabase (VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY). Verifique as configurações no Vercel e faça Redeploy.';
+          console.error(errorMsg);
+          throw new Error(errorMsg);
+        };
       }
     });

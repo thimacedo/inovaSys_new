@@ -27,8 +27,8 @@ export function validateEnv() {
     if (import.meta.env.DEV) {
       console.warn('⚠️ Configuração incompleta detectada. Algumas funcionalidades podem falhar.');
     } else {
-      // Em produção, podemos querer lançar erro ou redirecionar para uma página de erro
-      // throw new Error(errorMsg);
+      // Em produção, vamos lançar o erro se faltar variáveis críticas, mas de forma controlada
+      throw new Error(errorMsg);
     }
   } else {
     console.log('✅ Ambiente InovaSys validado com sucesso.');
