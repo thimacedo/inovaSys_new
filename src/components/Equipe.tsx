@@ -277,14 +277,11 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const updateRoleMutation = useUpdateUserRole();
   const removeUserMutation = useRemoveUser();
 
-  // Early return AFTER all hooks
-  if (!camaraId) return null;
-
-  // Memória calculada para filtragem de permissões
+  // Memória calculada para filtragem de permissões - MUST be before early return
   const membros = useMemo(() => {
     return membrosRaw.filter(m => {
       if (isGlobalAdmin) return true;
-      
+
       // Membros comuns só vêem a si mesmos
       if (!isLocalAdmin && m.id !== currentUser?.id) return false;
 
@@ -296,6 +293,9 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
       return true;
     });
   }, [membrosRaw, isGlobalAdmin, isLocalAdmin, currentUser]);
+
+  // Early return AFTER all hooks
+  if (!camaraId) return null;
 
   const handleEditTipoUsuario = (membro: any) => {
     if (!membro?.id) return;
