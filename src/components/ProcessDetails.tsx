@@ -11,14 +11,14 @@ import FinanceiroTab from './FinanceiroTab';
 import ProcessAttachments from './ProcessAttachments';
 import ProcessTimeline from './ProcessTimeline';
 import { useAddHistoryEntry } from '../presentation/hooks/useHistory';
-import { Clock, ExternalLink, FileText, Download, ArrowLeft, ChevronRight, MessageSquare, Send } from 'lucide-react';
+import { Clock, ExternalLink, FileText, Download, ArrowLeft, ChevronRight, MessageSquare, Send, Users, BarChart3, Wallet, ShieldCheck } from 'lucide-react';
 import { Button } from '../presentation/ui/components/Button';
+import { AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 
 export default function ProcessDetails({ processId, onBack }: { processId: string, onBack: () => void }) {
-  if (!processId) return null;
+  // All hooks MUST be called before any early return
   const currentUser = useAuthStore((state) => state.currentUser);
-  
-  // TanStack Query Hook
   const { data: processo, isLoading: loading, isError, refetch } = useProcesso(processId);
   const addHistoryMutation = useAddHistoryEntry();
 
@@ -29,6 +29,9 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const [submitting, setSubmitting] = useState(false);
   const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
   const { showToast, showPrompt } = useModal();
+
+  // Early returns AFTER all hooks
+  if (!processId) return null;
 
   const isAdmin = ['gestor', 'admin', 'god'].includes(currentUser?.tipo_usuario?.toLowerCase() || '');
   const canEditProcess = isAdmin || (processo && processo.arbitro_id === currentUser?.id);
@@ -418,6 +421,3 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
     </div>
   );
 }
-
-// Re-importing missing icons (locally scoped here for safety if not global)
-import { Users, BarChart3, Wallet } from 'lucide-react';
