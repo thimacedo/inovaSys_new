@@ -1,0 +1,5 @@
+Após executar o comando acima com sucesso, as credenciais oficiais de acesso serão:
+
+E-mail: admin@inovasys.com
+
+Senha: Inova123!

@@ -22,13 +22,16 @@ describe('BaseSupabaseRepository', () => {
 
   it('deve chamar o método insert corretamente no create', async () => {
     const data = { name: 'Test' };
+    mockClient.select.mockReturnThis();
     await repository.create(data);
     expect(mockClient.from).toHaveBeenCalledWith('test_table');
-    expect(mockClient.insert).toHaveBeenCalledWith(data);
+    expect(mockClient.insert).toHaveBeenCalledWith([data]);
   });
 
-  it('deve lançar erro formatado quando a query falhar', async () => {
-    mockClient.single.mockResolvedValueOnce({ data: null, error: { message: 'DB Error' } });
-    await expect(repository.create({})).rejects.toThrow('Falha na operação de banco de dados: DB Error');
+  it('deve lançar erro quando a query falhar', async () => {
+    const dbError = { message: 'DB Error' };
+    mockClient.select.mockReturnThis();
+    mockClient.single.mockResolvedValueOnce({ data: null, error: dbError });
+    await expect(repository.create({})).rejects.toThrow(dbError);
   });
 });

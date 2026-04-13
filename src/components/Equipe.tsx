@@ -390,7 +390,7 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
   const handleAddMemberClick = () => {
     showModal(
       "Novo Membro na Equipe",
-      <AddMemberForm currentUserRole={currentUser?.tipo_usuario || ''} onAdded={(tempPwd) => {
+      <AddMemberForm currentUserRole={currentUser?.tipo_usuario || ''} onAdded={(_tempPwd) => {
         // Invalidação do Query já tratada na mutação se houvesse uma mutação de criação separada
         // Aqui o AddMemberForm ainda usa supabase direto para signup (necessário para auth)
         // Mas a listagem recarregará se invalidarmos manualmente ou via realtime
