@@ -92,6 +92,7 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
               onChange={(e) => setEmail(e.target.value)}
               required 
               placeholder="seu@email.com"
+              autoComplete="username"
             />
           </div>
 
@@ -104,6 +105,7 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
               onChange={(e) => setPassword(e.target.value)}
               required 
               placeholder="••••••••"
+              autoComplete={isSignUp ? "new-password" : "current-password"}
             />
           </div>
 
