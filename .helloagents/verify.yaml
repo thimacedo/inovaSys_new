@@ -1,0 +1,15 @@
+# inovaSys Verification Workflow
+
+verifications:
+  lint:
+    command: npm run lint
+    description: Check code style and common issues
+  test:
+    command: npm test
+    description: Run unit and integration tests
+  build:
+    command: npm run build
+    description: Verify build process and type checking
+  db_verify:
+    command: psql -f SUPABASE_PUSH.sql --dry-run
+    description: Validate database scripts (manual check recommended)
