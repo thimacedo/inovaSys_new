@@ -5,6 +5,8 @@ import { useProcesso } from '../presentation/hooks/useProcessos';
 import { userService } from '../services/userService';
 import { documentService } from '../services/documentService';
 import { whatsappService } from '../services/whatsappService';
+import { financeiroService } from '../services/financeiroService';
+import { notificationService } from '../services/notificationService';
 import { processService, Processo } from '../services/processService';
 import { isValidDoc } from '../utils/validators';
 import FinanceiroTab from './FinanceiroTab';
@@ -97,6 +99,16 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
     }
   };
 
+  const handleGerarHonorarios = async () => {
+    if (!processo) return;
+    try {
+      await financeiroService.gerarHonorariosArbitrais(processo.id, processo.valor_causa, processo.organization_id || '');
+      showToast('Honorários (10%) gerados com sucesso!', 'success');
+    } catch (error: any) {
+      showToast('Erro ao gerar honorários: ' + error.message, 'error');
+    }
+  };
+
   const handleWhatsApp = (nomeParte: string, tipo: 'requerente' | 'requerido') => {
     if (!processo) return;
     showPrompt(`Notificar ${tipo === 'requerente' ? 'Requerente' : 'Requerido'}`, `Confirme o número do WhatsApp de ${nomeParte} (apenas números com DDD):`, '', (phone) => {
@@ -113,6 +125,19 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
     try {
       if (!processo) return;
       await processService.assignArbitrator(processo.id, arbitroId);
+      
+      // Notifica o árbitro designado
+      try {
+        await notificationService.notify(arbitroId, {
+          titulo: 'Novo Processo Designado',
+          mensagem: `Você foi designado como árbitro do processo ${processo.numero_processo || processo.id}.`,
+          tipo: 'sucesso',
+          processoId: processo.id
+        });
+      } catch (nError) {
+        console.error('Erro ao notificar árbitro:', nError);
+      }
+
       await refetch();
       showToast('Árbitro designado com sucesso!', 'success');
     } catch (error: any) {
@@ -202,6 +227,17 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
         </div>
         
         <div className="flex gap-3">
+            {isAdmin && (
+              <Button 
+                  variant="outline" 
+                  onClick={handleGerarHonorarios} 
+                  icon={DollarSign}
+                  size="md"
+                  className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+              >
+                  Faturar Honorários
+              </Button>
+            )}
             <Button 
                 variant="outline" 
                 onClick={handleGerarTermo} 

@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
+import { CamaraSwitcher } from './CamaraSwitcher';
 
 interface SidebarProps {
   currentView: string;
@@ -86,6 +87,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     <nav className={`w-72 glass border-r border-slate-200 dark:border-slate-800 h-[calc(100vh-72px)] flex flex-col fixed lg:sticky left-0 top-[72px] z-40 transition-all duration-300 overflow-y-auto ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full lg:w-0 opacity-0'}`}>
       <div className="flex-1 px-4 py-8 space-y-8">
         
+        <CamaraSwitcher />
+
         {/* SECTION: GERAL */}
         <div className="space-y-2">
           <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Core</p>

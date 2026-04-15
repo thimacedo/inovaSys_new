@@ -14,22 +14,26 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'logo-inovasys.png'],
         manifest: {
-          name: 'InovaSys - Gestão Arbitral',
+          name: 'InovaSys - Gestão Arbitral Enterprise',
           short_name: 'InovaSys',
-          description: 'Plataforma de Gestão Arbitral Enterprise',
+          description: 'Plataforma Corporativa de Gestão de Câmaras de Arbitragem',
           theme_color: '#0f172a',
-          background_color: '#f8fafc',
+          background_color: '#ffffff',
           display: 'standalone',
+          orientation: 'portrait',
+          categories: ['productivity', 'legal'],
           icons: [
             {
               src: 'logo-inovasys.png',
               sizes: '192x192',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
             },
             {
               src: 'logo-inovasys.png',
               sizes: '512x512',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'maskable'
             }
           ]
         }

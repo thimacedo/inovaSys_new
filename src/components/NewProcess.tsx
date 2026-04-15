@@ -5,6 +5,9 @@ import { useCreateProcess } from '../presentation/hooks/useProcessos';
 import { applyMask, parseMoney } from '../utils/masks';
 import { toast } from 'sonner';
 import { Button } from '../presentation/ui/components/Button';
+import { financeiroService } from '../services/financeiroService';
+import { aiService } from '../services/aiService';
+import { Bot } from 'lucide-react';
 
 interface NewProcessProps {
   onProcessCreated?: () => void;
@@ -26,6 +29,7 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
     resumo_fatos: ''
   });
   const [error, setError] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -38,6 +42,24 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
     }
 
     setFormData(prev => ({ ...prev, [name]: maskedValue }));
+  };
+
+  const handleAISummarize = async () => {
+    if (!formData.resumo_fatos) {
+      toast.error("Descreva os fatos antes de resumir.");
+      return;
+    }
+    setIsSummarizing(true);
+    const toastId = toast.loading("IA analisando fatos...");
+    try {
+      const summary = await aiService.summarizeFacts(formData.resumo_fatos);
+      setFormData(prev => ({ ...prev, resumo_fatos: summary }));
+      toast.success("Resumo técnico gerado!", { id: toastId });
+    } catch (err) {
+      toast.error("Erro ao processar IA.", { id: toastId });
+    } finally {
+      setIsSummarizing(false);
+    }
   };
 
   const handleProtocolar = async (e: React.FormEvent) => {
@@ -67,19 +89,20 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
         status: 'Protocolado'
       };
 
-      await createMutation.mutateAsync(payload, {
-        onSuccess: () => {
-          toast.success('Processo protocolado com sucesso!');
-          if (onProcessCreated) onProcessCreated();
-        },
-        onError: (err: any) => {
-          toast.error('Falha ao criar processo. Verifique os dados.');
-          setError(err?.message || "Erro ao criar processo.");
-        }
-      });
+      const result = await createMutation.mutateAsync(payload);
+      
+      // Gera faturamento inicial automático
+      try {
+        await financeiroService.gerarCustasIniciais(result.id, result.valor_causa, orgId);
+      } catch (fError) {
+        console.error('Erro ao gerar custas:', fError);
+      }
+
+      toast.success('Processo protocolado com sucesso!');
+      if (onProcessCreated) onProcessCreated();
     } catch (err: any) {
-      toast.error('Erro de comunicação com o servidor.');
-      setError(err?.message || "Falha de comunicação.");
+      toast.error('Falha ao criar processo. Verifique os dados.');
+      setError(err?.message || "Erro ao criar processo.");
     }
   };
 
@@ -146,6 +169,29 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
             </div>
           </div>
         </fieldset>
+
+        <div className="space-y-2">
+          <div className="flex justify-between items-center px-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Narrativa dos Fatos</label>
+            <button 
+              type="button" 
+              onClick={handleAISummarize}
+              disabled={isSummarizing}
+              className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all disabled:opacity-50 shadow-sm"
+            >
+              <Bot size={14} />
+              RESUMIR COM IA
+            </button>
+          </div>
+          <textarea 
+            name="resumo_fatos" 
+            placeholder="Descreva detalhadamente o conflito..." 
+            value={formData.resumo_fatos} 
+            onChange={handleChange} 
+            required 
+            className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 min-h-[150px] text-sm font-medium" 
+          />
+        </div>
 
         <div className="flex justify-end gap-3 mt-8">
           <Button 

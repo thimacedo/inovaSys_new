@@ -5,6 +5,7 @@ export interface AuthState {
   currentUser: any | null;
   isAuthenticated: boolean;
   setCurrentUser: (user: any) => void;
+  updateOrganization: (orgId: string) => void;
   logout: () => void;
 }
 
@@ -13,6 +14,11 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       currentUser: null,
       isAuthenticated: false,
+      updateOrganization: (orgId) => {
+        set((state) => ({
+          currentUser: state.currentUser ? { ...state.currentUser, organization_id: orgId, camara_id: orgId } : null
+        }));
+      },
       setCurrentUser: (user) => {
         if (!user) {
           set({ currentUser: null, isAuthenticated: false });
