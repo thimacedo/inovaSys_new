@@ -1,0 +1,12 @@
+# inovaSys - Registro de Progresso (Local)
+
+Este arquivo será sincronizado com o Google Sheets assim que a autenticação for concluída.
+
+| Data | Tarefa | Categoria | Status | Observações |
+| :--- | :--- | :--- | :--- | :--- |
+| 14/04/2026 | Organização do Projeto | Infraestrutura | ✅ Concluído | Pasta `legacy/` isolada e `STATE.md` criado. |
+| 14/04/2026 | Saneamento de Segurança | Segurança | ✅ Concluído | Chaves do Supabase removidas dos arquivos HTML. |
+| 14/04/2026 | Correção do Build | Infraestrutura | ✅ Concluído | `index.html` restaurado para apontar para o React. |
+| 14/04/2026 | Reforço de Acessibilidade | UX/UI | ✅ Concluído | Atributos `autoComplete` adicionados ao Login. |
+| 14/04/2026 | Preparação do Banco | Banco de Dados | 🟡 Em Progresso | Scripts SQL (`SUPABASE_RLS.sql`) prontos para execução. |
+| 14/04/2026 | Início da Fase de Migração | Desenvolvimento | 🔵 Iniciado | Planejando a migração do Peticionamento Legado. |

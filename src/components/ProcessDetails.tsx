@@ -10,6 +10,7 @@ import { isValidDoc } from '../utils/validators';
 import FinanceiroTab from './FinanceiroTab';
 import ProcessAttachments from './ProcessAttachments';
 import ProcessTimeline from './ProcessTimeline';
+import { DocumentCenter } from './DocumentCenter';
 import { useAddHistoryEntry } from '../presentation/hooks/useHistory';
 import { Clock, ExternalLink, FileText, Download, ArrowLeft, ChevronRight, MessageSquare, Send, Users, BarChart3, Wallet, ShieldCheck } from 'lucide-react';
 import { Button } from '../presentation/ui/components/Button';
@@ -255,6 +256,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
               { id: 'resumo', label: 'Painel', icon: BarChart3 },
               { id: 'partes', label: 'Partes', icon: Users },
               { id: 'fatos', label: 'Causa', icon: MessageSquare },
+              { id: 'documentos', label: 'Documentos', icon: FileText },
               { id: 'anexos', label: 'Arquivos', icon: FileText },
               { id: 'historico', label: 'Linha do Tempo', icon: Clock },
               { id: 'financeiro', label: 'Financeiro', icon: Wallet }
@@ -362,6 +364,16 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
                   </h3>
                   <p className="text-lg text-slate-600 leading-[1.8] font-medium whitespace-pre-wrap">{processo.resumo_fatos || 'Aguardando o registro do memorial descritivo.'}</p>
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'documentos' && (
+              <motion.div key="documentos" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <DocumentCenter 
+                  processo={processo} 
+                  arbitroNome={(processo as any).arbitro?.nome} 
+                  camaraConfig={localStorage.getItem('camara_config') ? JSON.parse(localStorage.getItem('camara_config')!) : {}} 
+                />
               </motion.div>
             )}
 

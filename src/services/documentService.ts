@@ -3,48 +3,50 @@ import { templateService } from './templateService';
 
 export const documentService = {
   /**
-   * Busca um template por tipo, substitui as variáveis pelo dicionário de dados e força o download do PDF.
+   * Compila o HTML do template substituindo os placeholders pelos dados fornecidos.
+   */
+  compileHTML: async (tipoDocumento: number, placeholders: Record<string, string>): Promise<string> => {
+    const template = await templateService.getByType(tipoDocumento);
+    if (!template) {
+      throw new Error(`Template do tipo ${tipoDocumento} não encontrado.`);
+    }
+
+    let html = template.conteudo_html;
+    for (const [key, value] of Object.entries(placeholders)) {
+      const regex = new RegExp(`{${key}}`, 'g');
+      html = html.replace(regex, value || '');
+    }
+
+    return `
+      <div class="document-container" style="font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.5; color: #000;">
+        ${html}
+      </div>
+    `;
+  },
+
+  /**
+   * Gera o PDF a partir de um HTML bruto.
+   */
+  downloadPDF: async (html: string, filename: string): Promise<void> => {
+    const opt = {
+      margin: 0.75,
+      filename: `${filename}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' as const }
+    };
+
+    const element = document.createElement('div');
+    element.innerHTML = html;
+    await html2pdf().set(opt).from(element).save();
+  },
+
+  /**
+   * Método legado (mantido para compatibilidade) que faz tudo em um passo.
    */
   generateFromTemplate: async (tipoDocumento: number, placeholders: Record<string, string>, filename: string): Promise<void> => {
-    try {
-      const template = await templateService.getByType(tipoDocumento);
-      
-      if (!template) {
-        throw new Error(`Template do tipo ${tipoDocumento} não encontrado no banco de dados.`);
-      }
-
-      let html = template.conteudo_html;
-      
-      // Interpolação de variáveis: substitui {chave} pelo valor correspondente
-      for (const [key, value] of Object.entries(placeholders)) {
-        const regex = new RegExp(`{${key}}`, 'g');
-        html = html.replace(regex, value || '');
-      }
-
-      // Estilo injetado para garantir formatação A4 padrão e margens
-      const htmlWrapper = `
-        <div style="font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.5; color: #000;">
-          ${html}
-        </div>
-      `;
-
-      const opt = {
-        margin:       0.75, // polegadas (aprox 2cm)
-        filename:     `${filename}.pdf`,
-        image:        { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' as const }
-      };
-
-      const element = document.createElement('div');
-      element.innerHTML = htmlWrapper;
-      
-      await html2pdf().set(opt).from(element).save();
-      
-    } catch (error) {
-      console.error('[DocumentService] Erro ao gerar PDF:', error);
-      throw error;
-    }
+    const html = await documentService.compileHTML(tipoDocumento, placeholders);
+    await documentService.downloadPDF(html, filename);
   }
 };
 

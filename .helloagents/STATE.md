@@ -11,17 +11,18 @@
 - [√] 初始化 `.helloagents/` 知识库空间
 - [√] 制定详细实施计划
 - [√] 给用户展示改动的可视化反馈
+- [√] 配置 Supabase Service Role Key 自动化凭据
+- [√] 配置 Supabase Project ID
 
 ## 关键上下文
 - **技术栈**: React 19 + TypeScript + Vite + Supabase + TanStack Query + Zustand
-- **当前状态**: 已识别核心架构（Clean Arch + SOLID）及关键安全风险（Supabase 密钥暴露）
-- **数据库**: Supabase，存在表缺失风险，需执行 `REPAIR` 脚本
+- **当前状态**: 已识别核心架构（Clean Arch + SOLID）及关键安全风险（Supabase 密钥暴露已修复）
+- **数据库**: Supabase Project ID (`tsgbvhfdceyjbyfstjol`) e Service Role Key já configurados no `.env`.
 
 ## 下一步
-- [√] 创建 `.helloagents/context.md` 记录架构与模块索引
-- [√] 创建 `.helloagents/guidelines.md` 记录编码约定
-- [√] 创建 `.helloagents/verify.yaml` 记录验证流程
-- [ ] 进入 `~plan` 制定安全修复与功能完善计划
+- [√] 批量执行 SQL 修复脚本 (REPAIR / RLS / SEED) através do SQL Editor do Supabase
+- [√] 验证数据库 RLS 策略是否生效
+- [√] 迁移 legacy/ 文件夹下的核心逻辑 (Peticionamento/Dashboard/Documentos) para React
 
 ## 阻塞项
 - 无
