@@ -10,6 +10,7 @@
 - [√] 完成项目初步诊断与架构识别
 - [√] 初始化 `.helloagents/` 知识库空间
 - [√] 制定详细实施计划
+- [√] 给用户展示改动的可视化反馈
 
 ## 关键上下文
 - **技术栈**: React 19 + TypeScript + Vite + Supabase + TanStack Query + Zustand
