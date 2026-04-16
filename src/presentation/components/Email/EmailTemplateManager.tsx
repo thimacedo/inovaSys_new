@@ -28,13 +28,13 @@ export function EmailTemplateManager() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este template?')) {
+    if (confirm('Tem certeza que deseja excluir este modelo?')) {
       deleteTemplate(id);
     }
   };
 
   if (!organizationId) {
-    return <div className="p-8 text-center text-slate-500 font-medium">Selecione uma organização para gerenciar templates.</div>;
+    return <div className="p-8 text-center text-slate-500 font-medium">Selecione uma organização para gerenciar os modelos.</div>;
   }
 
   return (
@@ -45,12 +45,12 @@ export function EmailTemplateManager() {
             <Mail size={28} />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Templates de E-mail</h2>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Modelos de e-mail</h2>
             <p className="text-sm text-slate-500 font-medium">Gerencie as comunicações automáticas da sua câmara.</p>
           </div>
         </div>
         <Button onClick={handleCreate} icon={Plus} size="lg" className="rounded-2xl">
-          Novo Template
+          Novo Modelo
         </Button>
       </div>
 

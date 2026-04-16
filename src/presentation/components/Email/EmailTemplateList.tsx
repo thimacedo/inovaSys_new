@@ -16,7 +16,7 @@ export function EmailTemplateList({ templates, onEdit, onDelete, isLoading }: Pr
   }
 
   if (templates.length === 0) {
-    return <div className="text-center text-gray-500 py-8">Nenhum template de e-mail encontrado.</div>;
+    return <div className="text-center text-gray-500 py-8">Nenhum modelo de e-mail encontrado.</div>;
   }
 
   return (

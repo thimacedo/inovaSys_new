@@ -10,6 +10,7 @@ export interface EmailData {
 export const emailTemplateService = {
   /**
    * Gera o HTML completo de um e-mail transacional.
+   * Em conformidade com o Pacto da Linguagem Simples do CNJ e LGPD.
    */
   build: (data: EmailData): string => {
     const primaryColor = '#0f172a';
@@ -32,8 +33,9 @@ export const emailTemplateService = {
           .content h2 { color: ${primaryColor}; font-size: 20px; margin-top: 0; }
           .button-container { padding: 20px 0; text-align: center; }
           .button { background-color: ${accentColor}; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; text-transform: uppercase; display: inline-block; }
-          .footer { background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b; }
-          .footer p { margin: 4px 0; }
+          .footer { background-color: #f1f5f9; padding: 30px 40px; text-align: left; font-size: 11px; color: #64748b; border-t: 1px solid #e2e8f0; }
+          .footer p { margin: 8px 0; line-height: 1.4; }
+          .lgpd-badge { display: inline-block; padding: 2px 6px; background: #e2e8f0; border-radius: 4px; font-weight: bold; margin-bottom: 8px; }
         </style>
       </head>
       <body>
@@ -44,19 +46,22 @@ export const emailTemplateService = {
             </div>
             <div class="content">
               <h2>${data.titulo}</h2>
-              ${data.subtitulo ? `<p style="font-weight: bold; color: #64748b;">${data.subtitulo}</p>` : ''}
-              <p>${data.conteudo}</p>
+              ${data.subtitulo ? `<p style="font-weight: bold; color: #64748b; margin-bottom: 20px;">${data.subtitulo}</p>` : ''}
+              <div style="font-size: 16px; color: #475569;">
+                ${data.conteudo}
+              </div>
               
               ${data.cta_link ? `
                 <div class="button-container">
-                  <a href="${data.cta_link}" class="button">${data.cta_label || 'Acessar Sistema'}</a>
+                  <a href="${data.cta_link}" class="button">${data.cta_label || 'Acessar'}</a>
                 </div>
               ` : ''}
             </div>
             <div class="footer">
-              <p>Este é um e-mail automático enviado pela plataforma InovaSys.</p>
-              <p>Por favor, não responda a este e-mail.</p>
-              <p><strong>${camara}</strong></p>
+              <div class="lgpd-badge">PRIVACIDADE E SEGURANÇA (LGPD)</div>
+              <p>Este comunicado faz parte do rito oficial de arbitragem conduzido pela <strong>${camara}</strong> através da plataforma InovaSys.</p>
+              <p>Tratamos seus dados pessoais apenas para cumprir obrigações legais e contratuais vinculadas ao seu processo. Para saber mais sobre como cuidamos das suas informações, consulte nossos termos de uso.</p>
+              <p>© ${new Date().getFullYear()} ${camara}. Todos os direitos reservados.</p>
             </div>
           </div>
         </div>
@@ -67,20 +72,20 @@ export const emailTemplateService = {
 
   templates: {
     novaMovimentacao: (processo: string, acao: string) => ({
-      titulo: 'Nova Movimentação Processual',
-      subtitulo: `Processo: ${processo}`,
-      conteudo: `Informamos que houve uma nova atualização no seu processo: <strong>${acao}</strong>. Você pode conferir os detalhes e documentos anexados acessando sua área logada.`,
-      cta_label: 'Ver Processo'
+      titulo: 'Seu processo teve uma nova movimentação',
+      subtitulo: `Processo nº ${processo}`,
+      conteudo: `Olá! Passando para avisar que aconteceu algo novo no seu processo: <br><br><strong>${acao}</strong>.<br><br>Você pode conferir todos os detalhes e documentos acessando sua conta agora mesmo.`,
+      cta_label: 'Ver Detalhes'
     }),
     assinaturaPendente: (docNome: string) => ({
-      titulo: 'Assinatura Pendente',
-      conteudo: `Um novo documento (<strong>${docNome}</strong>) foi gerado e requer sua assinatura digital para prosseguimento do rito arbitral.`,
-      cta_label: 'Assinar Agora'
+      titulo: 'Você precisa assinar um documento',
+      conteudo: `Um novo documento (<strong>${docNome}</strong>) foi preparado e está aguardando sua assinatura digital para que o processo possa continuar.`,
+      cta_label: 'Assinar Documento'
     }),
     faturaGerada: (valor: string, vencimento: string) => ({
-      titulo: 'Fatura de Custas Gerada',
-      conteudo: `A fatura referente às custas/honorários do processo foi emitida no valor de <strong>${valor}</strong> com vencimento para o dia <strong>${vencimento}</strong>.`,
-      cta_label: 'Ver Financeiro'
+      titulo: 'Fatura disponível para pagamento',
+      conteudo: `A fatura referente às taxas do seu processo já está disponível. <br><br>Valor: <strong>${valor}</strong><br>Vencimento: <strong>${vencimento}</strong>.`,
+      cta_label: 'Ver Fatura'
     })
   }
 };

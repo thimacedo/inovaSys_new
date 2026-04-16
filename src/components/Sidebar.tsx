@@ -126,7 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
 
             {isAtLeastAdmin && (
-              <NavItem id="email_templates" icon={Mail} label="Templates de E-mail" color="cyan" />
+              <NavItem id="email_templates" icon={Mail} label="Modelos de e-mail" color="cyan" />
             )}
 
             {isGlobalAdmin && (
