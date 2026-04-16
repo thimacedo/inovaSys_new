@@ -78,8 +78,35 @@ export async function sendEmailFromTemplate(
   return response.json();
 }
 
+/**
+ * Legado/Compatibilidade: Envia e-mail direto com HTML.
+ */
+export async function send(to: string, subject: string, html: string) {
+  const response = await fetch('/api/vercel/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to, subject, html }),
+  });
+  if (!response.ok) throw new Error('Erro ao enviar e-mail');
+  return response.json();
+}
+
 export const emailService = {
-  sendEmailFromTemplate
+  sendEmailFromTemplate,
+  send,
+  generateBaseTemplate: (data: any) => emailTemplateService.build({
+    titulo: data.assunto,
+    conteudo: data.corpo,
+    cta_link: data.linkAction,
+    cta_label: 'Acessar'
+  }),
+  templates: {
+    boasVindasGestor: (email: string, pass: string, nome: string) => ({
+      assunto: `Bem-vindo ao InovaSys - ${nome}`,
+      corpo: `Sua câmara foi registrada com sucesso. Acesse com seu e-mail ${email} e senha temporária: ${pass}`,
+      link: 'https://inovasys.com.br/login'
+    })
+  }
 };
 
 export default emailService;

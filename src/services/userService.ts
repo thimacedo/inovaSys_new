@@ -1,64 +1,69 @@
-import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
-import auditService from './auditService';
-import type { UserEntity } from '../infrastructure/database/repositories/UserRepository';
+import { supabase } from '../lib/supabase';
+import { auditService } from './auditService';
 
-/**
- * User Service v2.0 (Domain Orchestrator)
- * Centraliza a lógica de negócio e auditoria, delegando persistência ao Repository.
- */
 export const userService = {
-  async getAll() {
-    return await DependencyRegistry.getUserRepository().listAll();
+  /**
+   * Busca perfil do usuário pelo ID.
+   */
+  getProfile: async (id: string) => {
+    const { data, error } = await supabase
+      .from('perfis')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
   },
 
-  async getProfile(userId: string) {
-    if (!userId || userId === "SEU_USER_ID_AQUI") {
-      throw new Error("Sessão inválida: Identificador do usuário ausente.");
-    }
-    const profile = await DependencyRegistry.getUserRepository().getById(userId);
-    if (!profile) throw new Error("Perfil não encontrado.");
-    return profile;
+  /**
+   * Busca árbitros disponíveis na câmara.
+   */
+  getArbitrosDisponiveis: async () => {
+    const { data, error } = await supabase
+      .from('perfis')
+      .select('*')
+      .eq('tipo_usuario', 'arbitro');
+    if (error) throw error;
+    return data;
   },
 
-  async update(id: string, updates: Partial<UserEntity>) {
-    if (!id || id === "SEU_USER_ID_AQUI") throw new Error("Sessão inválida.");
-    
-    const repository = DependencyRegistry.getUserRepository();
-    
-    // Captura estado antigo para auditoria rica
-    const oldProfile = await repository.getById(id);
-    
-    const result = await repository.update(id, updates);
+  /**
+   * Atualiza perfil do usuário.
+   */
+  updateProfile: async (id: string, data: any) => {
+    const { error } = await supabase
+      .from('perfis')
+      .update(data)
+      .eq('id', id);
+    if (error) throw error;
 
     await auditService.log('ATUALIZAR_USUARIO', {
-      usuario_afetado_id: id,
-      campos_alterados: Object.keys(updates),
-      mudanca_tipo: oldProfile?.tipo_usuario !== updates.tipo_usuario
-    }, 'perfis', id);
-
-    return result;
+      id,
+      tabela: 'perfis'
+    });
   },
 
-  async delete(id: string) {
-    if (!id || id === "SEU_USER_ID_AQUI") throw new Error("Sessão inválida.");
-    
-    const repository = DependencyRegistry.getUserRepository();
-    const user = await repository.getById(id);
-    
-    if (!user) throw new Error("Usuário não encontrado.");
+  /**
+   * Deleta usuário (Revoga acesso).
+   */
+  deleteUser: async (id: string) => {
+    const { error } = await supabase
+      .from('perfis')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
 
-    // Auditoria pré-exclusão
-    await auditService.log('DELETAR_USUARIO', { 
-      email: user.email 
-    }, 'perfis', id);
-
-    return await repository.delete(id);
+    await auditService.log('DELETAR_USUARIO', {
+      id,
+      tabela: 'perfis'
+    });
   },
 
-  async getArbitrosDisponiveis() {
-    // ✅ CORREÇÃO: Agora retorna TODOS os árbitros do sistema, independente de organização
-    // Qualquer árbitro cadastrado aparece imediatamente para atribuição em QUALQUER processo
-    return await DependencyRegistry.getUserRepository().listAllArbitros();
+  /**
+   * Atalho para updateProfile (Retrocompatibilidade).
+   */
+  update: async (id: string, data: any) => {
+    return userService.updateProfile(id, data);
   }
 };
 

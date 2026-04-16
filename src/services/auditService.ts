@@ -2,6 +2,28 @@ import { supabase } from '../lib/supabase';
 
 export const auditService = {
   /**
+   * Método genérico para logar ações importantes.
+   */
+  log: async (acao: string, detalhes: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase.from('auditoria').insert({
+        usuario_id: user.id,
+        acao: acao,
+        detalhes: detalhes,
+        tabela: detalhes?.tabela || 'sistema',
+        registro_id: detalhes?.id || null
+      });
+
+      if (error) console.warn('[AuditService] Erro ao registrar log genérico:', error);
+    } catch (e) {
+      console.error('[AuditService] Erro crítico no log genérico:', e);
+    }
+  },
+
+  /**
    * Registra a visualização de um documento por um usuário com captura de contexto.
    */
   registrarVisualizacao: async (docNome: string, processoId: string, userId: string) => {

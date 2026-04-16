@@ -1,5 +1,3 @@
-import React from 'react';
-import { motion } from 'motion/react';
 import { 
   LayoutDashboard, 
   PlusCircle, 
@@ -13,8 +11,11 @@ import {
   Activity,
   CalendarDays,
   ChevronRight,
-  Mail
+  Mail,
+  ShieldCheck
 } from 'lucide-react';
+import React from 'react';
+import { motion } from 'motion/react';
 import { usePermissions } from '../hooks/usePermissions';
 import { CamaraSwitcher } from './CamaraSwitcher';
 
@@ -185,4 +186,3 @@ const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export default Sidebar;
-

@@ -80,9 +80,10 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
         return;
       }
 
+      const valorCausaNum = parseMoney(formData.valor_causa);
       const payload = {
         ...formData,
-        valor_causa: parseMoney(formData.valor_causa),
+        valor_causa: valorCausaNum,
         user_id: session.user.id,
         camara_id: camaraId || undefined,
         organization_id: orgId,
@@ -93,7 +94,7 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
       
       // Gera faturamento inicial automático
       try {
-        await financeiroService.gerarCustasIniciais(result.id, result.valor_causa, orgId);
+        await financeiroService.gerarCustasIniciais(result.id, result.valor_causa || 0, orgId);
       } catch (fError) {
         console.error('Erro ao gerar custas:', fError);
       }

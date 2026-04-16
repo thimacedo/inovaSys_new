@@ -10,7 +10,8 @@ import {
   Building2, 
   DollarSign,
   CheckCircle,
-  Files
+  Files,
+  AlertCircle
 } from 'lucide-react';
 
 export default function DashboardHome() {
@@ -44,7 +45,8 @@ export default function DashboardHome() {
       totalCamaras: isGod ? 'Global' : 1,
       alertas: procs.filter(p => {
         if (p.status === 'Concluído' || p.status === 'Arquivado') return false;
-        const lastUpdate = new Date(p.updated_at || p.created_at);
+        const dateStr = p.updated_at || p.created_at || new Date().toISOString();
+        const lastUpdate = new Date(dateStr);
         const diffDays = (new Date().getTime() - lastUpdate.getTime()) / (1000 * 3600 * 24);
         return diffDays > 7;
       })
@@ -106,7 +108,7 @@ export default function DashboardHome() {
               {stats.alertas.slice(0, 3).map(p => (
                 <div key={p.id} className="p-4 bg-white rounded-2xl border border-red-50 shadow-sm">
                    <p className="text-xs font-black text-slate-900 truncate">Proc. {p.numero_processo}</p>
-                   <p className="text-[10px] text-red-500 font-bold uppercase mt-1">Inativo há {Math.floor((new Date().getTime() - new Date(p.updated_at || '').getTime()) / (1000 * 3600 * 24))} dias</p>
+                   <p className="text-[10px] text-red-500 font-bold uppercase mt-1">Inativo há {Math.floor((new Date().getTime() - new Date(p.updated_at || p.created_at || '').getTime()) / (1000 * 3600 * 24))} dias</p>
                 </div>
               ))}
            </div>

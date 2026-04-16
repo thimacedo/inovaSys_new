@@ -16,7 +16,7 @@ import { DocumentCenter } from './DocumentCenter';
 import { ProcessChat } from './ProcessChat';
 import { ProcessAudit } from './ProcessAudit';
 import { useAddHistoryEntry } from '../presentation/hooks/useHistory';
-import { Clock, ExternalLink, FileText, Download, ArrowLeft, ChevronRight, MessageSquare, Send, Users, BarChart3, Wallet, ShieldCheck } from 'lucide-react';
+import { Clock, ExternalLink, FileText, Download, ArrowLeft, ChevronRight, MessageSquare, Send, Users, BarChart3, Wallet, ShieldCheck, DollarSign } from 'lucide-react';
 import { Button } from '../presentation/ui/components/Button';
 import { AnimatePresence } from 'motion/react';
 import { motion } from 'motion/react';
@@ -33,7 +33,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const [novoAndamento, setNovoAndamento] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
-  const { showToast, showPrompt } = useModal();
+  const { showToast, showPrompt, showModal } = useModal();
 
   const isAdmin = ['gestor', 'admin', 'god'].includes(currentUser?.tipo_usuario?.toLowerCase() || '');
   const canEditProcess = isAdmin || (processo && processo.arbitro_id === currentUser?.id);
@@ -104,7 +104,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const handleGerarHonorarios = async () => {
     if (!processo) return;
     try {
-      await financeiroService.gerarHonorariosArbitrais(processo.id, processo.valor_causa, processo.organization_id || '');
+      await financeiroService.gerarHonorariosArbitrais(processo.id, processo.valor_causa || 0, processo.organization_id || '');
       showToast('Honorários (10%) gerados com sucesso!', 'success');
     } catch (error: any) {
       showToast('Erro ao gerar honorários: ' + error.message, 'error');

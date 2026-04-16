@@ -42,6 +42,13 @@ ChartJS.register(
   Title
 );
 
+interface MonthData {
+  label: string;
+  month: number;
+  year: number;
+  total: number;
+}
+
 export default function FinanceiroBI() {
   const { isGod } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
@@ -53,7 +60,7 @@ export default function FinanceiroBI() {
     const data = rawData || [];
     
     // 1. Processamento por Mês (Últimos 6 meses)
-    const months = [];
+    const months: MonthData[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
@@ -67,7 +74,8 @@ export default function FinanceiroBI() {
 
     data.forEach(reg => {
       if (reg.status === 'Pago') {
-        const regDate = new Date(reg.created_at);
+        const regDateStr = reg.created_at || new Date().toISOString();
+        const regDate = new Date(regDateStr);
         const mIdx = months.findIndex(m => m.month === regDate.getMonth() && m.year === regDate.getFullYear());
         if (mIdx !== -1) {
           months[mIdx].total += Number(reg.valor);
@@ -82,8 +90,9 @@ export default function FinanceiroBI() {
       Hon_Sucumbencia: 0
     };
     data.forEach(reg => {
-      if (dist[reg.tipo as keyof typeof dist] !== undefined) {
-        dist[reg.tipo as keyof typeof dist] += Number(reg.valor);
+      const tipo = reg.tipo as keyof typeof dist;
+      if (dist[tipo] !== undefined) {
+        dist[tipo] += Number(reg.valor);
       }
     });
 
@@ -109,10 +118,10 @@ export default function FinanceiroBI() {
         }]
       },
       stats: [
-        { label: 'Receita Total (Pago)', value: totalReceita, icon: DollarSign, color: 'emerald' },
-        { label: 'Contas a Receber', value: totalPendente, icon: Calendar, color: 'blue' },
-        { label: 'Ticket Médio', value: totalReceita / (data.length || 1), icon: TrendingUp, color: 'purple' },
-        { label: 'Inadimplência', value: (totalPendente / (totalReceita + totalPendente || 1)) * 100, isPercent: true, icon: ArrowDownRight, color: 'red' },
+        { label: 'Receita Total (Pago)', value: totalReceita, icon: DollarSign, color: 'emerald' as const },
+        { label: 'Contas a Receber', value: totalPendente, icon: Calendar, color: 'blue' as const },
+        { label: 'Ticket Médio', value: totalReceita / (data.length || 1), icon: TrendingUp, color: 'purple' as const },
+        { label: 'Inadimplência', value: (totalPendente / (totalReceita + totalPendente || 1)) * 100, isPercent: true, icon: ArrowDownRight, color: 'red' as const },
       ],
       recentTransactions: data.slice(0, 8)
     };
