@@ -24,6 +24,18 @@ export abstract class BaseSupabaseRepository<T> {
     return result as T;
   }
 
+  public async getAll(organizationId: string): Promise<T[]> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .eq('organization_id', organizationId);
+
+    if (error) {
+      return this.handleError(error, 'getAll');
+    }
+    return data || [];
+  }
+
   public async update(id: string, data: Partial<T>): Promise<T> {
     const { data: result, error } = await this.client
       .from(this.tableName)

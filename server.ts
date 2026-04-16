@@ -1,6 +1,7 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
+import nodemailer from "nodemailer";
 
 async function startServer() {
   const app = express();
@@ -109,14 +110,44 @@ async function startServer() {
   });
 
   app.post("/api/vercel/email", async (req, res) => {
-    try {
-      const { to, subject, html } = req.body;
-      console.log(`[Dev Mock Email] Enviando para: ${to}\nAssunto: ${subject}`);
-      // Em dev local a gente loga por padrão e finge sucesso para não exigir o Resend no localhost.
-      res.json({ mock: true, message: "E-mail mockado localmente com sucesso." });
-    } catch (error) {
-      console.error("Erro local disparando email mock", error);
-      res.status(500).json({ error: "Erro interno no servidor de teste" });
+    const { to, subject, html } = req.body;
+
+    // Use Nodemailer if SMTP credentials are provided, otherwise use mock
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT || "587", 10),
+          secure: (process.env.SMTP_PORT === "465"), // true for 465, false for other ports
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
+
+        const info = await transporter.sendMail({
+          from: `"InovaSys" <${process.env.SMTP_USER}>`,
+          to: to,
+          subject: subject,
+          html: html,
+        });
+
+        console.log("Message sent: %s", info.messageId);
+        res.json({ success: true, messageId: info.messageId });
+
+      } catch (error) {
+        console.error("Error sending email with Nodemailer:", error);
+        res.status(500).json({ error: "Failed to send email" });
+      }
+    } else {
+      // Fallback to mock for local development
+      try {
+        console.log(`[Dev Mock Email] Enviando para: ${to}\nAssunto: ${subject}`);
+        res.json({ mock: true, message: "E-mail mockado localmente com sucesso." });
+      } catch (error) {
+        console.error("Erro local disparando email mock", error);
+        res.status(500).json({ error: "Erro interno no servidor de teste" });
+      }
     }
   });
 

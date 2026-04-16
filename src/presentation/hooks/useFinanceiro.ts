@@ -12,7 +12,7 @@ export function useFinanceiroByOrg(organizationId: string | undefined) {
     queryKey: [FINANCEIRO_ORG_KEY, organizationId],
     queryFn: async () => {
       if (!organizationId) return [];
-      return await financeiroService.listByOrganization(organizationId);
+      return await DependencyRegistry.getFinanceiroRepository().listByOrganization(organizationId);
     },
     enabled: !!organizationId,
     staleTime: 1000 * 60 * 5,
@@ -24,7 +24,7 @@ export function useFinanceiroByProcesso(processoId: string | undefined) {
     queryKey: [FINANCEIRO_PROCESS_KEY, processoId],
     queryFn: async () => {
       if (!processoId) return [];
-      return await financeiroService.listByProcesso(processoId);
+      return await DependencyRegistry.getFinanceiroRepository().listByProcesso(processoId);
     },
     enabled: !!processoId,
     staleTime: 1000 * 60 * 5,
@@ -35,7 +35,7 @@ export function useCreateFinanceiro() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: Partial<FinanceiroEntity>) => await financeiroService.create(data),
+    mutationFn: async (data: Partial<FinanceiroEntity>) => await DependencyRegistry.getFinanceiroRepository().create(data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: [FINANCEIRO_ORG_KEY] });
       if (variables.processo_id) {
@@ -61,7 +61,7 @@ export function useUpdateFinanceiro() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<FinanceiroEntity> }) => 
-      await financeiroService.update(id, data),
+      await DependencyRegistry.getFinanceiroRepository().update(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [FINANCEIRO_ORG_KEY] });
       queryClient.invalidateQueries({ queryKey: [FINANCEIRO_PROCESS_KEY] });

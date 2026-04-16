@@ -12,7 +12,8 @@ import {
   DollarSign,
   Activity,
   CalendarDays,
-  ChevronRight
+  ChevronRight,
+  Mail
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { CamaraSwitcher } from './CamaraSwitcher';
@@ -123,6 +124,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               <NavItem id="equipe" icon={Users} label="Minha Equipe" color="blue" />
             )}
 
+            {isAtLeastAdmin && (
+              <NavItem id="email_templates" icon={Mail} label="Templates de E-mail" color="cyan" />
+            )}
+
             {isGlobalAdmin && (
               <NavItem id="templates" icon={FileText} label="Modelos de Docs" color="purple" />
             )}
@@ -145,7 +150,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               <NavItem id="camara" icon={Settings} label="Configurações" color="slate" />
             )}
             {canSeeAudit && (
-              <NavItem id="auditoria" icon={Activity} label="Trilha de Auditoria" color="slate" />
+              <>
+                <NavItem id="auditoria" icon={ShieldCheck} label="Trilha de Auditoria" color="slate" />
+                <NavItem id="efficiency_dashboard" icon={Activity} label="Painel de Eficiência" color="blue" />
+              </>
             )}
           </div>
         )}

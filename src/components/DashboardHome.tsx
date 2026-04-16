@@ -6,7 +6,6 @@ import { useFinanceiroByOrg } from '../presentation/hooks/useFinanceiro';
 import { motion } from 'motion/react';
 import { 
   BarChart3, 
-  Users, 
   TrendingUp, 
   Building2, 
   DollarSign,
@@ -41,8 +40,14 @@ export default function DashboardHome() {
       totalProcessos,
       processosAtivos,
       totalFinanceiro,
-      totalUsuarios: isGod ? 'Global' : 1, // Placeholder para usuários se não houver hook específico solicitado
-      totalCamaras: isGod ? 'Global' : 1
+      totalUsuarios: isGod ? 'Global' : 1,
+      totalCamaras: isGod ? 'Global' : 1,
+      alertas: procs.filter(p => {
+        if (p.status === 'Concluído' || p.status === 'Arquivado') return false;
+        const lastUpdate = new Date(p.updated_at || p.created_at);
+        const diffDays = (new Date().getTime() - lastUpdate.getTime()) / (1000 * 3600 * 24);
+        return diffDays > 7;
+      })
     };
   }, [processosData, financeiroData, isGod]);
 
@@ -50,7 +55,7 @@ export default function DashboardHome() {
 
   const statCards = [
     { label: 'Processos Ativos', value: stats.processosAtivos, icon: Files, color: 'blue' },
-    { label: 'Usuários no Sistema', value: stats.totalUsuarios, icon: Users, color: 'purple' },
+    { label: 'Atenção (Parados > 7d)', value: stats.alertas.length, icon: AlertCircle, color: 'red' },
     { label: isGod ? 'Câmaras Registradas' : 'Status da Câmara', value: isGod ? stats.totalCamaras : 'Ativa', icon: Building2, color: 'amber' },
     { label: 'Volume Financeiro (Pago)', value: `R$ ${stats.totalFinanceiro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'emerald' },
   ];
@@ -90,6 +95,23 @@ export default function DashboardHome() {
           </motion.div>
         ))}
       </div>
+
+      {stats.alertas.length > 0 && (
+        <div className="bg-red-50 border border-red-100 p-6 rounded-3xl">
+           <div className="flex items-center gap-3 mb-4">
+              <AlertCircle className="text-red-600" size={20} />
+              <h3 className="text-sm font-black text-red-900 uppercase tracking-widest">Alertas de Eficiência (Ação Requerida)</h3>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stats.alertas.slice(0, 3).map(p => (
+                <div key={p.id} className="p-4 bg-white rounded-2xl border border-red-50 shadow-sm">
+                   <p className="text-xs font-black text-slate-900 truncate">Proc. {p.numero_processo}</p>
+                   <p className="text-[10px] text-red-500 font-bold uppercase mt-1">Inativo há {Math.floor((new Date().getTime() - new Date(p.updated_at || '').getTime()) / (1000 * 3600 * 24))} dias</p>
+                </div>
+              ))}
+           </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">

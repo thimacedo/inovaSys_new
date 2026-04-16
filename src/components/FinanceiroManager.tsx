@@ -9,9 +9,12 @@ import {
   CheckCircle, 
   Clock, 
   FileText,
-  Calendar
+  Calendar,
+  AlertCircle,
+  TrendingUp
 } from 'lucide-react';
 import { ProcessRowSkeleton } from '../presentation/ui/components/Skeleton';
+import { financialCalculatorService } from '../services/financialCalculatorService';
 
 export default function FinanceiroManager() {
   const [filterStatus, setFilterStatus] = useState<'Todos' | 'Pendente' | 'Pago'>('Todos');
@@ -149,9 +152,23 @@ export default function FinanceiroManager() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className={`text-sm font-black ${reg.status === 'Pago' ? 'text-emerald-600' : 'text-slate-900'}`}>
-                        R$ {Number(reg.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </span>
+                      <div className="flex flex-col items-end">
+                        <span className={`text-sm font-black ${reg.status === 'Pago' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                          R$ {Number(reg.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                        {reg.status === 'Pendente' && reg.data_vencimento && new Date(reg.data_vencimento) < new Date() && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="text-[9px] font-black text-red-500 bg-red-50 px-1.5 py-0.5 rounded uppercase flex items-center gap-1">
+                              <AlertCircle size={8} />
+                              Atrasado
+                            </span>
+                            <span className="text-[10px] font-bold text-blue-600 flex items-center gap-0.5">
+                              <TrendingUp size={10} />
+                              R$ {financialCalculatorService.calcularJurosSimples(Number(reg.valor), new Date(reg.data_vencimento)).valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex justify-center">

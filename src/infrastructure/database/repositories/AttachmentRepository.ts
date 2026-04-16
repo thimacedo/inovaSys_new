@@ -9,6 +9,8 @@ export interface AttachmentEntity {
   tamanho_bytes?: number;
   tipo_conteudo?: string;
   uploaded_by?: string;
+  categoria?: string;
+  metadados_ia?: any;
   created_at?: string;
 }
 

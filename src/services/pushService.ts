@@ -87,9 +87,8 @@ export const pushService = {
           await registration.showNotification(title, {
             body: body,
             icon: '/logo-inovasys.png',
-            badge: '/logo-inovasys.png',
-            vibrate: [100, 50, 100]
-          } as NotificationOptions & { vibrate: number[] });
+            badge: '/logo-inovasys.png'
+          });
         }
       } catch (error) {
         new Notification(title, { body });

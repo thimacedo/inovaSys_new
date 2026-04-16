@@ -13,6 +13,8 @@ import FinanceiroTab from './FinanceiroTab';
 import ProcessAttachments from './ProcessAttachments';
 import ProcessTimeline from './ProcessTimeline';
 import { DocumentCenter } from './DocumentCenter';
+import { ProcessChat } from './ProcessChat';
+import { ProcessAudit } from './ProcessAudit';
 import { useAddHistoryEntry } from '../presentation/hooks/useHistory';
 import { Clock, ExternalLink, FileText, Download, ArrowLeft, ChevronRight, MessageSquare, Send, Users, BarChart3, Wallet, ShieldCheck } from 'lucide-react';
 import { Button } from '../presentation/ui/components/Button';
@@ -293,8 +295,10 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
               { id: 'partes', label: 'Partes', icon: Users },
               { id: 'fatos', label: 'Causa', icon: MessageSquare },
               { id: 'documentos', label: 'Documentos', icon: FileText },
+              { id: 'mensagens', label: 'Mensagens', icon: MessageSquare },
               { id: 'anexos', label: 'Arquivos', icon: FileText },
               { id: 'historico', label: 'Linha do Tempo', icon: Clock },
+              { id: 'auditoria', label: 'Auditoria', icon: ShieldCheck },
               { id: 'financeiro', label: 'Financeiro', icon: Wallet }
             ].map((tab) => (
               <button 
@@ -413,6 +417,12 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
               </motion.div>
             )}
 
+            {activeTab === 'mensagens' && (
+              <motion.div key="mensagens" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <ProcessChat processoId={processId} />
+              </motion.div>
+            )}
+
             {activeTab === 'anexos' && (
               <ProcessAttachments processoId={processId} />
             )}
@@ -458,6 +468,12 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
 
                 <ProcessTimeline processoId={processId} />
               </div>
+            )}
+
+            {activeTab === 'auditoria' && (
+              <motion.div key="auditoria" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <ProcessAudit processoId={processId} />
+              </motion.div>
             )}
 
             {activeTab === 'financeiro' && (

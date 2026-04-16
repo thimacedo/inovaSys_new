@@ -23,11 +23,13 @@ const CamaraConfig = lazy(() => import('./CamaraConfig'));
 const Ecossistema = lazy(() => import('./Ecossistema'));
 const ProcessDetails = lazy(() => import('./ProcessDetails'));
 const Auditoria = lazy(() => import('./Auditoria'));
+const EfficiencyDashboard = lazy(() => import('./EfficiencyDashboard'));
 const TemplateManager = lazy(() => import('./TemplateManager'));
 const DashboardHome = lazy(() => import('./DashboardHome'));
 const FinanceiroBI = lazy(() => import('./FinanceiroBI'));
 const FinanceiroManager = lazy(() => import('./FinanceiroManager'));
 const CalendarView = lazy(() => import('./CalendarView'));
+const EmailTemplatesPage = lazy(() => import('../presentation/pages/Admin/EmailTemplatesPage'));
 
 export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: any, userProfile: any, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
   const { canManageTeam, canCreateProcess, canSeeAudit, isGlobalAdmin, isAtLeastAdmin } = usePermissions();
@@ -49,7 +51,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
       if (window.innerWidth >= 1024) {
         setIsSidebarOpen(prev => {
           // ✅ Correção definitiva: NUNCA fecha automaticamente no desktop
-          // Se o usuário fechou manualmente, respeita a escolha
+          // Se o usuário fechou manually, respeita a escolha
           return prev === false ? false : true;
         });
       }
@@ -142,8 +144,12 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
         return isGlobalAdmin ? <Ecossistema /> : <DashboardHome />;
       case 'auditoria':
         return canSeeAudit ? <Auditoria /> : <DashboardHome />;
+      case 'efficiency_dashboard':
+        return canSeeAudit ? <EfficiencyDashboard /> : <DashboardHome />;
       case 'templates':
         return isGlobalAdmin ? <TemplateManager /> : <DashboardHome />;
+       case 'email_templates':
+        return isAtLeastAdmin ? <EmailTemplatesPage /> : <DashboardHome />;
       case 'financeiro':
         return isAtLeastAdmin ? <FinanceiroManager /> : <DashboardHome />;
       case 'financeiro_bi':

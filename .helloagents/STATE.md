@@ -28,6 +28,9 @@
 4. **Auditoria de Visualização**: ✅ Concluído.
 5. **Upload Drag-and-Drop**: ✅ Concluído.
 6. **Dashboard de Eficiência**: ✅ Concluído.
+7. **Chat em Tempo Real**: ✅ Concluído.
+8. **Consulta Pública de Sentenças**: ✅ Concluído.
+9. **E-mail Service 2.0**: ✅ Concluído.
 ... (30 passos totais planejados)
 
 ## Próximo Passo

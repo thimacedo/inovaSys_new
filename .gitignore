@@ -9,3 +9,5 @@ coverage/
 
 # Vercel output
 .vercel/
+.vercel
+.env*.local

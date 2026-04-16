@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as html2pdfModule from 'html2pdf.js';
 import { useModal } from '../context/ModalContext';
 import { useAI } from '../presentation/hooks/useExternalServices';
+import { useAuthStore } from '../presentation/state/useAuthStore';
+import { auditService } from '../services/auditService';
 import { Bot, Download, PenTool, Loader2 } from 'lucide-react';
 
 const html2pdf = (html2pdfModule as any).default || html2pdfModule;
@@ -9,14 +11,22 @@ const html2pdf = (html2pdfModule as any).default || html2pdfModule;
 interface DocumentPreviewProps {
   html: string;
   fileName: string;
+  processoId?: string;
   onSignatureRequest?: (html: string) => void;
 }
 
-const DocumentPreview: React.FC<DocumentPreviewProps> = ({ html, fileName, onSignatureRequest }) => {
+const DocumentPreview: React.FC<DocumentPreviewProps> = ({ html, fileName, processoId, onSignatureRequest }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const { showPrompt, showToast } = useModal();
   const [isGenerating, setIsGenerating] = useState(false);
   const { suggestMutation } = useAI();
+  const currentUser = useAuthStore(state => state.currentUser);
+
+  useEffect(() => {
+    if (processoId && currentUser?.id) {
+      auditService.registrarVisualizacao(fileName, processoId, currentUser.id);
+    }
+  }, [processoId, fileName, currentUser?.id]);
 
   useEffect(() => {
     if (!contentRef.current) return;

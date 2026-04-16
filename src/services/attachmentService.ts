@@ -8,7 +8,9 @@ export const attachmentService = {
   deleteAttachment: async (id: string, storagePath: string) => 
     DependencyRegistry.getAttachmentRepository().deleteAttachment(id, storagePath),
   getDownloadUrl: async (storagePath: string) => 
-    DependencyRegistry.getAttachmentRepository().getDownloadUrl(storagePath)
+    DependencyRegistry.getAttachmentRepository().getDownloadUrl(storagePath),
+  updateMetadata: async (id: string, data: { categoria?: string, metadados_ia?: any }) =>
+    DependencyRegistry.getAttachmentRepository().update(id, data)
 };
 
 export default attachmentService;

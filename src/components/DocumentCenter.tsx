@@ -6,7 +6,7 @@ import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useModal } from '../context/ModalContext';
 import DocumentPreview from './DocumentPreview';
 import { Button } from '../presentation/ui/components/Button';
-import { FileText, Eye, X, CheckCircle, Clock, ShieldCheck } from 'lucide-react';
+import { FileText, Eye, X, ShieldCheck } from 'lucide-react';
 
 interface DocumentCenterProps {
   processo: Processo;
@@ -175,6 +175,7 @@ export const DocumentCenter: React.FC<DocumentCenterProps> = ({ processo, arbitr
           <DocumentPreview 
             html={previewHtml} 
             fileName={`${documentTypes.find(d => d.id === selectedDocType)?.name}_${processo.numero_processo}`}
+            processoId={processo.id}
             onSignatureRequest={handleSign}
           />
         </div>

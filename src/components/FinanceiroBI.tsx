@@ -25,7 +25,6 @@ import {
   ArrowDownRight, 
   PieChart,
   Calendar,
-  Filter,
   RefreshCw,
   BarChart3,
   ArrowUpRight

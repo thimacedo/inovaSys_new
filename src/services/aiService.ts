@@ -69,6 +69,31 @@ export const aiService = {
     } catch (e) {
       return text;
     }
+  },
+
+  extractMechanicalData: async (text: string) => {
+    try {
+      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+        systemInstruction: `Você é um extrator de dados estruturados. Sua única tarefa é identificar e extrair informações mecânicas de documentos jurídicos. 
+        Não interprete, não sugira e não avalie o mérito. Apenas retorne um JSON com os campos: 
+        tipo_documento (ex: Contrato, RG, Comprovante), partes (array de strings), valores (array de números), datas (array de strings ISO).`
+      });
+
+      const prompt = `Extraia os dados técnicos do seguinte texto:\n\n${text}`;
+      
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const resultText = response.text();
+      
+      // Limpa o texto para garantir que seja um JSON válido
+      const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+      return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+    } catch (e) {
+      console.error('[AIService] Erro na extração de dados:', e);
+      return null;
+    }
   }
 };
 

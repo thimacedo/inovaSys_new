@@ -10,6 +10,9 @@ import { TeamRepository } from '../database/repositories/TeamRepository';
 import { AuditRepository } from '../database/repositories/AuditRepository';
 import { HistoryRepository } from '../database/repositories/HistoryRepository';
 import { CalendarRepository } from '../database/repositories/CalendarRepository';
+import { EmailRepository } from '../database/repositories/EmailRepository';
+import { MessageRepository } from '../database/repositories/MessageRepository';
+import { PublicConsultationRepository } from '../database/repositories/PublicConsultationRepository';
 import { GetUserByEmailUseCase } from '../../core/usecases/GetUserByEmailUseCase';
 
 export class DependencyRegistry {
@@ -24,6 +27,9 @@ export class DependencyRegistry {
   private static auditRepository: AuditRepository | null = null;
   private static historyRepository: HistoryRepository | null = null;
   private static calendarRepository: CalendarRepository | null = null;
+  private static emailRepository: EmailRepository | null = null;
+  private static messageRepository: MessageRepository | null = null;
+  private static publicConsultationRepository: PublicConsultationRepository | null = null;
 
   public static getUserRepository(): UserRepository {
     if (!this.userRepository) this.userRepository = new UserRepository(SupabaseClientFactory.createBrowser());
@@ -88,6 +94,27 @@ export class DependencyRegistry {
       this.calendarRepository = new CalendarRepository(SupabaseClientFactory.createBrowser());
     }
     return this.calendarRepository;
+  }
+
+  public static getEmailRepository(): EmailRepository {
+    if (!this.emailRepository) {
+      this.emailRepository = new EmailRepository(SupabaseClientFactory.createBrowser());
+    }
+    return this.emailRepository;
+  }
+
+  public static getMessageRepository(): MessageRepository {
+    if (!this.messageRepository) {
+      this.messageRepository = new MessageRepository(SupabaseClientFactory.createBrowser());
+    }
+    return this.messageRepository;
+  }
+
+  public static getPublicConsultationRepository(): PublicConsultationRepository {
+    if (!this.publicConsultationRepository) {
+      this.publicConsultationRepository = new PublicConsultationRepository(SupabaseClientFactory.createBrowser());
+    }
+    return this.publicConsultationRepository;
   }
 
   public static getGetUserByEmailUseCase(): GetUserByEmailUseCase {

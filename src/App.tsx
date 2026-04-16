@@ -112,7 +112,7 @@ function AppContent() {
     );
   }
 
-  if (view === 'public') return <PublicConsultation onBack={() => setView('auth')} />;
+  if (view === 'public') return <PublicConsultation />;
   if (view === 'pricing') return <Pricing onBack={() => setView('auth')} />;
   if (view === 'onboarding') return <Onboarding session={{ user: currentUser }} onComplete={() => setView('app')} onSignOut={handleSignOut} />;
   

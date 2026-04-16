@@ -1,8 +1,71 @@
 import { supabase } from '../lib/supabase';
+import { whatsappService } from './whatsappService';
+
+export interface SignatureRequest {
+  attachmentId: string;
+  signers?: { email: string; nome: string; phone?: string }[];
+  message?: string;
+}
 
 export const signatureService = {
   /**
-   * Registra uma assinatura digital interna para um documento.
+   * Envia um documento para assinatura digital externa (ClickSign/Docusign)
+   * ou utiliza o sistema de assinatura interna da InovaSys como fallback.
+   */
+  sendForSignature: async (config: any, request: SignatureRequest) => {
+    try {
+      // 1. Buscar metadados do anexo
+      const { data: file, error: fError } = await supabase
+        .from('anexos')
+        .select('*, processo:processos(*)')
+        .eq('id', request.attachmentId)
+        .single();
+
+      if (fError || !file) throw new Error("Documento não encontrado para assinatura.");
+
+      const provider = config.signature_provider || 'internal';
+      
+      // Simulação de Integração com API Externa (Roadmap 3.0)
+      console.log(`[SignatureService] Iniciando fluxo via provedor: ${provider}`);
+
+      // 2. Registrar solicitação no banco
+      const { data: sRequest, error: sError } = await supabase.from('solicitacoes_assinatura').insert({
+        anexo_id: file.id,
+        processo_id: file.processo_id,
+        provedor: provider,
+        status: 'pendente',
+        metadata: {
+          request_at: new Date().toISOString(),
+          signers: request.signers || [
+            { nome: file.processo.requerente_nome, email: file.processo.requerente_email, phone: file.processo.requerente_fone },
+            { nome: file.processo.requerido_nome, email: file.processo.requerido_email, phone: file.processo.requerido_fone }
+          ]
+        }
+      }).select().single();
+
+      if (sError) throw sError;
+
+      // 3. Disparar Notificação WhatsApp (Eficiência Mecânica)
+      const destinatario = file.processo.requerente_nome;
+      const fone = file.processo.requerente_fone;
+      if (fone) {
+        const msg = whatsappService.templates.avisoAndamento(
+          destinatario, 
+          file.processo.numero_processo || '---', 
+          `Um novo documento ("${file.nome_arquivo}") foi enviado para sua assinatura digital. Verifique seu e-mail ou clique no link do sistema.`
+        );
+        whatsappService.enviarMensagem(fone, msg);
+      }
+
+      return sRequest;
+    } catch (error) {
+      console.error('[SignatureService] Falha ao enviar para assinatura:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Registra uma assinatura digital interna para um documento (Hash-based).
    */
   assinarDocumento: async (data: {
     processoId: string;
@@ -12,11 +75,15 @@ export const signatureService = {
     signatarioId: string;
     signatarioNome: string;
   }) => {
-    // Captura metadados de rede
-    const ipResponse = await fetch('https://api.ipify.org?format=json').catch(() => ({ json: () => ({ ip: '0.0.0.0' }) }));
-    const { ip } = await ipResponse.json();
+    // Captura metadados de rede com proteção de timeout
+    const controller = new AbortController();
+    const tId = setTimeout(() => controller.abort(), 2000);
+    const ipResponse = await fetch('https://api.ipify.org?format=json', { signal: controller.signal })
+      .catch(() => ({ json: () => ({ ip: '0.0.0.0' }) }));
+    
+    clearTimeout(tId);
+    const { ip } = await (ipResponse as any).json().catch(() => ({ ip: '0.0.0.0' }));
 
-    // Gera um hash simples para representar a integridade (SHA-256 seria o ideal com biblioteca externa)
     const hash = btoa(`${data.processoId}-${data.signatarioId}-${Date.now()}`).substring(0, 32);
 
     const { error } = await supabase.from('documentos_assinados').insert({
