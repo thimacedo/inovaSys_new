@@ -50,8 +50,13 @@ Entregar a plataforma InovaSys para Gestão Arbitral 100% funcional, segura, tot
 
 ### 🔗 Fase 6: Integrações e Ecossistema (PRÓXIMA)
 - [ ] Conexão via API com tribunais (Homologação Judicial).
-- [ ] Gateway de pagamento com split de honorários.
-- [ ] **Integração com Assinatura Gov.br (ITI):**
+- [ ] **Gateway de Pagamento com Split (Iugu):**
+    - [ ] Implementar `IuguService` para criação automatizada de subcontas por Câmara.
+    - [ ] Configurar lógica de Split de 3 vias (Plataforma / Câmara / Árbitro).
+    - [ ] Criar Webhook para liquidação automática de custas processuais.
+    - [ ] Interface de checkout para as partes (Boleto, PIX e Cartão).
+- [ ] Integração com Assinatura Gov.br (ITI).
+
     - [ ] Implementar fluxo de autorização OAuth2 (Escopo: `sign`).
     - [ ] Desenvolver serviço de geração de Hash SHA-256 para PDFs.
     - [ ] Criar endpoint de callback para injeção de assinatura PKCS#7.
