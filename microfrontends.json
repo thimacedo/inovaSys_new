@@ -1,10 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/microfrontends.json",
   "applications": {
-    "inovasys": {
+    "web": {
       "development": {
         "fallback": "inovasys-navy.vercel.app"
       }
+    },
+    "docs": {
+      "routing": [
+        {
+          "group": "docs",
+          "paths": ["/docs/:path*"]
+        }
+      ]
     }
   }
 }
