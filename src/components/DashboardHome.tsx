@@ -8,10 +8,11 @@ import {
   BarChart3, 
   TrendingUp, 
   Building2, 
-  DollarSign,
-  CheckCircle,
   Files,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck,
+  Database,
+  Bot
 } from 'lucide-react';
 
 export default function DashboardHome() {
@@ -148,31 +149,37 @@ export default function DashboardHome() {
 
         <div className="bg-slate-900 p-8 rounded-3xl text-white relative overflow-hidden flex flex-col justify-between">
            <div className="absolute top-0 right-0 p-8 opacity-10">
-              <Building2 size={120} />
+              <ShieldCheck size={120} />
            </div>
            
            <div>
-              <h3 className="text-xl font-bold mb-2">Ecossistema Digital</h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-6">Você está operando na plataforma InovaSys v2.0. Novas funcionalidades de IA e assinatura digital estão sendo integradas hoje.</p>
+              <h3 className="text-xl font-bold mb-2 tracking-tight">Segurança & Performance</h3>
+              <p className="text-slate-400 text-sm leading-relaxed mb-6 font-medium">Infraestrutura monitorada em tempo real com isolamento de dados e assistência de IA ativa.</p>
               
               <div className="space-y-4">
-                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
-                       <CheckCircle size={16} />
+                 <div className="flex items-center gap-3 group/item">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover/item:scale-110 transition-transform">
+                       <Database size={16} />
                     </div>
-                    <span className="text-xs font-medium">Backup automático ativo</span>
+                    <span className="text-xs font-semibold tracking-wide">Backup Redundante (15m)</span>
                  </div>
-                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                       <DollarSign size={16} />
+                 <div className="flex items-center gap-3 group/item">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover/item:scale-110 transition-transform">
+                       <ShieldCheck size={16} />
                     </div>
-                    <span className="text-xs font-medium">Certificado SSL Válido</span>
+                    <span className="text-xs font-semibold tracking-wide">AES-256 Encryption</span>
+                 </div>
+                 <div className="flex items-center gap-3 group/item">
+                    <div className="w-8 h-8 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-400 group-hover/item:scale-110 transition-transform">
+                       <Bot size={16} />
+                    </div>
+                    <span className="text-xs font-semibold tracking-wide text-blue-100">IA Engine: Operacional</span>
                  </div>
               </div>
            </div>
 
-           <button className="w-full mt-8 py-4 bg-white text-slate-900 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-colors">
-              Explorar Novidades
+           <button className="w-full mt-8 py-4 bg-white text-slate-900 rounded-2xl font-black text-sm hover:bg-slate-100 transition-all hover:shadow-lg active:scale-[0.98]">
+              Diagnóstico Completo
            </button>
         </div>
       </div>
