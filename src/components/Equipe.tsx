@@ -38,7 +38,8 @@ export default function Equipe({ camaraId: propCamaraId }: { camaraId?: string }
 
     // 3. Segundo: Agrupamento por Nível de Acesso (Cargo)
     return sorted.reduce((acc: Record<string, any[]>, m) => {
-      const role = m.tipo_usuario || 'arbitro';
+      let role = m.tipo_usuario?.toLowerCase() || 'arbitro';
+      if (role === 'operador') role = 'assistente'; // 🔄 Migração: Operador -> Assistente (Legado)
       if (!acc[role]) acc[role] = [];
       acc[role].push(m);
       return acc;

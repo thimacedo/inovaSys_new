@@ -2,34 +2,34 @@
 
 /* 
   INOVASYS - MATERIAL YOU (MD3) CORE 
-  Design System Baseado em Superfícies Tonais, Formas Orgânicas e Micro-interações.
+  Mapeamento Tonal Dinâmico para Suporte a Modo Claro e Escuro.
 */
 
 @theme {
   --font-sans: 'Roboto', 'Inter', system-ui, sans-serif;
+
+  /* Mapeamento de Variáveis Reativas */
+  --color-md-primary: var(--md-sys-color-primary);
+  --color-md-on-primary: var(--md-sys-color-on-primary);
+  --color-md-primary-container: var(--md-sys-color-primary-container);
+  --color-md-on-primary-container: var(--md-sys-color-on-primary-container);
   
-  /* MD3 Core Tonal Palette (Seed: #6750A4) */
-  --color-md-primary: #6750A4;
-  --color-md-on-primary: #FFFFFF;
-  --color-md-primary-container: #EADDFF;
-  --color-md-on-primary-container: #21005D;
+  --color-md-secondary: var(--md-sys-color-secondary);
+  --color-md-on-secondary: var(--md-sys-color-on-secondary);
+  --color-md-secondary-container: var(--md-sys-color-secondary-container);
+  --color-md-on-secondary-container: var(--md-sys-color-on-secondary-container);
   
-  --color-md-secondary: #625B71;
-  --color-md-on-secondary: #FFFFFF;
-  --color-md-secondary-container: #E8DEF8;
-  --color-md-on-secondary-container: #1D192B;
+  --color-md-tertiary: var(--md-sys-color-tertiary);
+  --color-md-on-tertiary: var(--md-sys-color-on-tertiary);
+  --color-md-tertiary-container: var(--md-sys-color-tertiary-container);
+  --color-md-on-tertiary-container: var(--md-sys-color-on-tertiary-container);
   
-  --color-md-tertiary: #7D5260;
-  --color-md-on-tertiary: #FFFFFF;
-  --color-md-tertiary-container: #FFD8E4;
-  --color-md-on-tertiary-container: #31111D;
+  --color-md-surface: var(--md-sys-color-surface);
+  --color-md-on-surface: var(--md-sys-color-on-surface);
+  --color-md-surface-variant: var(--md-sys-color-surface-variant);
+  --color-md-on-surface-variant: var(--md-sys-color-on-surface-variant);
   
-  --color-md-surface: #FFFBFE;
-  --color-md-on-surface: #1C1B1F;
-  --color-md-surface-variant: #E7E0EC;
-  --color-md-on-surface-variant: #49454F;
-  
-  --color-md-outline: #79747E;
+  --color-md-outline: var(--md-sys-color-outline);
   
   /* Elevations */
   --shadow-md-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30);
@@ -37,12 +37,30 @@
   --shadow-md-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.30);
 }
 
-/* Configuração do Variant Dark para MD3 */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-
+/* ☀️ LIGHT THEME TOKENS (Padrão) */
 :root {
-  --bg-app: var(--color-md-surface);
-  --text-main: var(--color-md-on-surface);
+  --md-sys-color-primary: #6750A4;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #EADDFF;
+  --md-sys-color-on-primary-container: #21005D;
+  
+  --md-sys-color-secondary: #625B71;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #E8DEF8;
+  --md-sys-color-on-secondary-container: #1D192B;
+  
+  --md-sys-color-tertiary: #7D5260;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #FFD8E4;
+  --md-sys-color-on-tertiary-container: #31111D;
+  
+  --md-sys-color-surface: #FFFBFE;
+  --md-sys-color-on-surface: #1C1B1F;
+  --md-sys-color-surface-variant: #E7E0EC;
+  --md-sys-color-on-surface-variant: #49454F;
+  
+  --md-sys-color-outline: #79747E;
+
   --radius-xs: 8px;
   --radius-sm: 12px;
   --radius-md: 16px;
@@ -51,15 +69,35 @@
   --radius-2xl: 32px;
 }
 
+/* 🌙 DARK THEME TOKENS Override */
 [data-theme="dark"] {
-  --bg-app: #1C1B1F;
-  --text-main: #E6E1E5;
+  --md-sys-color-primary: #D0BCFF;
+  --md-sys-color-on-primary: #381E72;
+  --md-sys-color-primary-container: #4F378B;
+  --md-sys-color-on-primary-container: #EADDFF;
+  
+  --md-sys-color-secondary: #CCC2DC;
+  --md-sys-color-on-secondary: #332D41;
+  --md-sys-color-secondary-container: #4A4458;
+  --md-sys-color-on-secondary-container: #E8DEF8;
+  
+  --md-sys-color-tertiary: #EFB8C8;
+  --md-sys-color-on-tertiary: #492532;
+  --md-sys-color-tertiary-container: #633B48;
+  --md-sys-color-on-tertiary-container: #FFD8E4;
+  
+  --md-sys-color-surface: #1C1B1F;
+  --md-sys-color-on-surface: #E6E1E5;
+  --md-sys-color-surface-variant: #49454F;
+  --md-sys-color-on-surface-variant: #CAC4D0;
+  
+  --md-sys-color-outline: #938F99;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-app);
-  color: var(--text-main);
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.4s cubic-bezier(0.2, 0, 0, 1), color 0.4s cubic-bezier(0.2, 0, 0, 1);

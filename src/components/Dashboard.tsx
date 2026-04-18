@@ -1,10 +1,11 @@
-import { useState, lazy, Suspense, useEffect } from 'react';
+import { useState, lazy, Suspense, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
-import { ShieldCheck, HelpCircle } from 'lucide-react';
+import { ShieldCheck, HelpCircle, Info } from 'lucide-react';
 import Sidebar from './Sidebar';
 import HelpCenter from './HelpCenter';
 import { usePermissions } from '../hooks/usePermissions';
+import { useAuthStore } from '../presentation/state/useAuthStore';
 
 // 🧩 Sub-módulo Layout MD3
 import { Topbar } from './layout/Topbar';
@@ -24,6 +25,7 @@ const CalendarView = lazy(() => import('./CalendarView'));
 const EmailTemplatesPage = lazy(() => import('../presentation/pages/Admin/EmailTemplatesPage'));
 
 export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: any, userProfile: any, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
+  const { currentUser } = useAuthStore();
   const { canManageTeam, canCreateProcess, canSeeAudit, isGlobalAdmin, isAtLeastAdmin } = usePermissions();
   
   // 🧭 Persistência de Navegação: Inicialização via localStorage
@@ -34,10 +36,15 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
+  // 🏛️ Reatividade de Unidade: Prioriza a organização selecionada no Switcher
+  const activeOrgId = useMemo(() => {
+    return currentUser?.organization_id || userProfile?.camara_id;
+  }, [currentUser?.organization_id, userProfile?.camara_id]);
+
   // 🔄 Efeito de Persistência e Refinação de UX
   useEffect(() => {
     // 🧭 Log de Depuração solicitado
-    console.log('🧭 Persistindo:', {view: currentView, id: selectedProcessId});
+    console.log('🧭 Persistindo:', {view: currentView, id: selectedProcessId, org: activeOrgId});
 
     // Salvar estados no localStorage
     localStorage.setItem('inovasys_current_view', currentView);
@@ -52,11 +59,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
     if (currentView === 'process_details' && !selectedProcessId) {
       setCurrentView('dash');
     }
-
-    // 🧹 Limpeza Automática REMOVIDA para permitir persistência cross-tab
-    // O selectedProcessId deve permanecer mesmo que a view não seja 'process_details'
-    // A limpeza agora ocorre apenas via onBack manual no renderView
-  }, [currentView, selectedProcessId]);
+  }, [currentView, selectedProcessId, activeOrgId]);
 
   useEffect(() => {
     if (window.innerWidth < 1024) setIsSidebarOpen(false);
@@ -81,69 +84,58 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
 
   useEffect(() => {
     const loadConfig = async () => {
-      const impersonatedId = localStorage.getItem('impersonated_camara_id');
-
-      if (impersonatedId) {
-        const { data } = await supabase.from('camaras').select('*').eq('id', impersonatedId).maybeSingle();
-        if (data) { setCamaraConfig(data); return; }
-      }
-
-      const config = localStorage.getItem('camara_config');
-      if (config) {
-        setCamaraConfig(JSON.parse(config));
-      } else if (userProfile?.camara_id) {
-        const { data } = await supabase.from('camaras').select('*').eq('id', userProfile.camara_id).maybeSingle();
-        if (data) {
-          setCamaraConfig(data);
+      if (activeOrgId) {
+        const { data } = await supabase.from('camaras').select('*').eq('id', activeOrgId).maybeSingle();
+        if (data) { 
+          setCamaraConfig(data); 
           localStorage.setItem('camara_config', JSON.stringify(data));
+          return; 
         }
       }
     };
 
     loadConfig();
-    window.addEventListener('storage', loadConfig);
-    
-    if (window.innerWidth >= 1024) setIsSidebarOpen(true);
-    return () => window.removeEventListener('storage', loadConfig);
-  }, [userProfile]);
+  }, [activeOrgId]);
 
   const handleProcessSelect = (id: string) => {
     setSelectedProcessId(id);
     setCurrentView('process_details');
   };
 
-  const isImpersonating = !!localStorage.getItem('impersonated_camara_id');
+  // Verifica se o usuário está vendo uma unidade específica sendo um administrador global (impersonation)
+  const isImpersonating = useMemo(() => {
+    return !!currentUser?.organization_id && currentUser.organization_id !== userProfile?.camara_id;
+  }, [currentUser?.organization_id, userProfile?.camara_id]);
 
   const handleExitImpersonation = () => {
-    localStorage.removeItem('impersonated_camara_id');
-    window.location.reload();
+    const { updateOrganization } = useAuthStore.getState();
+    updateOrganization(userProfile?.camara_id);
   };
 
   const renderView = () => {
     switch (currentView) {
-      case 'dash': return <DashboardHome />;
-      case 'process_list': return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
+      case 'dash': return <DashboardHome camaraId={activeOrgId} />;
+      case 'process_list': return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} camaraId={activeOrgId} />;
       case 'novo':
-        if (canCreateProcess) return <NewProcess onProcessCreated={() => setCurrentView('dash')} camaraId={localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id} />;
-        return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
+        if (canCreateProcess) return <NewProcess onProcessCreated={() => setCurrentView('dash')} camaraId={activeOrgId} />;
+        return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} camaraId={activeOrgId} />;
       case 'process_details':
-        // 🧹 Limpeza Manual: selectedProcessId é limpo apenas aqui no onBack
         return selectedProcessId ? <ProcessDetails processId={selectedProcessId!} onBack={() => { setSelectedProcessId(null); setCurrentView('dash'); }} /> : <div>Selecione um processo</div>;
-      case 'equipe': return canManageTeam ? <Equipe camaraId={localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id} /> : <DashboardHome />;
-      case 'camara': return canManageTeam ? <CamaraConfig camaraId={localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id} /> : <DashboardHome />;
-      case 'vendas': return isGlobalAdmin ? <Ecossistema /> : <DashboardHome />;
-      case 'auditoria': return canSeeAudit ? <Auditoria /> : <DashboardHome />;
-      case 'efficiency_dashboard': return canSeeAudit ? <EfficiencyDashboard /> : <DashboardHome />;
-      case 'templates': return isGlobalAdmin ? <TemplateManager /> : <DashboardHome />;
-      case 'email_templates': return isAtLeastAdmin ? <EmailTemplatesPage /> : <DashboardHome />;
-      case 'financial_hub': return isAtLeastAdmin ? <FinancialHub /> : <DashboardHome />;
+      case 'equipe': return canManageTeam ? <Equipe camaraId={activeOrgId} /> : <DashboardHome camaraId={activeOrgId} />;
+      case 'camara': return canManageTeam ? <CamaraConfig camaraId={activeOrgId} /> : <DashboardHome camaraId={activeOrgId} />;
+      case 'vendas': return isGlobalAdmin ? <Ecossistema /> : <DashboardHome camaraId={activeOrgId} />;
+      case 'auditoria': return canSeeAudit ? <Auditoria /> : <DashboardHome camaraId={activeOrgId} />;
+      case 'efficiency_dashboard': return canSeeAudit ? <EfficiencyDashboard /> : <DashboardHome camaraId={activeOrgId} />;
+      case 'templates': return isGlobalAdmin ? <TemplateManager /> : <DashboardHome camaraId={activeOrgId} />;
+      case 'email_templates': return isAtLeastAdmin ? <EmailTemplatesPage /> : <DashboardHome camaraId={activeOrgId} />;
+      case 'financial_hub': return isAtLeastAdmin ? <FinancialHub camaraId={activeOrgId} /> : <DashboardHome camaraId={activeOrgId} />;
       case 'calendar': return <CalendarView />;
-      default: return <DashboardHome />;
+      default: return <DashboardHome camaraId={activeOrgId} />;
     }
   };
 
   return (
-    <div id="layout-shell" className="flex flex-col min-h-screen bg-md-surface overflow-x-hidden relative selection:bg-md-primary-container selection:text-md-on-primary-container z-0">
+    <div id="layout-shell" className={`flex flex-col min-h-screen bg-md-surface overflow-x-hidden relative selection:bg-md-primary-container selection:text-md-on-primary-container z-0 transition-all duration-500 ${isImpersonating ? 'border-[6px] border-md-tertiary' : ''}`}>
       
       {/* ✨ MD3 Organic Blur Shapes (Atmosfera Visual) */}
       <div className="md-blur-shape bg-md-primary/10 w-[600px] h-[600px] -top-48 -right-48" />
@@ -176,26 +168,42 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
           <AnimatePresence mode="wait">
             {isImpersonating && (
               <motion.div 
-                initial={{ opacity: 0, y: -10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: -10 }} 
-                className="mb-8 p-6 bg-md-tertiary-container text-md-on-tertiary-container rounded-[24px] flex justify-between items-center shadow-md-1 border border-md-outline/10"
+                initial={{ opacity: 0, y: -20, scale: 0.95 }} 
+                animate={{ opacity: 1, y: 0, scale: 1 }} 
+                exit={{ opacity: 0, y: -20, scale: 0.95 }} 
+                className="mb-8 p-6 bg-md-tertiary-container text-md-on-tertiary-container rounded-[32px] flex justify-between items-center shadow-md-2 border border-md-tertiary/20 relative overflow-hidden"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-md-tertiary rounded-2xl flex items-center justify-center text-md-on-tertiary shadow-sm">
-                    <ShieldCheck size={24} />
+                {/* Visual Accent */}
+                <div className="absolute top-0 left-0 w-2 h-full bg-md-tertiary" />
+                
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 bg-md-tertiary rounded-[20px] flex items-center justify-center text-md-on-tertiary shadow-md rotate-3">
+                    <ShieldCheck size={28} />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest font-black opacity-70">Modo de Visualização (God Mode)</p>
-                    <p className="text-base font-bold mt-0.5">Gerenciando: <span className="text-md-tertiary">{camaraConfig?.nome}</span></p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[10px] uppercase tracking-[0.2em] font-black opacity-70">Unidade em Impersonation</p>
+                      <span className="px-2 py-0.5 bg-md-tertiary text-md-on-tertiary text-[8px] font-bold rounded-full uppercase tracking-tighter">Ativo</span>
+                    </div>
+                    <p className="text-xl font-bold mt-0.5 tracking-tight text-md-on-tertiary-container">Gerenciando: <span className="text-md-tertiary italic">{camaraConfig?.nome}</span></p>
                   </div>
                 </div>
-                <button 
-                  onClick={handleExitImpersonation} 
-                  className="px-6 py-3 bg-md-surface/50 hover:bg-md-surface border border-md-outline/10 text-md-on-surface rounded-full text-xs font-bold transition-all shadow-sm active:scale-95"
-                >
-                  Encerrar Visualização
-                </button>
+                
+                <div className="flex items-center gap-3">
+                  <div className="hidden md:flex flex-col items-end mr-4 text-right opacity-60">
+                    <div className="flex items-center gap-1.5">
+                      <Info size={12} />
+                      <p className="text-[10px] font-medium tracking-wide uppercase">Visão de Administrador</p>
+                    </div>
+                    <p className="text-[9px]">Alterações afetam esta unidade</p>
+                  </div>
+                  <button 
+                    onClick={handleExitImpersonation} 
+                    className="px-8 py-3.5 bg-md-tertiary text-md-on-tertiary hover:bg-md-tertiary/90 border border-white/10 rounded-2xl text-xs font-black transition-all shadow-md active:scale-95 hover:shadow-lg flex items-center gap-2 group"
+                  >
+                    VOLTAR PARA GLOBAL
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

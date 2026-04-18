@@ -1,97 +1,75 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
+/**
+ * 🤖 AI SERVICE - MULTI-PROVIDER (GEMINI & GROK)
+ * Sistema de inteligência de contingência para InovaSys v2.0.
+ */
 
-const SYSTEM_INSTRUCTION = `Você é um Assistente Administrativo de Digitação e Formatação da InovaSys, uma plataforma de Câmaras de Arbitragem.
-Sua função é ESTRITAMENTE MECÂNICA E ADMINISTRATIVA: formatar textos, corrigir gramática, e gerar minutas de documentos BASEADAS EXCLUSIVAMENTE nas diretrizes explícitas fornecidas pelo usuário.
-DIRETRIZ IMUTÁVEL: Você NUNCA deve analisar provas, julgar mérito, identificar contradições, sugerir caminhos jurídicos ou influenciar a decisão do árbitro. Se for solicitado a analisar o mérito de um caso, recuse-se e informe que sua função é apenas formatação textual.`;
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const GROK_KEY = import.meta.env.VITE_GROK_API_KEY || ''; // Chave de contingência carregada via ENV
+
+const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+
+const SYSTEM_INSTRUCTION = `Você é um Assistente Administrativo da InovaSys. 
+Sua função é formatação textual e correção gramatical mecânica. 
+NUNCA interfira no mérito jurídico ou sugira decisões.`;
 
 export const aiService = {
   /**
-   * Formata e melhora a clareza gramatical de uma cláusula ou parágrafo.
+   * Tenta gerar conteúdo via Gemini, se falhar, utiliza o Grok (xAI).
    */
   suggestClausula: async (contexto: string, promptUsuario: string) => {
+    // 1. Tentativa Primária: Gemini 1.5 Flash
     try {
-      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-      });
-
-      const prompt = `Formate o seguinte texto solicitado pelo usuário em linguagem formal e culta, sem alterar o sentido ou o mérito:\n${promptUsuario}`;
-      const result = await model.generateContent(prompt);
-      return result.response.text();
-    } catch (error: any) {
-      console.error('[aiService] Erro na geração de conteúdo:', error);
-      if (error.message?.includes('API key')) return `[ERRO IA]: Chave de acesso inválida ou ausente.`;
-      return `[ERRO IA]: Falha na rede ou bloqueio de segurança. Verifique o console do navegador.`;
+      if (GEMINI_KEY) {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const prompt = `${SYSTEM_INSTRUCTION}\n\nFormate o seguinte texto:\n${promptUsuario}`;
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+      }
+    } catch (geminiError) {
+      console.warn('[aiService] Gemini falhou, tentando contingência Grok...', geminiError);
     }
 
-  },
-
-  /**
-   * Gera o esqueleto (template preenchido) da sentença com base ESTRITAMENTE no que o árbitro ditou/escreveu.
-   */
-  generateSentence: async (dadosProcesso: any, diretrizes: string) => {
+    // 2. Contingência: Grok (xAI) via OpenAI-Compatible API
     try {
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-pro",
-        systemInstruction: SYSTEM_INSTRUCTION
+      const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${GROK_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'grok-beta',
+          messages: [
+            { role: 'system', content: SYSTEM_INSTRUCTION },
+            { role: 'user', content: `Formate o seguinte texto solicitado pelo usuário:\n${promptUsuario}` }
+          ]
+        })
       });
 
-      const prompt = `Crie um documento HTML formatado com a estrutura de uma Sentença Arbitral. 
-      Preencha o cabeçalho com os dados: ${JSON.stringify(dadosProcesso)}.
-      Para a fundamentação e o dispositivo, TRANSCREVA e FORMATE o seguinte texto ditado pelo árbitro, sem adicionar nenhum argumento novo: 
-      "${diretrizes}"
-      
-      Retorne APENAS o HTML formatado.`;
-
-      const result = await model.generateContent(prompt);
-      return result.response.text();
-    } catch (e) {
-      throw new Error('Falha ao gerar rascunho de sentença na nuvem.');
+      if (!response.ok) throw new Error(`xAI Error: ${response.status}`);
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (grokError) {
+      console.error('[aiService] Falha total em todos os provedores de IA:', grokError);
+      return `[ERRO IA]: Falha na rede ou limite de cota atingido.`;
     }
   },
 
   /**
-   * Corrige erros gramaticais e de formatação de um rascunho feito pelo humano.
-   */
-  improveDraft: async (text: string) => {
-    try {
-      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-      });
-
-      const prompt = `Revise o seguinte texto corrigindo apenas ortografia, gramática e coesão textual, mantendo rigorosamente a narrativa e a decisão intactas:\n\n${text}`;
-      
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    } catch (e) {
-      return text;
-    }
-  },
-
-  /**
-   * Extração mecânica de dados (ex: ler um CNPJ de um PDF para preencher um formulário).
+   * Extração mecânica utilizando o provedor mais rápido disponível.
    */
   extractMechanicalData: async (text: string) => {
     try {
-      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        systemInstruction: `Você é um extrator de dados estruturados. Sua única tarefa é identificar e extrair informações mecânicas (Nomes, CPFs, Valores, Datas) de textos. Não interprete nem avalie nada. Retorne apenas JSON.`
-      });
-
-      const prompt = `Extraia os dados mecânicos do seguinte texto:\n\n${text}`;
-      
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const prompt = `Extraia apenas os dados mecânicos (Nomes, CPFs, Valores) deste texto em formato JSON:\n\n${text}`;
       const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const resultText = response.text();
-      
-      const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+      const respText = result.response.text();
+      const jsonMatch = respText.match(/\{[\s\S]*\}/);
       return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
     } catch (e) {
+      console.error('[aiService] Falha na extração de dados:', e);
       return null;
     }
   }

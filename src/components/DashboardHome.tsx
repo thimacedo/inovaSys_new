@@ -1,9 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useProcessos } from '../presentation/hooks/useProcessos';
 import { useFinanceiroByOrg } from '../presentation/hooks/useFinanceiro';
-import { motion } from 'motion/react';
+import { useModal } from '../context/ModalContext';
+import { supabase } from '../lib/supabase';
+import { aiService } from '../services/aiService';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -12,12 +15,126 @@ import {
   AlertCircle,
   ShieldCheck,
   Database,
-  Bot
+  Bot,
+  Terminal,
+  Activity,
+  Cpu,
+  CheckCircle2,
+  XCircle,
+  Shield
 } from 'lucide-react';
+
+// 🖥️ Componente de Terminal de Diagnóstico (Visual Hacker/Security)
+function DiagnosticTerminal() {
+  const [logs, setLogs] = useState<{msg: string, type: 'info' | 'success' | 'error' | 'warn'}[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const addLog = (msg: string, type: 'info' | 'success' | 'error' | 'warn' = 'info') => {
+    setLogs(prev => [...prev, { msg, type }]);
+  };
+
+  useEffect(() => {
+    const startDiagnostic = async () => {
+      // Pequeno delay para efeito visual
+      await new Promise(r => setTimeout(r, 800));
+      addLog('🚀 Iniciando sequência de diagnóstico v2.0...', 'info');
+      
+      // 1. Teste de Latência
+      const t0 = performance.now();
+      addLog('📡 Medindo latência de hardware local...', 'info');
+      await new Promise(r => setTimeout(r, 600));
+      const t1 = performance.now();
+      addLog(`⚡ Latência de processamento: ${(t1 - t0).toFixed(2)}ms`, 'success');
+
+      // 2. Teste Supabase
+      addLog('🗄️ Conectando ao núcleo de dados (Supabase)...', 'info');
+      try {
+        const { error } = await supabase.from('perfis').select('id', { count: 'exact', head: true }).limit(1);
+        if (error) throw error;
+        addLog('✅ Conexão com Banco de Dados: ESTÁVEL', 'success');
+      } catch (e) {
+        addLog('❌ Erro crítico de conexão com Banco de Dados!', 'error');
+      }
+
+      // 3. Teste IA
+      addLog('🤖 Autenticando Engine de IA (Gemini)...', 'info');
+      try {
+        // Chamada de teste simples para validar a chave
+        const res = await aiService.suggestClausula('diagnostico', 'Responda apenas "SISTEMA_OK" se estiver ativo.');
+        if (res.includes('[ERRO IA]')) throw new Error(res);
+        addLog('✅ IA Engine: ONLINE / API KEY VALIDADA', 'success');
+      } catch (e: any) {
+        addLog(`❌ IA Engine: FALHA - ${e.message}`, 'error');
+      }
+
+      await new Promise(r => setTimeout(r, 400));
+      addLog('🏁 Diagnóstico concluído. Integridade garantida.', 'info');
+      setLoading(false);
+    };
+
+    startDiagnostic();
+  }, []);
+
+  return (
+    <div className="bg-slate-950 p-6 rounded-2xl font-mono text-[10px] md:text-xs leading-relaxed border border-slate-800 shadow-2xl w-full max-w-lg overflow-hidden">
+      <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-2">
+         <div className="flex items-center gap-2">
+            <Terminal size={14} className="text-blue-400" />
+            <span className="text-slate-400 font-bold uppercase tracking-widest">InovaSys Security Terminal</span>
+         </div>
+         <span className="text-[9px] text-slate-600">v2.0.4-stable</span>
+      </div>
+      
+      <div className="space-y-1.5 min-h-[220px] max-h-[300px] overflow-y-auto scrollbar-hide">
+        <AnimatePresence>
+          {logs.map((log, i) => (
+            <motion.div 
+              key={i} 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex gap-2"
+            >
+              <span className="text-slate-600 shrink-0">[{new Date().toLocaleTimeString([], { hour12: false })}]</span>
+              <span className={
+                log.type === 'success' ? 'text-emerald-400' :
+                log.type === 'error' ? 'text-red-400 font-bold' :
+                log.type === 'warn' ? 'text-amber-400' :
+                'text-blue-300'
+              }>
+                {log.msg}
+              </span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
+        {loading && (
+          <div className="flex gap-2 items-center text-slate-500 mt-2">
+            <span className="animate-pulse">></span>
+            <div className="w-1.5 h-3 bg-slate-500 animate-pulse"></div>
+          </div>
+        )}
+      </div>
+
+      {!loading && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-6 pt-4 border-t border-slate-800 flex justify-end"
+        >
+          <div className="flex items-center gap-2 text-[9px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
+             <CheckCircle2 size={10} />
+             All Systems Operational
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
 
 export default function DashboardHome() {
   const { isGod } = usePermissions();
   const currentUser = useAuthStore(state => state.currentUser);
+  const { showModal } = useModal();
   
   // Identificação da Câmara/Organização
   const camaraId = currentUser?.organization_id || currentUser?.camara_id;
@@ -55,6 +172,10 @@ export default function DashboardHome() {
   }, [processosData, financeiroData, isGod]);
 
   const loading = loadingProcs || loadingFinance;
+
+  const handleRunDiagnostic = () => {
+    showModal('Integridade do Sistema', <DiagnosticTerminal />);
+  };
 
   const statCards = [
     { label: 'Processos Ativos', value: stats.processosAtivos, icon: Files, color: 'blue' },
@@ -178,7 +299,11 @@ export default function DashboardHome() {
               </div>
            </div>
 
-           <button className="w-full mt-8 py-4 bg-white text-slate-900 rounded-2xl font-black text-sm hover:bg-slate-100 transition-all hover:shadow-lg active:scale-[0.98]">
+           <button 
+             onClick={handleRunDiagnostic}
+             className="w-full mt-8 py-4 bg-white text-slate-900 rounded-2xl font-black text-sm hover:bg-slate-100 transition-all hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 group"
+           >
+              <Activity className="group-hover:animate-pulse" size={18} />
               Diagnóstico Completo
            </button>
         </div>

@@ -51,7 +51,6 @@ export const CamaraSwitcher: React.FC = () => {
                 onClick={() => {
                   updateOrganization(c.id);
                   setIsOpen(false);
-                  window.location.reload(); // Recarrega para limpar cache do TanStack Query
                 }}
                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm"
               >
