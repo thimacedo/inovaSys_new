@@ -60,66 +60,94 @@ export default function CalendarView() {
     });
   };
 
-  const handleAddEvent = () => {
+  const handleAddEvent = (initialDate?: Date) => {
     let titulo = '';
     let data = '';
+    
+    if (initialDate) {
+      const year = initialDate.getFullYear();
+      const month = String(initialDate.getMonth() + 1).padStart(2, '0');
+      const day = String(initialDate.getDate()).padStart(2, '0');
+      data = `${year}-${month}-${day}T09:00`;
+    }
+
     let tipo: "Audiencia" | "Reuniao" | "Sessao" | "Outro" = 'Audiencia';
 
     showModal(
       "Novo Compromisso",
-      <div className="space-y-4 p-2">
-        <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Título do Evento</label>
-          <input 
-            type="text" 
-            placeholder="Ex: Audiência de Instrução"
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-            onChange={(e) => { titulo = e.target.value; }}
-          />
+      <div className="space-y-6 p-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Título do Evento</label>
+            <input 
+              type="text" 
+              placeholder="Ex: Audiência de Instrução"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300 font-medium"
+              onChange={(e) => { titulo = e.target.value; }}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Compromisso</label>
+            <div className="relative">
+              <select 
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700 appearance-none transition-all cursor-pointer"
+                defaultValue={tipo}
+                onChange={(e) => { tipo = e.target.value as any; }}
+              >
+                <option value="Audiencia">⚖️ Audiência</option>
+                <option value="Reuniao">🤝 Reunião</option>
+                <option value="Prazo">📅 Prazo Processual</option>
+                <option value="Sessao">🏛️ Sessão</option>
+                <option value="Outro">📝 Outro</option>
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <ChevronRight size={16} className="rotate-90" />
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data e Hora</label>
+        
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data e Hora de Início</label>
+          <div className="relative group">
+            <Clock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
             <input 
               type="datetime-local"
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+              defaultValue={data}
+              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-slate-700"
               onChange={(e) => { data = e.target.value; }}
             />
           </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo</label>
-            <select 
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700"
-              onChange={(e) => { tipo = e.target.value as any; }}
-            >
-              <option value="Audiencia">Audiência</option>
-              <option value="Reuniao">Reunião</option>
-              <option value="Prazo">Prazo Processual</option>
-            </select>
-          </div>
         </div>
-        <button 
-          onClick={async () => {
-            if (!titulo || !data) {
-              showToast("Preencha o título e a data", "error");
-              return;
-            }
-            try {
-              await createEvent.mutateAsync({
-                titulo,
-                data_inicio: new Date(data).toISOString(),
-                tipo,
-                camara_id: currentUser?.camara_id
-              });
-              showToast("Evento criado com sucesso!");
-            } catch (err) {
-              showToast("Erro ao criar evento", "error");
-            }
-          }}
-          className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
-        >
-          Agendar Agora
-        </button>
+
+        <div className="pt-4">
+          <button 
+            onClick={async () => {
+              if (!titulo || !data) {
+                showToast("Preencha o título e a data", "error");
+                return;
+              }
+              try {
+                await createEvent.mutateAsync({
+                  titulo,
+                  data_inicio: new Date(data).toISOString(),
+                  tipo,
+                  camara_id: currentUser?.camara_id
+                });
+                showToast("Evento criado com sucesso!");
+              } catch (err) {
+                showToast("Erro ao criar evento", "error");
+              }
+            }}
+            className="group relative w-full py-4 bg-slate-900 text-white font-black rounded-2xl uppercase tracking-[0.2em] text-xs hover:bg-blue-600 transition-all shadow-2xl shadow-slate-200 active:scale-[0.98] overflow-hidden"
+          >
+            <div className="relative z-10 flex items-center justify-center gap-3">
+              <Plus size={18} />
+              Confirmar Agendamento
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        </div>
       </div>
     );
   };
@@ -195,7 +223,7 @@ export default function CalendarView() {
         </div>
         <div className="flex items-center gap-3">
           <button 
-            onClick={handleAddEvent}
+            onClick={() => handleAddEvent()}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
           >
             <Plus size={16} />
@@ -229,21 +257,37 @@ export default function CalendarView() {
             const isToday = dayObj.date?.toDateString() === new Date().toDateString();
 
             return (
-              <div key={idx} className={`min-h-[120px] bg-white p-3 transition-colors ${dayObj.day ? 'hover:bg-slate-50/50' : 'bg-slate-50/20'}`}>
+              <div 
+                key={idx} 
+                onClick={() => dayObj.date && handleAddEvent(dayObj.date)}
+                className={`min-h-[120px] bg-white p-3 transition-colors relative group/day ${
+                  dayObj.day ? 'hover:bg-blue-50/50 cursor-pointer' : 'bg-slate-50/20'
+                }`}
+              >
                 {dayObj.day && (
-                  <div className="space-y-2">
-                    <span className={`inline-flex w-7 h-7 items-center justify-center rounded-lg text-xs font-black ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}>
-                      {dayObj.day}
-                    </span>
+                  <div className="space-y-2 relative z-10">
+                    <div className="flex items-center justify-between">
+                      <span className={`inline-flex w-7 h-7 items-center justify-center rounded-lg text-xs font-black transition-all ${
+                        isToday 
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+                          : 'text-slate-400 group-hover/day:text-blue-600'
+                      }`}>
+                        {dayObj.day}
+                      </span>
+                      <Plus size={14} className="text-slate-200 opacity-0 group-hover/day:opacity-100 transition-all transform scale-75 group-hover/day:scale-100" />
+                    </div>
                     <div className="space-y-1">
                       {dayEvents.map(event => (
                         <button 
                           key={event.id}
-                          onClick={() => showEventDetails(event)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            showEventDetails(event);
+                          }}
                           className={`w-full text-left px-2 py-1.5 rounded-lg text-[10px] font-bold truncate transition-all hover:scale-[1.02] active:scale-95 shadow-sm border ${
                             event.tipo === 'Audiencia' 
-                              ? 'bg-red-50 text-red-700 border-red-100' 
-                              : 'bg-blue-50 text-blue-700 border-blue-100'
+                              ? 'bg-red-50 text-red-700 border-red-100 hover:bg-red-100' 
+                              : 'bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100'
                           }`}
                         >
                           {event.titulo}

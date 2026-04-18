@@ -27,6 +27,8 @@ export default function TemplateManager() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
+  // 🟢 Estado do modo de visualização elevado para controle da injeção de IA
+  const [viewMode, setViewMode] = useState<'friendly' | 'code'>('friendly');
   
   const { showToast } = useModal();
   const { isGlobalAdmin } = usePermissions();
@@ -45,6 +47,8 @@ export default function TemplateManager() {
   const handleSelectTemplate = (t: Template) => {
     setSelectedTemplate(t);
     setEditContent(t.conteudo_html);
+    // Ao trocar de template, voltamos para o modo amigável por padrão para evitar sustos com código
+    setViewMode('friendly');
   };
 
   const handleSave = async () => {
@@ -58,13 +62,28 @@ export default function TemplateManager() {
     } catch (e: any) { showToast('Erro ao salvar.', 'error'); } finally { setIsSaving(false); }
   };
 
+  // 🤖 Função de tratamento de erro aprimorada para IA
   const handleAiAssist = async () => {
     if (!aiPrompt.trim()) return;
     setIsAiLoading(true);
     try {
       const resp = await aiService.suggestClausula(editContent, aiPrompt);
+      if (!resp) throw new Error("A IA retornou uma resposta vazia ou inválida.");
       setAiResponse(resp as string);
-    } catch (e) { showToast('IA Offline.', 'error'); } finally { setIsAiLoading(false); }
+    } catch (e: any) { 
+      console.error('[ERRO IA DETALHADO]:', e);
+      const errorMsg = e.message || (typeof e === 'string' ? e : 'Falha na conexão com o cérebro da IA.');
+      showToast(`[ERRO IA]: ${errorMsg}`, 'error'); 
+    } finally { 
+      setIsAiLoading(false); 
+    }
+  };
+
+  // 🧹 Função robusta para limpar HTML antes da injeção no modo amigável
+  const stripHtml = (html: string) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.innerText || div.textContent || "";
   };
 
   if (!isGlobalAdmin) return (
@@ -97,6 +116,8 @@ export default function TemplateManager() {
             setContent={setEditContent}
             onSave={handleSave}
             isSaving={isSaving}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
             onReset={() => showToast("Funcionalidade em desenvolvimento.", "attention")}
           />
         ) : (
@@ -115,7 +136,13 @@ export default function TemplateManager() {
           onAsk={handleAiAssist}
           loading={isAiLoading}
           response={aiResponse}
-          onInsert={() => { setEditContent(prev => prev + "\n" + aiResponse); setAiResponse(''); setAiPrompt(''); }}
+          onInsert={() => { 
+            // 🛡️ Garante que se estivermos no modo amigável, o conteúdo inserido seja texto puro
+            const contentToInsert = viewMode === 'friendly' ? stripHtml(aiResponse) : aiResponse;
+            setEditContent(prev => prev + "\n" + contentToInsert); 
+            setAiResponse(''); 
+            setAiPrompt(''); 
+          }}
         />
       </div>
     </div>

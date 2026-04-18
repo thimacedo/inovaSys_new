@@ -10,6 +10,8 @@ interface VisualTemplateEditorProps {
   onSave: () => void;
   isSaving: boolean;
   onReset: () => void;
+  viewMode: 'friendly' | 'code';
+  setViewMode: (mode: 'friendly' | 'code') => void;
 }
 
 export const VisualTemplateEditor: React.FC<VisualTemplateEditorProps> = ({
@@ -18,26 +20,47 @@ export const VisualTemplateEditor: React.FC<VisualTemplateEditorProps> = ({
   setContent,
   onSave,
   isSaving,
-  onReset
+  onReset,
+  viewMode,
+  setViewMode
 }) => {
-  const [viewMode, setViewMode] = useState<'friendly' | 'code'>('friendly');
   
-  // Extrai o texto limpo do HTML para o modo amigável
-  const getFriendlyText = (html: string) => {
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    // Tenta preservar quebras de linha básicas
-    const processed = div.innerHTML
-      .replace(/<p[^>]*>/g, '')
-      .replace(/<\/p>/g, '\n')
-      .replace(/<br\s*\/?>/g, '\n');
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = processed;
-    return tempDiv.innerText || tempDiv.textContent || '';
+  // 🛡️ Função robusta para limpar HTML e reidratar o conteúdo amigável
+  const stripHtml = (html: string) => {
+    if (!html) return '';
+    
+    // Cria um DOM temporário para manipulação segura
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Remove elementos indesejados que podem causar "sujeira" no modo amigável
+    const elementsToRemove = doc.querySelectorAll('script, style, iframe, object, embed');
+    elementsToRemove.forEach(el => el.remove());
+
+    // Converte blocos comuns em quebras de linha para manter a estrutura mínima
+    const blockElements = ['p', 'div', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'tr'];
+    blockElements.forEach(tag => {
+      const elements = doc.getElementsByTagName(tag);
+      for (let i = elements.length - 1; i >= 0; i--) {
+        const el = elements[i];
+        if (tag === 'br') {
+          el.parentNode?.replaceChild(doc.createTextNode('\n'), el);
+        } else {
+          // Adiciona quebra de linha após blocos
+          const newline = doc.createTextNode('\n');
+          el.parentNode?.insertBefore(newline, el.nextSibling);
+        }
+      }
+    });
+
+    const result = doc.body.innerText || doc.body.textContent || "";
+    // Limpeza de espaços excessivos mantendo quebras intencionais
+    return result.replace(/\n\s*\n/g, '\n\n').trim();
   };
 
   const getHtmlFromText = (text: string) => {
     if (!text.trim()) return '';
+    // Converte texto simples de volta para parágrafos HTML básicos
     return text.split('\n')
       .map(line => line.trim() ? `<p>${line}</p>` : '')
       .filter(Boolean)
@@ -48,11 +71,14 @@ export const VisualTemplateEditor: React.FC<VisualTemplateEditorProps> = ({
     if (mode === viewMode) return;
     
     if (mode === 'friendly') {
-      // De código para amigável: Limpa tags
-      setContent(getFriendlyText(content));
+      // 🔄 Reidratação: De Código para Amigável
+      const cleanText = stripHtml(content);
+      setContent(cleanText);
     } else {
-      // De amigável para código: Se não houver tags, envolve em parágrafos
-      if (!content.includes('<') && !content.includes('>')) {
+      // 🔄 Reidratação: De Amigável para Código
+      // Só envolve em HTML se detectarmos que é texto puro (sem tags)
+      const hasTags = /<[a-z][\s\S]*>/i.test(content);
+      if (!hasTags) {
         setContent(getHtmlFromText(content));
       }
     }

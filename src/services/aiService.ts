@@ -15,15 +15,17 @@ export const aiService = {
       if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
       const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
-        systemInstruction: SYSTEM_INSTRUCTION
       });
 
       const prompt = `Formate o seguinte texto solicitado pelo usuário em linguagem formal e culta, sem alterar o sentido ou o mérito:\n${promptUsuario}`;
       const result = await model.generateContent(prompt);
       return result.response.text();
-    } catch (error) {
-      return `[ERRO IA]: Verifique sua conexão.`;
+    } catch (error: any) {
+      console.error('[aiService] Erro na geração de conteúdo:', error);
+      if (error.message?.includes('API key')) return `[ERRO IA]: Chave de acesso inválida ou ausente.`;
+      return `[ERRO IA]: Falha na rede ou bloqueio de segurança. Verifique o console do navegador.`;
     }
+
   },
 
   /**
@@ -58,7 +60,6 @@ export const aiService = {
       if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
       const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
-        systemInstruction: SYSTEM_INSTRUCTION
       });
 
       const prompt = `Revise o seguinte texto corrigindo apenas ortografia, gramática e coesão textual, mantendo rigorosamente a narrativa e a decisão intactas:\n\n${text}`;
