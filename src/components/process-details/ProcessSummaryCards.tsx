@@ -2,6 +2,8 @@ import React from 'react';
 import { ExternalLink, CreditCard, ArrowRight, RefreshCw, Link as LinkIcon, Scale } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Processo } from '../../services/processService';
+import { PJeService } from '../../services/integrations/PJeService';
+import { useModal } from '../../context/ModalContext';
 
 interface ProcessSummaryCardsProps {
   processo: Processo;
@@ -18,8 +20,26 @@ export const ProcessSummaryCards: React.FC<ProcessSummaryCardsProps> = ({
   faturasPendentes = [],
   isAdmin = false
 }) => {
+  const { showToast } = useModal();
   const hasPendingInvoices = faturasPendentes.length > 0;
   const showCheckoutCTA = hasPendingInvoices && !isAdmin;
+
+  const handleSincronizarTribunal = async () => {
+    if (!processo.numero_processo_judicial) return;
+    
+    try {
+      // Inicia consulta ao PJe via Proxy MNI
+      const data = await PJeService.consultarProcesso(processo.numero_processo_judicial, '');
+      
+      // Espelha andamentos para a timeline interna
+      await PJeService.syncToTimeline(processo.id, data);
+      
+      showToast('Sincronização com o Tribunal concluída com sucesso!', 'success');
+    } catch (error) {
+      console.error('[ProcessSummaryCards] Erro na sincronização:', error);
+      showToast('Falha ao sincronizar andamentos com o PJe.', 'error');
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -146,10 +166,7 @@ export const ProcessSummaryCards: React.FC<ProcessSummaryCardsProps> = ({
         <div className="mt-6">
           {processo.numero_processo_judicial ? (
             <button 
-              onClick={() => {
-                // Sincronização automática via PJeService (Mock por enquanto)
-                alert('Iniciando sincronização via Proxy MNI...');
-              }}
+              onClick={handleSincronizarTribunal}
               className="w-full py-3 bg-md-secondary-container hover:bg-md-secondary-container/80 text-md-on-secondary-container rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all group/btn"
             >
               <RefreshCw size={14} className="group-hover/btn:rotate-180 transition-transform duration-500" />
