@@ -26,11 +26,35 @@ const EmailTemplatesPage = lazy(() => import('../presentation/pages/Admin/EmailT
 
 export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: any, userProfile: any, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
   const { canManageTeam, canCreateProcess, canSeeAudit, isGlobalAdmin, isAtLeastAdmin } = usePermissions();
-  const [currentView, setCurrentView] = useState('dash');
-  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
+  
+  // 🧭 Persistência de Navegação: Inicialização via localStorage
+  const [currentView, setCurrentView] = useState(() => localStorage.getItem('inovasys_current_view') || 'dash');
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(() => localStorage.getItem('inovasys_selected_process_id'));
+  
   const [camaraConfig, setCamaraConfig] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  // 🔄 Efeito de Persistência e Refinação de UX
+  useEffect(() => {
+    // Salvar estados no localStorage
+    localStorage.setItem('inovasys_current_view', currentView);
+    if (selectedProcessId) {
+      localStorage.setItem('inovasys_selected_process_id', selectedProcessId);
+    } else {
+      localStorage.removeItem('inovasys_selected_process_id');
+    }
+
+    // 🛡️ Refinação de UX: Redirecionar se estiver em detalhes sem ID
+    if (currentView === 'process_details' && !selectedProcessId) {
+      setCurrentView('dash');
+    }
+
+    // 🧹 Limpeza: Se não estiver em detalhes, limpar o ID do processo (se existir)
+    if (currentView !== 'process_details' && selectedProcessId) {
+      setSelectedProcessId(null);
+    }
+  }, [currentView, selectedProcessId]);
 
   useEffect(() => {
     if (window.innerWidth < 1024) setIsSidebarOpen(false);

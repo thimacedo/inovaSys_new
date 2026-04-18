@@ -1,6 +1,7 @@
 export interface Processo {
   id: string;
   numero_processo?: string;
+  numero_processo_judicial?: string;
   status?: string;
   camara_id?: string;
   organization_id?: string;

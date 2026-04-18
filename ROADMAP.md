@@ -1,8 +1,8 @@
 # 🗺️ ROADMAP.md - InovaSys (Mapa de Voo)
 
-## 📌 Status Atual: Produção & Expansão Financeira (18/04/2026)
+## 📌 Status Atual: Produção & Integrações (18/04/2026)
 **Gerenciamento:** Gemini (Arquiteto) & Qwen (Especialista em Programação)
-**Design System:** Material You (MD3) Premium (Puras utilidades Tailwind)
+**Design System:** Material You (MD3) Premium
 
 ---
 
@@ -14,25 +14,24 @@
 *   [x] **Identidade Visual:** Branding customizado (Logo/Cores) por Câmara.
 *   [x] **Gestão de Equipe:** Controle de acessos com Badges MD3.
 *   [x] **Ecossistema Global:** Painel de controle da plataforma (InovaSys Master).
-*   [x] **Contrato de Licença:** Aceite digital dos termos (LicenseAgreement) com registro de IP.
+*   [x] **Contrato de Licença:** Aceite digital dos termos (LicenseAgreement).
+*   [x] **Persistência de Sessão:** Reidratação automática de visualizações e processos.
 
 #### ⚖️ 2. Módulo de Produção (Core Processual)
 *   **Status:** 🔒 **SELADO & 100% CONCLUÍDO**
 *   [x] **Workflow de Processos:** Protocolo, andamento e arquivamento.
-*   [x] **Central de Documentos:** Geração automática via templates (Friendly Mode support).
+*   [x] **Central de Documentos:** Geração automática via templates (Friendly Mode).
 *   [x] **IA Assistente:** Auxílio na digitação e extração mecânica de dados.
 *   [x] **Chat Realtime:** Comunicação segura com scroll suave MD3.
 *   [x] **Timeline Imutável:** Histórico cronológico sem duplicatas de rede.
 *   [x] **Assinatura Gov.br:** Motor de integração ITI implementado (Staging ready).
 
-#### 💰 3. Módulo Financeiro (Faturamento & Split)
-*   **Status:** 🟡 **65% CONCLUÍDO**
+#### 💰 3. Módulo Financeiro (Gestão de Fluxo)
+*   **Status:** 🔒 **SELADO (VERSÃO MANUAL)**
 *   [x] **Lançamentos Manuais:** Registro de custas e honorários no processo.
 *   [x] **BI Financeiro:** Dashboards de performance resilientes.
-*   [x] **Iugu Bridge:** Serviço de comunicação com o gateway estabilizado.
-*   [x] **Subcontas Automáticas:** Aba de Configuração Financeira no `CamaraConfig.tsx`.
-*   [ ] **Motor de Cálculo:** Automatização do cálculo de Split (Próximo Passo).
-*   [ ] **Webhook de Liquidação:** Integração final de confirmação de pagamento.
+*   [x] **Status de Liquidação:** Controle manual de "Pago/Pendente".
+*   [-] **Gateway Iugu:** Lógica de Split e Webhook engatilhada (Standby por decisão de negócio).
 
 #### 🛡️ 4. Módulo de Compliance & Segurança
 *   **Status:** 🔒 **SELADO & 100% CONCLUÍDO**
@@ -43,17 +42,17 @@
 
 ---
 
-### 🚀 Grandes Entregas (Sprint 18/04/2026)
-*   **Checkup & Debug Geral:** Todos os módulos core revisados e blindados pelo Qwen.
-*   **Estabilidade de Build:** Tipagem estrita e Tailwind v4 estabilizados.
-*   **Friendly Models:** Editor de modelos sem HTML para o usuário final.
-*   **FinOps v1:** Sistema de subcontas bancárias para Câmaras operacional.
+### 🔗 Fase 6: Integrações e Ecossistema (EM CURSO)
+- [ ] **Interoperabilidade Judicial (PJe/MNI):**
+    - [x] Criar serviço de consulta via SOAP (PJeService / MNI Proxy Ready).
+    - [x] Adicionar suporte ao campo `numero_processo_judicial` no domínio e DB.
+    - [x] Implementar card de "Vínculo Judicial" na interface de detalhes do processo.
+    - [ ] Implementar espelhamento de andamentos judiciais (Próximo Passo).
+- [ ] **Notificações Omni-channel:**
+    - [ ] Integração oficial com WhatsApp Business API.
 
 ---
 
-### 🎯 Próximos Passos Prioritários
-1. **Financeiro:** Desenvolver o Motor de Cálculo de Split dinâmico.
-2. **Financeiro:** Implementar os Webhooks de retorno da Iugu no backend FastAPI.
-3. **Deploy:** Manter a consistência na Vercel com os novos módulos.
+### 🎯 Próximo Passo: Iniciar Integração Judicial (PJe)
 
-> *Última Atualização: 18/04/2026 - Módulos 1, 2 e 4 Selados.*
+> *Última Atualização: 18/04/2026 - Módulos 1, 2, 3 e 4 Selados.*
