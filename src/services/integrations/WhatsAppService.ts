@@ -74,6 +74,19 @@ export class WhatsAppService {
   }
 
   /**
+   * Envia um lembrete de audiência iminente (Pivot Estratégico).
+   * Utiliza o template 'lembrete_audiencia'.
+   */
+  static async enviarLembreteAudiencia(payload: WhatsAppPayload): Promise<void> {
+    await this.enviarTemplate('lembrete_audiencia', payload.to, [
+      { type: 'text', text: payload.nome },
+      { type: 'text', text: payload.processo },
+      { type: 'text', text: payload.data_hora || '' },
+      { type: 'text', text: payload.link },
+    ]);
+  }
+
+  /**
    * Método genérico para envio de templates via Meta API.
    */
   private static async enviarTemplate(templateName: string, to: string, parameters: any[]): Promise<void> {

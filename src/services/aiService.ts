@@ -12,7 +12,8 @@ const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 const SYSTEM_INSTRUCTION = `Você é um Assistente Administrativo da InovaSys. 
 Sua função é formatação textual e correção gramatical mecânica. 
-NUNCA interfira no mérito jurídico ou sugira decisões.`;
+NUNCA interfira no mérito jurídico ou sugira decisões.
+As minutas geradas devem seguir o rigor terminológico da Lei de Arbitragem Brasileira (Lei nº 9.307/96), garantindo que o Árbitro seja sempre referido como Juiz de Fato e de Direito (Art. 18).`;
 
 export const aiService = {
   /**
@@ -54,6 +55,24 @@ export const aiService = {
     } catch (grokError) {
       console.error('[aiService] Falha total em todos os provedores de IA:', grokError);
       return `[ERRO IA]: Falha na rede ou limite de cota atingido.`;
+    }
+  },
+
+  /**
+   * Gera uma sentença arbitral com base no contexto fornecido.
+   */
+  generateSentence: async (processoContext: string, fatos: string) => {
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const prompt = `${SYSTEM_INSTRUCTION}\n\nCom base no processo:\n${processoContext}\n\nE nos fatos apresentados:\n${fatos}\n\nGere um rascunho de sentença seguindo as normas da Lei 9.307/96.`;
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
+      
+      const disclaimer = "\n\n---\nDocumento gerado com auxílio de IA. Revisão obrigatória pelo Árbitro titular.";
+      return response + disclaimer;
+    } catch (e) {
+      console.error('[aiService] Falha ao gerar sentença:', e);
+      return `[ERRO IA]: Falha na geração da sentença.`;
     }
   },
 
