@@ -24,7 +24,7 @@
 *   [x] **IA Assistente:** Auxílio na digitação e extração mecânica de dados.
 *   [x] **Chat Realtime:** Comunicação segura com scroll suave MD3.
 *   [x] **Timeline Imutável:** Histórico cronológico sem duplicatas de rede.
-*   [x] **Assinatura Gov.br:** Motor de integração ITI implementado (Staging ready).
+*   [x] **Assinatura Gov.br:** Motor de integração ITI e interface de disparo concluídos.
 
 #### 💰 3. Módulo Financeiro (Gestão de Fluxo)
 *   **Status:** 🔒 **SELADO (VERSÃO MANUAL)**
@@ -44,7 +44,8 @@
 
 ### 🚀 Grandes Entregas (Sprint 18/04/2026)
 *   **Checkup & Debug Geral:** Todos os módulos core revisados e blindados pelo Qwen.
-*   **Estabilidade de Build:** ✅ Corrigidos erros de importação (Alias @/) e tipagem estrita para Vercel.
+*   **Fase 6 (Integrações):** ✅ Sincronização PJe, Notificações WhatsApp e Assinatura Gov.br concluídas.
+*   **Estabilidade de Build:** ✅ Corrigidos erros de importação e tipagem estrita para Vercel.
 *   **Friendly Models:** Editor de modelos sem HTML para o usuário final.
 *   **FinOps Unificado:** Hub Financeiro integrando BI e Gestão Operacional em MD3.
 *   **Persistência de Sessão:** ✅ Lógica de reidratação reestruturada e funcional (F5 survival).
@@ -52,8 +53,8 @@
 ---
 
 ### 🎯 Próximos Passos Prioritários
-1. **Notificação:** Iniciar implementação do Módulo de Notificações via WhatsApp Business API (PRÓXIMO).
-2. **Assinatura:** Validar fluxo de assinatura Gov.br no ambiente de produção.
-3. **Tribunais:** Expandir suporte para WSDL de outros tribunais estaduais.
+1. **Tribunais:** Expandir suporte para WSDL de outros tribunais estaduais e federais.
+2. **Omni-channel:** Implementar templates de WhatsApp para confirmação de faturas e audiências.
+3. **Legal:** Revisão de termos jurídicos gerados pela IA com foco em conformidade CNJ.
 
-> *Última Atualização: 18/04/2026 - Espelhamento Judicial Concluído.*
+> *Última Atualização: 18/04/2026 - Sprint de Integrações Concluída.*
