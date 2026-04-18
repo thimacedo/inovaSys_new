@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { useModal } from '../context/ModalContext';
-import { Save, FileText, ChevronRight, AlertCircle, RefreshCw, Sparkles, Send } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { aiService } from '../services/aiService';
+import { AlertCircle, FileText } from 'lucide-react';
+
+// 🧩 Sub-módulos Modularizados (Material You MD3 - Friendly View)
+import { TemplateSidebar } from './template-manager/TemplateSidebar';
+import { VisualTemplateEditor } from './template-manager/VisualTemplateEditor';
+import { IATemplateAssistant } from './template-manager/IATemplateAssistant';
 
 interface Template {
   id: string;
@@ -19,31 +24,22 @@ export default function TemplateManager() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [editContent, setEditContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const { showToast } = useModal();
-  const { isGlobalAdmin } = usePermissions();
   const [aiPrompt, setAiPrompt] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
+  
+  const { showToast } = useModal();
+  const { isGlobalAdmin } = usePermissions();
 
-  useEffect(() => {
-    carregarTemplates();
-  }, []);
+  useEffect(() => { carregarTemplates(); }, []);
 
   const carregarTemplates = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('templates_documentos')
-        .select('*')
-        .order('tipo_documento', { ascending: true });
-      
+      const { data, error } = await supabase.from('templates_documentos').select('*').order('tipo_documento', { ascending: true });
       if (error) throw error;
       setTemplates(data || []);
-    } catch (e: any) {
-      showToast('Erro ao carregar templates: ' + e.message, 'error');
-    } finally {
-      setLoading(false);
-    }
+    } catch (e: any) { showToast('Erro ao carregar modelos.', 'error'); } finally { setLoading(false); }
   };
 
   const handleSelectTemplate = (t: Template) => {
@@ -55,184 +51,72 @@ export default function TemplateManager() {
     if (!selectedTemplate) return;
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('templates_documentos')
-        .update({ conteudo_html: editContent, updated_at: new Date().toISOString() })
-        .eq('id', selectedTemplate.id);
-      
+      const { error } = await supabase.from('templates_documentos').update({ conteudo_html: editContent, updated_at: new Date().toISOString() }).eq('id', selectedTemplate.id);
       if (error) throw error;
-      showToast('Template atualizado com sucesso!', 'success');
+      showToast('Modelo publicado!', 'success');
       carregarTemplates();
-    } catch (e: any) {
-      showToast('Erro ao salvar: ' + e.message, 'error');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const resetToDefault = () => {
-     showToast('Funcionalidade de restauração em breve. Por enquanto, edite manualmente.', 'attention');
+    } catch (e: any) { showToast('Erro ao salvar.', 'error'); } finally { setIsSaving(false); }
   };
 
   const handleAiAssist = async () => {
     if (!aiPrompt.trim()) return;
     setIsAiLoading(true);
-    setAiResponse('');
     try {
       const resp = await aiService.suggestClausula(editContent, aiPrompt);
       setAiResponse(resp as string);
-      showToast('Sugestão de IA gerada!', 'success');
-    } catch (e: any) {
-      showToast('IA indisponível no momento.', 'error');
-    } finally {
-      setIsAiLoading(false);
-    }
+    } catch (e) { showToast('IA Offline.', 'error'); } finally { setIsAiLoading(false); }
   };
 
-  const insertAiResponse = () => {
-    setEditContent(prev => prev + "\n" + aiResponse);
-    setAiResponse('');
-    setAiPrompt('');
-  };
-
-  if (!isGlobalAdmin) {
-    return (
-      <div className="p-8 text-center">
-        <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold">Acesso Negado</h2>
-        <p className="text-slate-500">Apenas administradores globais podem gerenciar templates de documentos.</p>
-      </div>
-    );
-  }
+  if (!isGlobalAdmin) return (
+    <div className="p-20 text-center bg-md-surface rounded-[48px] border border-md-outline/10 animate-in zoom-in duration-500">
+      <AlertCircle size={64} className="text-rose-500 mx-auto mb-6 opacity-20" />
+      <h2 className="text-2xl font-black text-md-on-surface uppercase tracking-tight">Acesso Institucional Restrito</h2>
+      <p className="text-md-on-surface-variant font-medium mt-2">Apenas Administradores Globais podem gerenciar Atos Processuais.</p>
+    </div>
+  );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-      {/* Sidebar: Lista de Templates */}
-      <div className="lg:col-span-1 space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <FileText className="text-blue-600" size={24} />
-          <h3 className="text-lg font-bold text-slate-800">Modelos</h3>
-        </div>
-        
-        <div className="space-y-2 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 custom-scrollbar">
-          {loading ? (
-            Array(5).fill(0).map((_, i) => (
-              <div key={i} className="h-12 bg-slate-100 animate-pulse rounded-xl" />
-            ))
-          ) : templates.length === 0 ? (
-            <p className="text-xs text-slate-400 italic">Nenhum template personalizado encontrado.</p>
-          ) : (
-            templates.map(t => (
-              <button
-                key={t.id}
-                onClick={() => handleSelectTemplate(t)}
-                className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between group ${selectedTemplate?.id === t.id ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-400'}`}
-              >
-                <span className="text-xs font-bold line-clamp-1">{t.nome}</span>
-                <ChevronRight size={14} className={selectedTemplate?.id === t.id ? 'text-white' : 'text-slate-300 opacity-0 group-hover:opacity-100'} />
-              </button>
-            ))
-          )}
-        </div>
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 animate-in fade-in duration-700 pb-20">
+      
+      {/* 📂 Navegação de Modelos (3 colunas) */}
+      <div className="xl:col-span-3">
+        <TemplateSidebar 
+          templates={templates} 
+          selectedId={selectedTemplate?.id} 
+          onSelect={handleSelectTemplate} 
+          loading={loading} 
+        />
       </div>
 
-      {/* Editor Area */}
-      <div className="lg:col-span-3 space-y-6">
+      {/* 📄 Visual Editor (6 colunas) */}
+      <div className="xl:col-span-6">
         {selectedTemplate ? (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[650px]"
-          >
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10 rounded-t-2xl">
-              <div>
-                <h4 className="font-bold text-slate-900">{selectedTemplate.nome}</h4>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Tipo: {selectedTemplate.tipo_documento}</p>
-              </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={resetToDefault}
-                  className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg text-xs font-bold flex items-center gap-2"
-                >
-                  <RefreshCw size={14} />
-                  Restaurar Original
-                </button>
-                <button 
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all disabled:opacity-50"
-                >
-                  {isSaving ? 'Salvando...' : (
-                    <>
-                      <Save size={14} />
-                      Salvar Alterações
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex-1 p-4 bg-slate-50 flex gap-4 overflow-hidden">
-              <div className="flex-1 flex flex-col">
-                <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl mb-4 flex gap-3">
-                  <AlertCircle size={18} className="text-blue-600 shrink-0" />
-                  <p className="text-[10px] text-blue-800 leading-tight">
-                    <strong>Dica:</strong> Use as tags automáticas como <code>{`{requerente_nome}`}</code>, <code>{`{requerido_nome}`}</code> e <code>{`{numero_processo}`}</code> para personalização dinâmica. O suporte ao CKEditor será adicionado em breve.
-                  </p>
-                </div>
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full h-full p-6 font-mono text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none shadow-inner"
-                  placeholder="Insira o HTML do modelo aqui..."
-                />
-              </div>
-
-              {/* AI Sidebar */}
-              <div className="w-80 bg-white border border-slate-200 rounded-xl p-4 flex flex-col shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles size={18} className="text-purple-600" />
-                  <h5 className="text-xs font-bold text-slate-900 uppercase tracking-widest">Assistente de IA</h5>
-                </div>
-                
-                <textarea 
-                   value={aiPrompt}
-                   onChange={(e) => setAiPrompt(e.target.value)}
-                   className="w-full h-24 p-2 text-xs border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-purple-500/20 mb-2 resize-none"
-                   placeholder="Ex: Sugira uma cláusula compromissória cheia..."
-                />
-                <button 
-                  onClick={handleAiAssist}
-                  disabled={isAiLoading || !aiPrompt.trim()}
-                  className="w-full py-2 bg-purple-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-purple-700 transition-all disabled:opacity-50"
-                >
-                  {isAiLoading ? 'Pensando...' : <><Send size={14} /> Pedir Sugestão</>}
-                </button>
-
-                <div className="mt-4 flex-1 overflow-y-auto">
-                   {aiResponse ? (
-                      <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg animate-in fade-in slide-in-from-top-2">
-                         <p className="text-[10px] text-purple-800 whitespace-pre-wrap">{aiResponse}</p>
-                         <button 
-                            onClick={insertAiResponse}
-                            className="w-full mt-2 py-1.5 bg-white border border-purple-200 text-purple-700 rounded-md text-[10px] font-bold hover:bg-purple-100 transition-all"
-                         >
-                            Inserir no Documento
-                         </button>
-                      </div>
-                   ) : (
-                      <p className="text-[10px] text-slate-400 italic text-center mt-8">A IA pode ajudar você a redigir termos jurídicos precisos mais rápido.</p>
-                   )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          <VisualTemplateEditor 
+            template={selectedTemplate}
+            content={editContent}
+            setContent={setEditContent}
+            onSave={handleSave}
+            isSaving={isSaving}
+            onReset={() => showToast("Funcionalidade em desenvolvimento.", "attention")}
+          />
         ) : (
-          <div className="h-[650px] flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400">
-            <FileText size={64} className="mb-4 opacity-10" />
-            <p className="font-medium">Selecione um modelo à esquerda para começar a editar.</p>
+          <div className="h-[700px] flex flex-col items-center justify-center bg-md-surface-variant/10 border-2 border-dashed border-md-outline/10 rounded-[48px] text-md-on-surface-variant/30 gap-4">
+            <FileText size={80} strokeWidth={1} />
+            <p className="text-sm font-bold uppercase tracking-[0.2em]">Selecione um ato para editar</p>
           </div>
         )}
+      </div>
+
+      {/* ✨ AI Copilot (3 colunas) */}
+      <div className="xl:col-span-3">
+        <IATemplateAssistant 
+          prompt={aiPrompt}
+          setPrompt={setAiPrompt}
+          onAsk={handleAiAssist}
+          loading={isAiLoading}
+          response={aiResponse}
+          onInsert={() => { setEditContent(prev => prev + "\n" + aiResponse); setAiResponse(''); setAiPrompt(''); }}
+        />
       </div>
     </div>
   );
