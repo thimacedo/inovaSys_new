@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, FileText, Bot, Download, ArrowLeft, DollarSign } from 'lucide-react';
+import { ChevronRight, FileText, Bot, Download, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Button } from '../../presentation/ui/components/Button';
 import { Processo } from '../../services/processService';
@@ -8,7 +8,6 @@ interface ProcessHeaderProps {
   processo: Processo;
   isAdmin: boolean;
   onBack: () => void;
-  onGerarHonorarios: () => void;
   onSentencaIA: () => void;
   onGerarTermo: () => void;
   isGeneratingDoc: boolean;
@@ -18,7 +17,6 @@ export const ProcessHeader: React.FC<ProcessHeaderProps> = ({
   processo,
   isAdmin,
   onBack,
-  onGerarHonorarios,
   onSentencaIA,
   onGerarTermo,
   isGeneratingDoc
@@ -53,17 +51,6 @@ export const ProcessHeader: React.FC<ProcessHeaderProps> = ({
         
         {/* ⚡ Ações Rápidas (Pills) */}
         <div className="flex flex-wrap gap-3">
-          {isAdmin && (
-            <Button 
-              variant="outline" 
-              onClick={onGerarHonorarios} 
-              icon={DollarSign}
-              size="md"
-              className="rounded-full border-md-outline/20 text-md-primary hover:bg-md-primary/5"
-            >
-              Faturar
-            </Button>
-          )}
           <Button 
             variant="outline" 
             onClick={onSentencaIA}

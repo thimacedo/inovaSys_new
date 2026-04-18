@@ -232,7 +232,7 @@ export default function FinancialHub() {
 
       {/* 📋 Tabela de Lançamentos Unificada */}
       <div className="bg-md-surface rounded-[32px] border border-md-outline/5 overflow-hidden shadow-md transition-all">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-md-surface-variant/10 border-b border-md-outline/5">

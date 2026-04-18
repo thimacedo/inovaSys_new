@@ -89,14 +89,13 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const currentProcesso = processo as any;
 
   return (
-    <div className="flex gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-16">
-      <div className="flex-1 space-y-8">
+    <div className="w-full max-w-full overflow-hidden flex flex-col xl:flex-row gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-16">
+      <div className="flex-1 min-w-0 space-y-8">
         
         <ProcessHeader 
           processo={processo}
           isAdmin={isAdmin}
           onBack={onBack}
-          onGerarHonorarios={() => financeiroService.gerarHonorariosArbitrais(processo.id, currentProcesso.valor_causa || 0, currentProcesso.organization_id || '')}
           onSentencaIA={() => showModal('IA Jurídica', <SentenceGenerator processo={processo} onGenerate={(html) => documentService.downloadPDF(html, `SENTENCA_${currentProcesso.numero_processo}`)} onClose={() => {}} />)}
           onGerarTermo={async () => {
              setIsGeneratingDoc(true);
