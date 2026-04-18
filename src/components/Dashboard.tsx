@@ -19,8 +19,7 @@ const Auditoria = lazy(() => import('./Auditoria'));
 const EfficiencyDashboard = lazy(() => import('./EfficiencyDashboard'));
 const TemplateManager = lazy(() => import('./TemplateManager'));
 const DashboardHome = lazy(() => import('./DashboardHome'));
-const FinanceiroBI = lazy(() => import('./FinanceiroBI'));
-const FinanceiroManager = lazy(() => import('./FinanceiroManager'));
+const FinancialHub = lazy(() => import('./FinancialHub'));
 const CalendarView = lazy(() => import('./CalendarView'));
 const EmailTemplatesPage = lazy(() => import('../presentation/pages/Admin/EmailTemplatesPage'));
 
@@ -133,8 +132,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
       case 'efficiency_dashboard': return canSeeAudit ? <EfficiencyDashboard /> : <DashboardHome />;
       case 'templates': return isGlobalAdmin ? <TemplateManager /> : <DashboardHome />;
       case 'email_templates': return isAtLeastAdmin ? <EmailTemplatesPage /> : <DashboardHome />;
-      case 'financeiro': return isAtLeastAdmin ? <FinanceiroManager /> : <DashboardHome />;
-      case 'financeiro_bi': return isAtLeastAdmin ? <FinanceiroBI /> : <DashboardHome />;
+      case 'financial_hub': return isAtLeastAdmin ? <FinancialHub /> : <DashboardHome />;
       case 'calendar': return <CalendarView />;
       default: return <DashboardHome />;
     }

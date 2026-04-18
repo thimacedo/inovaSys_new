@@ -9,6 +9,27 @@ import { BIMetricsGrid } from './financeiro-bi/BIMetricsGrid';
 import { BIChartsSection } from './financeiro-bi/BIChartsSection';
 import { BIRecentCashflow } from './financeiro-bi/BIRecentCashflow';
 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
+
 interface MonthData {
   label: string;
   month: number;

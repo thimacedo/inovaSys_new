@@ -152,10 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {(isAtLeastAdmin || canManageTeam) && (
           <SidebarSection title="Gestão">
             {isAtLeastAdmin && (
-              <>
-                <NavigationItem id="financeiro" icon={DollarSign} label="Financeiro" isActive={currentView === 'financeiro'} onClick={handleNavClick} />
-                <NavigationItem id="financeiro_bi" icon={Activity} label="BI" isActive={currentView === 'financeiro_bi'} onClick={handleNavClick} />
-              </>
+              <NavigationItem id="financial_hub" icon={DollarSign} label="Financeiro" isActive={currentView === 'financial_hub'} onClick={handleNavClick} />
             )}
             {canManageTeam && <NavigationItem id="equipe" icon={Users} label="Equipe" isActive={currentView === 'equipe'} onClick={handleNavClick} />}
             {isGlobalAdmin && <NavigationItem id="templates" icon={FileText} label="Modelos" isActive={currentView === 'templates'} onClick={handleNavClick} />}

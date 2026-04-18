@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { GlobalErrorBoundary } from './presentation/ui/components/GlobalErrorBoundary';
 import { useAuthSync } from './presentation/hooks/useAuthSync';
 import { useRealtimeSync } from './presentation/hooks/useRealtimeSync';
@@ -13,6 +14,7 @@ import Dashboard from './components/Dashboard';
 import PublicConsultation from './components/PublicConsultation';
 import Pricing from './components/Pricing';
 import Onboarding from './components/Onboarding';
+import { LandingPage } from './presentation/pages/Landing/LandingPage';
 
 function AppContent() {
   // Inicializa a sincronização Sessão (Zustand) e Eventos (WebSockets)
@@ -21,7 +23,7 @@ function AppContent() {
 
   const { currentUser, setCurrentUser, logout, isAuthenticated } = useAuthStore();
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'auth' | 'public' | 'app' | 'pricing' | 'onboarding'>('auth');
+  const [view, setView] = useState<'landing' | 'auth' | 'public' | 'app' | 'pricing' | 'onboarding'>('landing');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
@@ -77,7 +79,7 @@ function AppContent() {
         }
       } else {
         if (mounted) {
-          setView('auth');
+          setView('landing');
           setLoading(false);
         }
       }
@@ -93,7 +95,7 @@ function AppContent() {
       localStorage.removeItem('impersonated_camara_id');
       await authService.signOut();
       logout();
-      setView('auth');
+      setView('landing');
     } catch (e) {
       console.error(e);
     } finally {
@@ -112,23 +114,93 @@ function AppContent() {
     );
   }
 
-  if (view === 'public') return <PublicConsultation />;
-  if (view === 'pricing') return <Pricing onBack={() => setView('auth')} />;
-  if (view === 'onboarding') return <Onboarding session={{ user: currentUser }} onComplete={() => setView('app')} onSignOut={handleSignOut} />;
-  
-  if (!isAuthenticated || view === 'auth') return <Auth onPublicView={() => setView('public')} onPricingView={() => setView('pricing')} />;
-
   return (
-    <>
-      <Toaster position="top-right" richColors closeButton />
-      <Dashboard 
-        session={{ user: currentUser }} 
-        userProfile={userProfile} 
-        onSignOut={handleSignOut} 
-        theme={theme}
-        onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
-      />
-    </>
+    <AnimatePresence mode="wait">
+      {view === 'landing' && (
+        <motion.div
+          key="landing"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="w-full"
+        >
+          <LandingPage onLogin={() => setView('auth')} />
+        </motion.div>
+      )}
+
+      {view === 'public' && (
+        <motion.div
+          key="public"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+          className="w-full"
+        >
+          <PublicConsultation />
+        </motion.div>
+      )}
+
+      {view === 'pricing' && (
+        <motion.div
+          key="pricing"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.3 }}
+          className="w-full"
+        >
+          <Pricing onBack={() => setView('auth')} />
+        </motion.div>
+      )}
+
+      {view === 'onboarding' && (
+        <motion.div
+          key="onboarding"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="w-full"
+        >
+          <Onboarding session={{ user: currentUser }} onComplete={() => setView('app')} onSignOut={handleSignOut} />
+        </motion.div>
+      )}
+
+      {(view === 'auth' || (!isAuthenticated && view !== 'landing' && view !== 'public' && view !== 'pricing')) && (
+        <motion.div
+          key="auth"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          className="w-full"
+        >
+          <Auth onPublicView={() => setView('public')} onPricingView={() => setView('pricing')} />
+        </motion.div>
+      )}
+
+      {view === 'app' && isAuthenticated && (
+        <motion.div
+          key="app"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full"
+        >
+          <Toaster position="top-right" richColors closeButton />
+          <Dashboard 
+            session={{ user: currentUser }} 
+            userProfile={userProfile} 
+            onSignOut={handleSignOut} 
+            theme={theme}
+            onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
