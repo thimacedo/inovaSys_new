@@ -1,153 +1,123 @@
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useAuditLogs } from '../presentation/hooks/useSettings';
-import { 
-  ShieldCheck, 
-  Search, 
-  Plus, 
-  Trash2, 
-  Edit3, 
-  LogIn, 
-  Clock,
-  ChevronDown,
-  Calendar
-} from 'lucide-react';
+import { useAuditLogs, useViewLogs } from '../presentation/hooks/useSettings';
+import { Calendar, Eye, Globe, User } from 'lucide-react';
+
+// 🧩 Sub-módulos Modularizados (Material You MD3)
+import { AuditHeader } from './audit/AuditHeader';
+import { AuditFilters } from './audit/AuditFilters';
+import { AuditDetailsCard } from './audit/AuditDetailsCard';
 
 export default function Auditoria() {
-  const { data: logs = [], isLoading, refetch } = useAuditLogs();
+  const [activeTab, setActiveTab] = useState<'acoes' | 'visualizacoes'>('acoes');
+  const { data: logs = [], isLoading: isLoadingLogs, refetch: refetchLogs } = useAuditLogs();
+  const { data: viewLogs = [], isLoading: isLoadingViews, refetch: refetchViews } = useViewLogs();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
 
-  const getActionConfig = (acao: string) => {
-    const act = acao.toLowerCase();
-    if (act.includes('criar') || act.includes('insert')) return { icon: <Plus size={14} />, color: 'bg-emerald-100 text-emerald-700', label: 'Criação' };
-    if (act.includes('deletar') || act.includes('delete') || act.includes('excluir')) return { icon: <Trash2 size={14} />, color: 'bg-red-100 text-red-700', label: 'Exclusão' };
-    if (act.includes('update') || act.includes('editar') || act.includes('atualizar')) return { icon: <Edit3 size={14} />, color: 'bg-blue-100 text-blue-700', label: 'Edição' };
-    if (act.includes('login')) return { icon: <LogIn size={14} />, color: 'bg-amber-100 text-amber-700', label: 'Acesso' };
-    return { icon: <ShieldCheck size={14} />, color: 'bg-slate-100 text-slate-700', label: acao };
-  };
+  const isLoading = activeTab === 'acoes' ? isLoadingLogs : isLoadingViews;
 
   const filteredLogs = useMemo(() => {
-    return (logs as any[]).filter(log => 
-      log.acao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (log as any).perfil?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      JSON.stringify(log.dados_novos || log.dados_antigos || {}).toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [logs, searchTerm]);
+    const term = searchTerm.toLowerCase();
+    if (activeTab === 'acoes') {
+      return (logs as any[]).filter(log => 
+        log.acao.toLowerCase().includes(term) ||
+        log.perfil?.nome?.toLowerCase().includes(term) ||
+        JSON.stringify(log.dados_novos || log.dados_antigos || {}).toLowerCase().includes(term)
+      );
+    } else {
+      return (viewLogs as any[]).filter(log => 
+        log.documento_nome.toLowerCase().includes(term) ||
+        log.perfil?.nome?.toLowerCase().includes(term) ||
+        log.ip_address.toLowerCase().includes(term)
+      );
+    }
+  }, [logs, viewLogs, searchTerm, activeTab]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, any[]> = {};
     filteredLogs.forEach(log => {
-      const date = new Date(log.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+      const date = new Date(log.created_at || log.data_hora).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
       if (!groups[date]) groups[date] = [];
       groups[date].push(log);
     });
     return groups;
   }, [filteredLogs]);
 
+  if (isLoading && filteredLogs.length === 0) return <div className="flex items-center justify-center py-40"><div className="w-12 h-12 border-4 border-md-surface-variant border-t-md-primary rounded-full animate-spin"></div></div>;
+
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-          <ShieldCheck size={120} />
-        </div>
-        <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            Trilha de Auditoria
-          </h2>
-          <p className="text-slate-500 mt-2 font-medium">Registro imutável de todas as ações críticas do sistema.</p>
-        </div>
-        <button 
-          onClick={() => refetch()}
-          disabled={isLoading}
-          className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all flex items-center gap-2 disabled:opacity-50"
-        >
-          Sincronizar Logs
-        </button>
-      </div>
+    <div className="space-y-4 max-w-6xl mx-auto pb-20 animate-in fade-in duration-700">
+      
+      <AuditHeader 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        onRefresh={() => activeTab === 'acoes' ? refetchLogs() : refetchViews()} 
+        loading={isLoading} 
+      />
 
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-        <input 
-          type="text"
-          placeholder="Filtrar logs..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all shadow-sm font-medium"
-        />
-      </div>
+      <AuditFilters 
+        searchTerm={searchTerm} 
+        setSearchTerm={setSearchTerm} 
+        placeholder={`Filtrar ${activeTab === 'acoes' ? 'atividades críticas' : 'acessos a documentos'}...`} 
+      />
 
-      {!isLoading && (
-        <div className="space-y-12 relative before:absolute before:inset-0 before:ml-10 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-slate-200 before:via-slate-200 before:to-transparent">
-          {Object.keys(grouped).map((date) => {
-            const dateLogs = grouped[date] as any[];
-            return (
-              <div key={date} className="relative space-y-6">
-                <div className="flex items-center gap-4 mb-8">
-                   <div className="w-20 h-20 bg-white border-2 border-slate-100 shadow-sm rounded-full flex flex-col items-center justify-center z-10 sticky top-4">
-                      <Calendar size={14} className="text-purple-600 mb-1" />
-                      <span className="text-[10px] font-black text-slate-400 uppercase text-center leading-tight">
-                        {date}
-                      </span>
-                   </div>
-                   <div className="h-px bg-slate-100 flex-1"></div>
-                </div>
+      <div className="space-y-16 relative before:absolute before:inset-0 before:ml-12 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-md-primary/20 before:via-md-outline/10 before:to-transparent">
+        {Object.keys(grouped).map((date) => (
+          <div key={date} className="relative space-y-8">
+            <div className="flex items-center gap-6 mb-10">
+               <div className="w-24 h-24 bg-md-surface border border-md-outline/10 shadow-sm rounded-full flex flex-col items-center justify-center z-10 sticky top-24">
+                  <Calendar size={18} className="text-md-primary mb-1" />
+                  <span className="text-[10px] font-black text-md-on-surface-variant/40 uppercase text-center leading-tight px-2">
+                    {date}
+                  </span>
+               </div>
+               <div className="h-px bg-md-outline/5 flex-1"></div>
+            </div>
 
-                <div className="space-y-4 pl-20">
-                  {dateLogs.map((log: any) => {
-                    const config = getActionConfig(log.acao);
-                    const isExpanded = expandedLog === log.id;
-                    const perfil = log.perfil;
-
-                    return (
-                      <div 
-                        key={log.id} 
-                        className={`bg-white border rounded-2xl transition-all shadow-sm cursor-pointer group ${isExpanded ? 'border-purple-200 ring-2 ring-purple-50' : 'border-slate-200'}`}
-                        onClick={() => setExpandedLog(isExpanded ? null : log.id)}
-                      >
-                        <div className="p-5 flex items-center gap-4">
-                          <div className={`p-3 rounded-xl ${config.color}`}>
-                            {config.icon}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                               <span className="text-sm font-black text-slate-900 truncate">{log.acao}</span>
-                               <span className="text-xs font-bold text-slate-500"> — {perfil?.nome || 'Sistema'}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-slate-400">
-                               <Clock size={12} />
-                               {new Date(log.created_at).toLocaleTimeString('pt-BR')}
-                               <span className="text-[10px] font-mono">({log.tabela})</span>
-                            </div>
-                          </div>
-                          <ChevronDown className={`text-slate-300 transition-transform ${isExpanded ? 'rotate-180 text-purple-600' : ''}`} size={20} />
-                        </div>
-
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <motion.div 
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="border-t border-slate-100 bg-slate-50/50 overflow-hidden"
-                            >
-                              <div className="p-6">
-                                 <pre className="text-xs text-slate-600 bg-white border border-slate-200 p-4 rounded-xl shadow-inner font-mono overflow-auto max-h-60">
-                                    {JSON.stringify({ anterior: log.dados_antigos, novo: log.dados_novos }, null, 2)}
-                                  </pre>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+            <div className="space-y-4 pl-24 lg:pl-32">
+              {grouped[date].map((log: any) => (
+                activeTab === 'acoes' ? (
+                  <AuditDetailsCard 
+                    key={log.id} 
+                    log={log} 
+                    isExpanded={expandedLog === log.id} 
+                    onToggle={() => setExpandedLog(expandedLog === log.id ? null : log.id)} 
+                  />
+                ) : (
+                  <div key={log.id} className="bg-md-surface border border-md-outline/5 rounded-[28px] p-6 flex items-center justify-between shadow-sm hover:bg-md-surface-variant/10 transition-all group">
+                    <div className="flex items-center gap-5">
+                      <div className="p-3.5 bg-md-secondary/10 text-md-secondary rounded-2xl group-hover:bg-md-secondary group-hover:text-md-on-secondary transition-all">
+                        <Eye size={20} />
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+                      <div>
+                        <p className="text-sm font-black text-md-on-surface">{log.documento_nome}</p>
+                        <div className="flex flex-wrap items-center gap-4 mt-1.5">
+                          <span className="flex items-center gap-1.5 text-[10px] font-black text-md-on-surface-variant/40 uppercase tracking-widest">
+                            <User size={12} className="opacity-50" />
+                            {log.perfil?.nome || 'Usuário Externo'}
+                          </span>
+                          <span className="flex items-center gap-1.5 text-[10px] font-black text-md-on-surface-variant/40 uppercase tracking-widest">
+                            <Globe size={12} className="opacity-50" />
+                            {log.ip_address}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] font-black text-md-on-surface uppercase tracking-tighter">
+                        {new Date(log.created_at).toLocaleTimeString('pt-BR')}
+                      </p>
+                      <p className="text-[9px] font-bold text-md-on-surface-variant/40 uppercase tracking-widest mt-0.5">
+                        {new Date(log.created_at).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

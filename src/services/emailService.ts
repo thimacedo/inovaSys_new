@@ -15,7 +15,7 @@ interface TemplateData {
  */
 function interpolateTemplate(template: string, data: TemplateData): string {
   return template.replace(/\{\{(\w+)\}\}/g, (placeholder, key) => {
-    return data.hasOwnProperty(key) ? String(data[key]) : placeholder;
+    return Object.prototype.hasOwnProperty.call(data, key) ? String(data[key]) : placeholder;
   });
 }
 

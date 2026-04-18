@@ -2,57 +2,57 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
-const SYSTEM_INSTRUCTION = `Você é o Assistente Jurídico Inteligente da InovaSys, uma plataforma de gestão de Câmaras de Arbitragem.
-Sua especialidade é a Lei de Arbitragem Brasileira (Lei 9.307/96) e redação jurídica técnica.
-Mantenha um tom formal, objetivo e extremamente profissional. 
-Nunca invente fatos, apenas formate e sugira textos baseados nas normas jurídicas.`;
+const SYSTEM_INSTRUCTION = `Você é um Assistente Administrativo de Digitação e Formatação da InovaSys, uma plataforma de Câmaras de Arbitragem.
+Sua função é ESTRITAMENTE MECÂNICA E ADMINISTRATIVA: formatar textos, corrigir gramática, e gerar minutas de documentos BASEADAS EXCLUSIVAMENTE nas diretrizes explícitas fornecidas pelo usuário.
+DIRETRIZ IMUTÁVEL: Você NUNCA deve analisar provas, julgar mérito, identificar contradições, sugerir caminhos jurídicos ou influenciar a decisão do árbitro. Se for solicitado a analisar o mérito de um caso, recuse-se e informe que sua função é apenas formatação textual.`;
 
 export const aiService = {
+  /**
+   * Formata e melhora a clareza gramatical de uma cláusula ou parágrafo.
+   */
   suggestClausula: async (contexto: string, promptUsuario: string) => {
     try {
       if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
-
       const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
         systemInstruction: SYSTEM_INSTRUCTION
       });
 
-      const prompt = `Contexto do Documento: ${contexto}
-      Solicitação do Advogado/Árbitro: ${promptUsuario}
-      
-      Gere uma sugestão de texto ou alteração para este documento.`;
-
+      const prompt = `Formate o seguinte texto solicitado pelo usuário em linguagem formal e culta, sem alterar o sentido ou o mérito:\n${promptUsuario}`;
       const result = await model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      return result.response.text();
     } catch (error) {
-      console.warn('AI Service Error:', error);
-      return `[ERRO IA]: Verifique sua conexão ou API Key.`;
+      return `[ERRO IA]: Verifique sua conexão.`;
     }
   },
 
-  summarizeFacts: async (fatosBrutos: string) => {
+  /**
+   * Gera o esqueleto (template preenchido) da sentença com base ESTRITAMENTE no que o árbitro ditou/escreveu.
+   */
+  generateSentence: async (dadosProcesso: any, diretrizes: string) => {
     try {
-      if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
+        model: "gemini-1.5-pro",
         systemInstruction: SYSTEM_INSTRUCTION
       });
 
-      const prompt = `Resuma os seguintes fatos narrados pelas partes de forma técnica e concisa para constar em um Termo de Arbitragem. 
-      Destaque o objeto do litígio e o valor envolvido se mencionado.
+      const prompt = `Crie um documento HTML formatado com a estrutura de uma Sentença Arbitral. 
+      Preencha o cabeçalho com os dados: ${JSON.stringify(dadosProcesso)}.
+      Para a fundamentação e o dispositivo, TRANSCREVA e FORMATE o seguinte texto ditado pelo árbitro, sem adicionar nenhum argumento novo: 
+      "${diretrizes}"
       
-      Fatos Narrados:
-      ${fatosBrutos}`;
-      
+      Retorne APENAS o HTML formatado.`;
+
       const result = await model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      return result.response.text();
     } catch (e) {
-      return fatosBrutos;
+      throw new Error('Falha ao gerar rascunho de sentença na nuvem.');
     }
   },
 
+  /**
+   * Corrige erros gramaticais e de formatação de um rascunho feito pelo humano.
+   */
   improveDraft: async (text: string) => {
     try {
       if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
@@ -61,7 +61,7 @@ export const aiService = {
         systemInstruction: SYSTEM_INSTRUCTION
       });
 
-      const prompt = `Refine o seguinte rascunho jurídico para torná-lo mais formal, claro e condizente com padrões de câmaras de arbitragem modernas:\n\n${text}`;
+      const prompt = `Revise o seguinte texto corrigindo apenas ortografia, gramática e coesão textual, mantendo rigorosamente a narrativa e a decisão intactas:\n\n${text}`;
       
       const result = await model.generateContent(prompt);
       const response = await result.response;
@@ -71,27 +71,26 @@ export const aiService = {
     }
   },
 
+  /**
+   * Extração mecânica de dados (ex: ler um CNPJ de um PDF para preencher um formulário).
+   */
   extractMechanicalData: async (text: string) => {
     try {
       if (!import.meta.env.VITE_GEMINI_API_KEY) throw new Error('API Key missing');
       const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
-        systemInstruction: `Você é um extrator de dados estruturados. Sua única tarefa é identificar e extrair informações mecânicas de documentos jurídicos. 
-        Não interprete, não sugira e não avalie o mérito. Apenas retorne um JSON com os campos: 
-        tipo_documento (ex: Contrato, RG, Comprovante), partes (array de strings), valores (array de números), datas (array de strings ISO).`
+        systemInstruction: `Você é um extrator de dados estruturados. Sua única tarefa é identificar e extrair informações mecânicas (Nomes, CPFs, Valores, Datas) de textos. Não interprete nem avalie nada. Retorne apenas JSON.`
       });
 
-      const prompt = `Extraia os dados técnicos do seguinte texto:\n\n${text}`;
+      const prompt = `Extraia os dados mecânicos do seguinte texto:\n\n${text}`;
       
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const resultText = response.text();
       
-      // Limpa o texto para garantir que seja um JSON válido
       const jsonMatch = resultText.match(/\{[\s\S]*\}/);
       return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
     } catch (e) {
-      console.error('[AIService] Erro na extração de dados:', e);
       return null;
     }
   }

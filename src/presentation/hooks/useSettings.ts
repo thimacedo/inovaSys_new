@@ -39,3 +39,16 @@ export function useAuditLogs() {
     staleTime: 1000 * 60 * 2, // 2 minutos
   });
 }
+
+export function useViewLogs(processoId?: string) {
+  return useQuery({
+    queryKey: ['view_logs', processoId],
+    queryFn: async () => {
+      if (processoId) {
+        return await DependencyRegistry.getViewLogRepository().getByProcesso(processoId);
+      }
+      return await DependencyRegistry.getViewLogRepository().listAll(200);
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+}

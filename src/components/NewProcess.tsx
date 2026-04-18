@@ -50,11 +50,11 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
       return;
     }
     setIsSummarizing(true);
-    const toastId = toast.loading("IA analisando fatos...");
+    const toastId = toast.loading("IA analisando e refinando fatos...");
     try {
-      const summary = await aiService.summarizeFacts(formData.resumo_fatos);
+      const summary = await aiService.improveDraft(formData.resumo_fatos);
       setFormData(prev => ({ ...prev, resumo_fatos: summary }));
-      toast.success("Resumo técnico gerado!", { id: toastId });
+      toast.success("Narrativa refinada tecnicamente!", { id: toastId });
     } catch (err) {
       toast.error("Erro ao processar IA.", { id: toastId });
     } finally {

@@ -1,16 +1,30 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import * as html2pdfModule from 'html2pdf.js';
+import { useAuthStore } from '../presentation/state/useAuthStore';
+import { auditService } from '../services/auditService';
 
 const html2pdf = (html2pdfModule as any).default || html2pdfModule;
 
 interface BatchDocumentPreviewProps {
   documents: { html: string; title: string }[];
   processNumber: string;
+  processoId?: string;
 }
 
-export default function BatchDocumentPreview({ documents, processNumber }: BatchDocumentPreviewProps) {
+export default function BatchDocumentPreview({ documents, processNumber, processoId }: BatchDocumentPreviewProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { currentUser } = useAuthStore();
+
+  useEffect(() => {
+    if (processoId && currentUser) {
+      auditService.registrarVisualizacao(
+        `PACOTE_COMPLETO_${processNumber}`,
+        processoId,
+        currentUser.id
+      );
+    }
+  }, [processoId, currentUser, processNumber]);
 
   const handleDownloadAll = () => {
     if (!containerRef.current || isGenerating) return;

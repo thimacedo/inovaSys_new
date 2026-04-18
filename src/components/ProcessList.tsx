@@ -5,18 +5,13 @@ import { useModal } from '../context/ModalContext';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useProcessos, useDeleteProcess } from '../presentation/hooks/useProcessos';
 import { toast } from 'sonner';
-import {
-  BarChart3,
-  Search,
-  Plus,
-  LayoutList,
-  LayoutGrid,
-  Eye,
-  Trash2,
-  AlertCircle
-} from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
-import { ProcessRowSkeleton } from '../presentation/ui/components/Skeleton';
+
+// 🧩 Sub-módulos MD3
+import { ProcessListHeader } from './process-list/ProcessListHeader';
+import { ProcessTable } from './process-list/ProcessTable';
+import { ProcessKanban } from './process-list/ProcessKanban';
 
 export default function ProcessList({ onProcessSelect, onNewProcess }: { onProcessSelect: (id: string) => void, onNewProcess?: () => void }) {
   const { isAtLeastAdmin } = usePermissions();
@@ -41,8 +36,6 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
   });
 
   const processos = (queryResult?.data || []) as Processo[];
-  const totalCount = queryResult?.count || 0;
-
   const statuses = ['Todos', 'Protocolado', 'Em Andamento', 'Concluído', 'Arquivado'];
   
   const filteredProcessos = activeStatus === 'Todos'
@@ -65,11 +58,9 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
   const excluirProcesso = async (id: string) => {
     showConfirm(
       "Confirmar Exclusão",
-      "A exclusão apagará TUDO relacionado a este processo. Esta ação não pode ser desfeita. Confirma?",
+      "A exclusão apagará permanentemente todos os dados vinculados a este processo. Confirma?",
       async () => {
-        const promise = deleteMutation.mutateAsync(id);
-
-        toast.promise(promise, {
+        toast.promise(deleteMutation.mutateAsync(id), {
           loading: 'Excluindo processo...',
           success: 'Processo removido com sucesso!',
           error: 'Falha ao excluir processo.'
@@ -79,193 +70,72 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
     );
   };
 
-  const statusBadge = (status: string) => {
-    switch (status) {
-      case 'Concluído':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-      case 'Em Andamento':
-        return 'bg-indigo-50 text-indigo-700 border-indigo-100';
-      case 'Arquivado':
-        return 'bg-slate-50 text-slate-500 border-slate-200';
-      case 'Protocolado':
-        return 'bg-sky-50 text-sky-700 border-sky-100';
-      default:
-        return 'bg-blue-50 text-blue-700 border-blue-100';
-    }
-  };
-
   if (isError) {
     return (
-      <div className="p-20 text-center flex flex-col items-center gap-4 bg-white rounded-2xl border border-red-100 shadow-sm">
-        <AlertCircle size={48} className="text-red-500" />
-        <h4 className="text-lg font-bold text-slate-900">Erro ao carregar processos</h4>
-        <button onClick={() => window.location.reload()} className="text-xs font-bold text-blue-600 underline">Tentar novamente</button>
+      <div className="p-20 text-center flex flex-col items-center gap-4 bg-md-surface rounded-[32px] border border-rose-100 shadow-sm">
+        <AlertCircle size={48} className="text-rose-500" />
+        <h4 className="text-lg font-bold text-md-on-surface">Erro ao carregar processos</h4>
+        <button onClick={() => window.location.reload()} className="text-xs font-bold text-md-primary underline">Tentar novamente</button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500 w-full max-w-full overflow-hidden">
-      <div className="flex flex-col lg:flex-row flex-wrap lg:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-            <BarChart3 size={20} />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">Painel de Processos</h2>
-            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Gestão e Acompanhamento</p>
-          </div>
-        </div>
-
-        <div className="flex flex-1 flex-wrap items-center gap-3 justify-end">
-          <div className="relative w-full sm:w-auto sm:min-w-[200px] flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-            <input
-              type="text"
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400"
-              placeholder="Buscar processos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
-            <button
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => setViewMode('list')}
-            >
-              <LayoutList size={16} />
-            </button>
-            <button
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => setViewMode('kanban')}
-            >
-              <LayoutGrid size={16} />
-            </button>
-          </div>
-
-          {onNewProcess && (
-            <button
-              className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-all shadow-md flex items-center gap-2 uppercase tracking-wider shrink-0"
-              onClick={onNewProcess}
-            >
-              <Plus size={16} />
-              <span className="hidden sm:inline">Novo</span>
-            </button>
-          )}
-        </div>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-500 w-full max-w-full overflow-hidden pb-12">
+      
+      {/* 🏷️ Cabeçalho com Filtros (MD3) */}
+      <ProcessListHeader 
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        viewMode={viewMode}
+        onViewChange={setViewMode}
+        onNewProcess={onNewProcess}
+      />
 
       <AnimatePresence mode="wait">
         {viewMode === 'list' ? (
-          <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/50">
-              <div className="flex bg-slate-200/50 p-1 rounded-xl gap-1">
+          <motion.div key="list" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-md-surface rounded-[32px] border border-md-outline/5 shadow-sm overflow-hidden flex flex-col">
+            
+            {/* Filtros de Status em Pílulas MD3 */}
+            <div className="p-5 border-b border-md-outline/5 flex flex-wrap items-center justify-between gap-4 bg-md-surface-variant/10">
+              <div className="flex flex-wrap gap-2">
                 {statuses.map(status => (
                   <button
                     key={status}
                     onClick={() => setActiveStatus(status)}
-                    className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                    className={`px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
                       activeStatus === status 
-                        ? 'bg-white text-blue-600 shadow-sm' 
-                        : 'text-slate-500 hover:text-slate-700'
+                        ? 'bg-md-primary text-md-on-primary shadow-sm' 
+                        : 'bg-md-surface text-md-on-surface-variant/70 border border-md-outline/10 hover:bg-md-surface-variant/30 hover:text-md-on-surface'
                     }`}
                   >
                     {status}
                   </button>
                 ))}
               </div>
-              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100 italic">{filteredProcessos.length} filtrados</span>
+              <span className="text-[10px] font-bold text-md-primary bg-md-primary/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                {filteredProcessos.length} registros
+              </span>
             </div>
 
-            {loading ? (
-              <div className="divide-y divide-slate-50">
-                {[...Array(5)].map((_, i) => <ProcessRowSkeleton key={i} />)}
-              </div>
-            ) : (
-              <div className="overflow-x-auto w-full">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50/50 border-b border-slate-200">
-                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Processo</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quem participa</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valor</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Situação</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredProcessos.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-20 text-center">
-                          <p className="text-sm font-bold text-slate-500">Nenhum processo {activeStatus !== 'Todos' ? `com status "${activeStatus}"` : ''} encontrado</p>
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredProcessos.map(p => (
-                        <tr 
-                          key={p.id} 
-                          className="hover:bg-blue-50/50 transition-all group cursor-pointer border-b border-slate-100 last:border-0"
-                          onClick={() => onProcessSelect(p.id)}
-                        >
-                          <td className="px-6 py-5">
-                            <span className="text-sm font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-xl border border-blue-100 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all">{p.numero_processo}</span>
-                          </td>
-                          <td className="px-6 py-5">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors">{p.requerente_nome}</span>
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{p.requerido_nome}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-5">
-                            <span className="text-sm font-bold text-slate-700">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.valor_causa || 0)}</span>
-                          </td>
-                          <td className="px-6 py-5">
-                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${statusBadge(p.status || '')}`}>{p.status}</span>
-                          </td>
-                          <td className="px-6 py-5 text-right">
-                            <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                              <button className="p-2 text-slate-300 hover:text-blue-600 hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-blue-100" onClick={() => onProcessSelect(p.id)}><Eye size={18} /></button>
-                              {isAtLeastAdmin && <button className="p-2 text-slate-300 hover:text-red-600 hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-red-100" onClick={() => excluirProcesso(p.id)}><Trash2 size={18} /></button>}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            {/* 🧾 Tabela de Processos */}
+            <ProcessTable 
+              processos={filteredProcessos}
+              loading={loading}
+              activeStatus={activeStatus}
+              isAtLeastAdmin={isAtLeastAdmin}
+              onSelect={onProcessSelect}
+              onDelete={excluirProcesso}
+            />
+
           </motion.div>
         ) : (
-          <motion.div key="kanban" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex gap-6 overflow-x-auto pb-6 min-h-[600px] w-full max-w-full">
-            {['Protocolado', 'Em Andamento', 'Concluído', 'Arquivado'].map(status => (
-              <div key={status} className="flex-shrink-0 w-80 bg-slate-100/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-4">
-                <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2">{status}</h5>
-                <div className="flex-1 space-y-3">
-                  {loading ? [...Array(3)].map((_, i) => <ProcessRowSkeleton key={i} />) : 
-                    processos.filter(p => String(p.status || '').trim().toLowerCase() === status.toLowerCase()).length === 0 ? (
-                      <div className="py-10 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vazio</p>
-                      </div>
-                    ) : (
-                      processos.filter(p => String(p.status || '').trim().toLowerCase() === status.toLowerCase()).map(p => (
-                        <div 
-                          key={p.id} 
-                          className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all cursor-pointer group" 
-                          onClick={() => onProcessSelect(p.id)}
-                        >
-                          <span className="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 block mb-2">{p.numero_processo}</span>
-                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">{p.requerente_nome}</p>
-                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase line-clamp-1">{p.requerido_nome}</p>
-                        </div>
-                      ))
-                    )
-                  }
-                </div>
-              </div>
-            ))}
-          </motion.div>
+          /* 📋 Visualização Kanban */
+          <ProcessKanban 
+            processos={processos}
+            loading={loading}
+            onSelect={onProcessSelect}
+          />
         )}
       </AnimatePresence>
     </div>

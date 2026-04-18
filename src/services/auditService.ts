@@ -28,30 +28,22 @@ export const auditService = {
    */
   registrarVisualizacao: async (docNome: string, processoId: string, userId: string) => {
     try {
-      // Capturar IP com timeout de 2s para evitar travamento da UI
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-      const ipResponse = await fetch('https://api.ipify.org?format=json', { signal: controller.signal })
-        .catch(() => null);
-      
-      clearTimeout(timeoutId);
-      
-      const ipData = ipResponse ? await ipResponse.json().catch(() => ({ ip: '0.0.0.0' })) : { ip: '0.0.0.0' };
+      // Capturar IP de forma resiliente
+      const ipResponse = await fetch('https://api.ipify.org?format=json').catch(() => null);
+      const ipData = ipResponse ? await ipResponse.json().catch(() => ({ ip: 'Desconhecido' })) : { ip: 'Desconhecido' };
 
       const { error } = await supabase.from('logs_visualizacao').insert({
         usuario_id: userId,
         documento_nome: docNome,
         processo_id: processoId,
-        ip_address: ipData.ip || '0.0.0.0',
-        user_agent: navigator.userAgent
+        ip_address: ipData.ip,
+        user_agent: navigator.userAgent,
+        created_at: new Date().toISOString()
       });
 
-      if (error) {
-        console.warn('[AuditService] Erro ao persistir no Supabase:', error.message);
-      }
+      if (error) console.warn('[AuditService] Erro ao registrar log:', error);
     } catch (e) {
-      console.error('[AuditService] Erro crítico ao registrar log:', e);
+      console.error('[AuditService] Erro crítico no log:', e);
     }
   },
 

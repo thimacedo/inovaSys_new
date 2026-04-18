@@ -8,6 +8,7 @@ import { TemplateRepository } from '../database/repositories/TemplateRepository'
 import { AttachmentRepository } from '../database/repositories/AttachmentRepository';
 import { TeamRepository } from '../database/repositories/TeamRepository';
 import { AuditRepository } from '../database/repositories/AuditRepository';
+import { ViewLogRepository } from '../database/repositories/ViewLogRepository';
 import { HistoryRepository } from '../database/repositories/HistoryRepository';
 import { CalendarRepository } from '../database/repositories/CalendarRepository';
 import { EmailRepository } from '../database/repositories/EmailRepository';
@@ -25,6 +26,7 @@ export class DependencyRegistry {
   private static attachmentRepository: AttachmentRepository | null = null;
   private static teamRepository: TeamRepository | null = null;
   private static auditRepository: AuditRepository | null = null;
+  private static viewLogRepository: ViewLogRepository | null = null;
   private static historyRepository: HistoryRepository | null = null;
   private static calendarRepository: CalendarRepository | null = null;
   private static emailRepository: EmailRepository | null = null;
@@ -80,6 +82,13 @@ export class DependencyRegistry {
       this.auditRepository = new AuditRepository(SupabaseClientFactory.createBrowser());
     }
     return this.auditRepository;
+  }
+
+  public static getViewLogRepository(): ViewLogRepository {
+    if (!this.viewLogRepository) {
+      this.viewLogRepository = new ViewLogRepository(SupabaseClientFactory.createBrowser());
+    }
+    return this.viewLogRepository;
   }
 
   public static getHistoryRepository(): HistoryRepository {

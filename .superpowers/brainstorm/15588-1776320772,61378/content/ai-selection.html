@@ -1,0 +1,43 @@
+<h2>Como a IA deve selecionar documentos para a sentença?</h2>
+<p class="subtitle">A fundamentação jurídica depende da análise das petições e provas.</p>
+
+<div class="options">
+  <div class="option" data-choice="manual" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Seleção Manual</h3>
+      <p>O árbitro escolhe quais PDFs da lista de anexos a IA deve "ler" antes de gerar o rascunho.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="auto" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Seleção Automática</h3>
+      <p>A IA analisa todos os arquivos categorizados como "Petição", "Contestação" ou "Prova".</p>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Visualização: Interface de Seleção</div>
+  <div class="mockup-body" style="background: #f8fafc; padding: 2rem; border-radius: 0 0 1rem 1rem;">
+    <div style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h4 style="margin-top: 0; text-transform: uppercase; font-size: 0.75rem; color: #64748b;">Anexos Disponíveis</h4>
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: #eff6ff; border-radius: 0.5rem; border: 1px solid #bfdbfe;">
+          <input type="checkbox" checked disabled>
+          <span style="font-size: 0.875rem; color: #1e40af; font-weight: 600;">Peticao_Inicial.pdf</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: #eff6ff; border-radius: 0.5rem; border: 1px solid #bfdbfe;">
+          <input type="checkbox" checked disabled>
+          <span style="font-size: 0.875rem; color: #1e40af; font-weight: 600;">Contestacao.pdf</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
+          <input type="checkbox" disabled>
+          <span style="font-size: 0.875rem; color: #64748b;">Comprovante_Endereco.pdf</span>
+        </div>
+      </div>
+      <button class="mock-button" style="width: 100%; margin-top: 1.5rem;">Gerar Rascunho com IA</button>
+    </div>
+  </div>
+</div>

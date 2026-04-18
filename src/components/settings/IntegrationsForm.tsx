@@ -1,0 +1,64 @@
+import React from 'react';
+import { Zap, Loader2 } from 'lucide-react';
+import { MD3Card } from '../../presentation/ui/md3/MD3Card';
+
+interface IntegrationsFormProps {
+  webhookUrl: string;
+  webhookToken: string;
+  onChange: (field: string, val: string) => void;
+  onTest: () => void;
+  testing: boolean;
+}
+
+export const IntegrationsForm: React.FC<IntegrationsFormProps> = ({
+  webhookUrl,
+  webhookToken,
+  onChange,
+  onTest,
+  testing
+}) => {
+  return (
+    <MD3Card variant="filled" className="!p-8 md:!p-10 space-y-8">
+      <div className="flex items-center gap-4 text-md-on-surface font-bold text-xl tracking-tight">
+        <div className="p-3 bg-md-secondary/10 text-md-secondary rounded-2xl">
+          <Zap size={24} />
+        </div>
+        <h4>Conectividade e Webhooks</h4>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-2">
+          <label className="text-[10px] font-black text-md-on-surface-variant/50 uppercase tracking-[0.2em] ml-1">URL de Destino</label>
+          <div className="flex gap-3">
+            <input 
+              type="url" 
+              className="flex-1 input-md shadow-sm" 
+              placeholder="https://sua-api.com/webhook" 
+              value={webhookUrl} 
+              onChange={e => onChange('webhook_url', e.target.value)} 
+            />
+            <button 
+              type="button" 
+              disabled={testing} 
+              onClick={onTest} 
+              className="btn-md-tonal !px-8 shadow-sm"
+            >
+              {testing ? <Loader2 className="animate-spin" size={18} /> : 'Testar'}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-[10px] font-black text-md-on-surface-variant/50 uppercase tracking-[0.2em] ml-1">Token de Autorização (Bearer)</label>
+          <input 
+            type="text" 
+            className="w-full input-md shadow-sm" 
+            placeholder="Chave secreta de integração" 
+            value={webhookToken} 
+            onChange={e => onChange('webhook_token', e.target.value)} 
+          />
+        </div>
+      </div>
+    </MD3Card>
+  );
+};

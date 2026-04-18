@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { financeiroService } from '../../services/financeiroService';
 import { FinanceiroEntity } from '../../infrastructure/database/repositories/FinanceiroRepository';
 import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
 import { HISTORY_KEY } from './useHistory';
