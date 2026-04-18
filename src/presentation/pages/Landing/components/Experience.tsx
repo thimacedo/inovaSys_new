@@ -52,26 +52,33 @@ export function Experience() {
                     <span className="text-md-surface/30 text-sm">Buscar processo, árbitro ou parte...</span>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-3">
                     {[
-                      { label: 'Ativos', value: '24', color: 'text-md-primary-container' },
-                      { label: 'Prazos', value: '3', color: 'text-md-tertiary-container' },
+                      { label: 'Proc. Sincronizados', value: '24', color: 'text-md-primary-container' },
+                      { label: 'Saldo em Custas', value: 'R$ 12k', color: 'text-md-tertiary-container' },
                       { label: 'Concluídos', value: '156', color: 'text-md-secondary-container' },
                     ].map(card => (
-                      <div key={card.label} className="bg-md-surface/5 rounded-2xl p-4 text-center border border-md-surface/10">
-                        <div className={`text-2xl font-bold ${card.color}`}>{card.value}</div>
-                        <div className="text-[11px] text-md-surface/50 font-medium uppercase tracking-wider mt-1">{card.label}</div>
+                      <div key={card.label} className="bg-md-surface/5 rounded-2xl p-3 text-center border border-md-surface/10">
+                        <div className={`text-xl font-bold ${card.color}`}>{card.value}</div>
+                        <div className="text-[8px] text-md-surface/50 font-bold uppercase tracking-tight mt-1 leading-tight">{card.label}</div>
                       </div>
                     ))}
                   </div>
 
                   <div className="bg-md-surface/5 rounded-[24px] p-5 space-y-4 border border-md-surface/10">
                     {[
-                      { title: 'Proc. 2026-0142', status: 'Aguardando', color: 'bg-md-tertiary-container text-md-on-tertiary-container' },
+                      { title: 'Proc. 2026-0142', status: 'Aguardando', color: 'bg-md-tertiary-container text-md-on-tertiary-container', badge: 'Tribunal Sincronizado' },
                       { title: 'Proc. 2026-0138', status: 'Em instrução', color: 'bg-md-primary-container text-md-on-primary-container' },
                     ].map(proc => (
-                      <div key={proc.title} className="flex items-center justify-between bg-md-surface/10 rounded-2xl px-5 py-4">
-                        <span className="text-sm font-bold text-md-surface">{proc.title}</span>
+                      <div key={proc.title} className="flex items-center justify-between bg-md-surface/10 rounded-2xl px-5 py-4 transition-all hover:bg-md-surface/20">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-md-surface">{proc.title}</span>
+                          {proc.badge && (
+                            <span className="text-[9px] text-md-primary-container font-black uppercase tracking-tight mt-0.5">
+                              {proc.badge}
+                            </span>
+                          )}
+                        </div>
                         <span className={`text-[11px] font-bold px-3 py-1 rounded-full ${proc.color}`}>{proc.status}</span>
                       </div>
                     ))}

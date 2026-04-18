@@ -1,10 +1,10 @@
-import { Globe, CreditCard, Smartphone, Bell, ArrowRight, Scale } from 'lucide-react';
+import { Globe, CreditCard, Smartphone, Bell, ArrowRight, Scale, Gavel, FileCheck } from 'lucide-react';
 
 const FUTURE_ITEMS = [
-  { icon: Globe, title: 'Tribunais', desc: 'Homologação judicial direta via API', status: 'Em breve' },
-  { icon: CreditCard, title: 'Pagamentos', desc: 'Gateway com split de honorários', status: 'Em breve' },
-  { icon: Smartphone, title: 'App Mobile', desc: 'Acompanhamento nativo de processos', status: 'Em breve' },
-  { icon: Bell, title: 'WhatsApp', desc: 'Notificações via WhatsApp Business', status: 'Em breve' },
+  { icon: Gavel, title: 'Tribunais', desc: 'Sincronização nativa PJe/MNI com tribunais de todo o Brasil', status: 'Já Disponível' },
+  { icon: CreditCard, title: 'Pagamentos', desc: 'Registro de custas e honorários com suporte a split Iugu', status: 'Fase Beta' },
+  { icon: FileCheck, title: 'Assinatura Digital', desc: 'Fase de Homologação ITI para documentos nativos', status: 'Em breve' },
+  { icon: Bell, title: 'WhatsApp', desc: 'Notificações via WhatsApp Business API', status: 'Em breve' },
 ];
 
 export function Future() {
@@ -26,7 +26,11 @@ export function Future() {
           {FUTURE_ITEMS.map(item => (
             <div key={item.title} className="relative group bg-md-surface rounded-[28px] p-8 border border-md-outline/10 hover:border-md-primary/30 transition-all shadow-md-1 hover:shadow-md-2 hover:-translate-y-1">
               <div className="absolute top-5 right-5">
-                <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-md-tertiary-container text-md-on-tertiary-container border border-md-tertiary/10">
+                <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${
+                  item.status === 'Já Disponível' 
+                    ? 'bg-md-primary-container text-md-on-primary-container border-md-primary/20' 
+                    : 'bg-md-tertiary-container text-md-on-tertiary-container border-md-tertiary/10'
+                }`}>
                   {item.status}
                 </span>
               </div>

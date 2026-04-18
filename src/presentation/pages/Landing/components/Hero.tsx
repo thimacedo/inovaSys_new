@@ -36,9 +36,9 @@ export function Hero({ onAction }: { onAction?: () => void }) {
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-md-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up delay-200">
-            Fluxos organizados, comunicação em tempo real e uma IA que assiste sem interferir.
-            Tudo o que sua câmara precisa para operar com excelência.
+          <p className="text-lg sm:text-xl text-md-on-surface-variant max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-up delay-200">
+            Sincronização judicial nativa (PJe/MNI), editor visual de modelos amigáveis e uma IA que assiste sem interferir. 
+            Tudo o que sua câmara precisa para operar com excelência e segurança jurídica.
           </p>
 
           {/* CTAs */}
@@ -61,10 +61,9 @@ export function Hero({ onAction }: { onAction?: () => void }) {
           {/* Trust badges */}
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 animate-fade-up delay-400">
             {[
-              { icon: Shield, label: 'Segurança Total' },
-              { icon: Zap, label: 'Tempo Real' },
-              { icon: Bot, label: 'IA Assistente' },
-              { icon: Users, label: 'Multi-usuários' },
+              { icon: Shield, label: 'Auditoria Imutável' },
+              { icon: Zap, label: 'Padrão MNI/CNJ' },
+              { icon: Bot, label: 'IA Não-Invasiva' },
             ].map(badge => (
               <div key={badge.label} className="flex items-center gap-2 text-md-on-surface-variant/70">
                 <badge.icon className="w-4 h-4 text-md-primary/60" />

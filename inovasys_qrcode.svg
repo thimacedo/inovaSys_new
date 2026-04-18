@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" shape-rendering="crispEdges">
+  <rect width="100" height="100" fill="#FFFBFE"/>
+  <path fill="#6750A4" d="M12 12h28v28h-28zM16 16v20h20v-20zM22 22h8v8h-8zM60 12h28v28h-28zM64 16v20h20v-20zM70 22h8v8h-8zM12 60h28v28h-28zM16 64v20h20v-20zM22 70h8v8h-8zM48 12h8v8h-8zM48 24h8v8h-8zM48 36h8v8h-8zM12 48h8v8h-8zM24 48h8v8h-8zM36 48h8v8h-8zM48 48h8v8h-8zM60 48h8v8h-8zM72 48h8v8h-8zM84 48h8v8h-8zM60 60h8v8h-8zM72 60h8v8h-8zM84 60h8v8h-8zM60 72h8v8h-8zM72 72h8v8h-8zM84 72h8v8h-8zM60 84h8v8h-8zM72 84h8v8h-8zM84 84h8v8h-8zM48 60h8v8h-8zM48 72h8v8h-8zM48 84h8v8h-8z"/>
+  <!-- Simulação de dados para um QR Code visualmente equilibrado -->
+  <path fill="#6750A4" d="M44 12h4v4h-4zM52 16h4v4h-4zM44 24h4v4h-4zM52 28h4v4h-4zM44 36h4v4h-4zM52 40h4v4h-4zM12 44h4v4h-4zM24 44h4v4h-4zM36 44h4v4h-4zM44 44h4v4h-4zM52 44h4v4h-4zM64 44h4v4h-4zM76 44h4v4h-4zM88 44h4v4h-4zM12 52h4v4h-4zM24 52h4v4h-4zM36 52h4v4h-4zM44 52h4v4h-4zM52 52h4v4h-4zM64 52h4v4h-4zM76 52h4v4h-4zM88 52h4v4h-4zM60 56h4v4h-4zM72 56h4v4h-4zM84 56h4v4h-4zM60 68h4v4h-4zM72 68h4v4h-4zM84 68h4v4h-4zM60 80h4v4h-4zM72 80h4v4h-4zM84 80h4v4h-4zM44 60h4v4h-4zM52 60h4v4h-4zM44 72h4v4h-4zM52 72h4v4h-4zM44 84h4v4h-4zM52 84h4v4h-4z"/>
+</svg>
