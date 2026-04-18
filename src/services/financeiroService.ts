@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { WhatsAppService } from './integrations/WhatsAppService';
 
 export const financeiroService = {
   /**
@@ -44,6 +45,7 @@ export const financeiroService = {
    */
   gerarCustasIniciais: async (processoId: string, valorCausa: number, organizationId: string) => {
     const valorCusta = 150.00; 
+    const vencimento = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     
     const { error } = await supabase.from('financeiro').insert({
       processo_id: processoId,
@@ -52,10 +54,32 @@ export const financeiroService = {
       valor: valorCusta,
       tipo: 'Custa',
       status: 'Pendente',
-      data_vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      data_vencimento: vencimento.toISOString()
     });
 
     if (error) throw error;
+
+    // Notificação WhatsApp
+    try {
+      const { data: processo } = await supabase
+        .from('processos')
+        .select('numero_processo, requerente_nome, requerente_fone')
+        .eq('id', processoId)
+        .single();
+
+      if (processo?.requerente_fone) {
+        await WhatsAppService.notificarCobranca({
+          to: processo.requerente_fone,
+          nome: processo.requerente_nome,
+          processo: processo.numero_processo || '---',
+          valor: `R$ ${valorCusta.toFixed(2).replace('.', ',')}`,
+          vencimento: vencimento.toLocaleDateString('pt-BR'),
+          link: `${window.location.origin}/financeiro`
+        });
+      }
+    } catch (notifyError) {
+      console.error('[FinanceiroService] Falha ao notificar custas iniciais:', notifyError);
+    }
   },
 
   /**
@@ -63,6 +87,7 @@ export const financeiroService = {
    */
   gerarHonorariosArbitrais: async (processoId: string, valorCausa: number, organizationId: string) => {
     const valorHonorarios = (valorCausa || 0) * 0.10;
+    const vencimento = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
 
     const { error } = await supabase.from('financeiro').insert({
       processo_id: processoId,
@@ -71,10 +96,32 @@ export const financeiroService = {
       valor: valorHonorarios,
       tipo: 'Hon_Arbitral',
       status: 'Pendente',
-      data_vencimento: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString()
+      data_vencimento: vencimento.toISOString()
     });
 
     if (error) throw error;
+
+    // Notificação WhatsApp
+    try {
+      const { data: processo } = await supabase
+        .from('processos')
+        .select('numero_processo, requerente_nome, requerente_fone')
+        .eq('id', processoId)
+        .single();
+
+      if (processo?.requerente_fone) {
+        await WhatsAppService.notificarCobranca({
+          to: processo.requerente_fone,
+          nome: processo.requerente_nome,
+          processo: processo.numero_processo || '---',
+          valor: `R$ ${valorHonorarios.toFixed(2).replace('.', ',')}`,
+          vencimento: vencimento.toLocaleDateString('pt-BR'),
+          link: `${window.location.origin}/financeiro`
+        });
+      }
+    } catch (notifyError) {
+      console.error('[FinanceiroService] Falha ao notificar honorários:', notifyError);
+    }
   },
 
   /**

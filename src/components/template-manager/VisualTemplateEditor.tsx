@@ -24,15 +24,40 @@ export const VisualTemplateEditor: React.FC<VisualTemplateEditorProps> = ({
   
   // Extrai o texto limpo do HTML para o modo amigável
   const getFriendlyText = (html: string) => {
-    // Remove tags HTML básicas para visualização amigável
-    // Em uma implementação real, usaríamos um parser DOM ou regex mais robusta
     const div = document.createElement('div');
     div.innerHTML = html;
-    return div.innerText || div.textContent || '';
+    // Tenta preservar quebras de linha básicas
+    const processed = div.innerHTML
+      .replace(/<p[^>]*>/g, '')
+      .replace(/<\/p>/g, '\n')
+      .replace(/<br\s*\/?>/g, '\n');
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = processed;
+    return tempDiv.innerText || tempDiv.textContent || '';
   };
 
-  // ⚠️ Nota: Para simplificar e cumprir o pedido de "sem HTML", 
-  // o modo 'friendly' aqui usará um editor de texto limpo que preenche o container.
+  const getHtmlFromText = (text: string) => {
+    if (!text.trim()) return '';
+    return text.split('\n')
+      .map(line => line.trim() ? `<p>${line}</p>` : '')
+      .filter(Boolean)
+      .join('');
+  };
+
+  const handleModeSwitch = (mode: 'friendly' | 'code') => {
+    if (mode === viewMode) return;
+    
+    if (mode === 'friendly') {
+      // De código para amigável: Limpa tags
+      setContent(getFriendlyText(content));
+    } else {
+      // De amigável para código: Se não houver tags, envolve em parágrafos
+      if (!content.includes('<') && !content.includes('>')) {
+        setContent(getHtmlFromText(content));
+      }
+    }
+    setViewMode(mode);
+  };
   
   return (
     <MD3Card variant="elevated" className="!p-0 flex flex-col h-[700px] overflow-hidden bg-md-surface-variant/10">
@@ -50,14 +75,14 @@ export const VisualTemplateEditor: React.FC<VisualTemplateEditorProps> = ({
           {/* Alternador de Visão */}
           <div className="flex bg-md-surface-variant/30 p-1 rounded-full border border-md-outline/10 mr-2 shadow-inner">
              <button 
-              onClick={() => setViewMode('friendly')}
+              onClick={() => handleModeSwitch('friendly')}
               className={`p-2 rounded-full transition-all ${viewMode === 'friendly' ? 'bg-md-primary text-md-on-primary shadow-sm' : 'text-md-on-surface-variant/60 hover:text-md-on-surface'}`}
               title="Editor Amigável"
             >
               <Eye size={16} />
             </button>
             <button 
-              onClick={() => setViewMode('code')}
+              onClick={() => handleModeSwitch('code')}
               className={`p-2 rounded-full transition-all ${viewMode === 'code' ? 'bg-md-primary text-md-on-primary shadow-sm' : 'text-md-on-surface-variant/60 hover:text-md-on-surface'}`}
               title="Ver Código Fonte"
             >

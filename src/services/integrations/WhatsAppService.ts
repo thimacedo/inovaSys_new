@@ -19,6 +19,9 @@ interface WhatsAppPayload {
   nome: string;
   processo: string;
   link: string;
+  valor?: string;
+  vencimento?: string;
+  data_hora?: string;
 }
 
 /**
@@ -34,10 +37,46 @@ export class WhatsAppService {
   /**
    * Envia uma notificação de nova movimentação processual.
    * Utiliza o template oficial 'novo_andamento' com parâmetros de corpo.
-   * 
-   * @param payload Dados para preenchimento do template.
    */
   static async notificarMovimentacao(payload: WhatsAppPayload): Promise<void> {
+    await this.enviarTemplate('novo_andamento', payload.to, [
+      { type: 'text', text: payload.nome },
+      { type: 'text', text: payload.processo },
+      { type: 'text', text: payload.link },
+    ]);
+  }
+
+  /**
+   * Envia uma notificação de fatura ou custas geradas.
+   * Utiliza o template 'fatura_gerada'.
+   */
+  static async notificarCobranca(payload: WhatsAppPayload): Promise<void> {
+    await this.enviarTemplate('fatura_gerada', payload.to, [
+      { type: 'text', text: payload.nome },
+      { type: 'text', text: payload.processo },
+      { type: 'text', text: payload.valor || '0,00' },
+      { type: 'text', text: payload.vencimento || '' },
+      { type: 'text', text: payload.link },
+    ]);
+  }
+
+  /**
+   * Envia uma notificação de audiência agendada.
+   * Utiliza o template 'audiencia_agendada'.
+   */
+  static async notificarAudiencia(payload: WhatsAppPayload): Promise<void> {
+    await this.enviarTemplate('audiencia_agendada', payload.to, [
+      { type: 'text', text: payload.nome },
+      { type: 'text', text: payload.processo },
+      { type: 'text', text: payload.data_hora || '' },
+      { type: 'text', text: payload.link },
+    ]);
+  }
+
+  /**
+   * Método genérico para envio de templates via Meta API.
+   */
+  private static async enviarTemplate(templateName: string, to: string, parameters: any[]): Promise<void> {
     if (!this.TOKEN || !this.PHONE_NUMBER_ID) {
       console.error('[WhatsAppService] Falha na configuração: Variáveis de ambiente ausentes.');
       return;
@@ -46,8 +85,7 @@ export class WhatsAppService {
     const url = `${this.API_URL}/${this.PHONE_NUMBER_ID}/messages`;
 
     try {
-      // Normalização do número de telefone (apenas dígitos)
-      const cleanPhone = payload.to.replace(/\D/g, '');
+      const cleanPhone = to.replace(/\D/g, '');
 
       const response = await fetch(url, {
         method: 'POST',
@@ -60,20 +98,9 @@ export class WhatsAppService {
           to: cleanPhone,
           type: 'template',
           template: {
-            name: 'novo_andamento',
-            language: {
-              code: 'pt_BR',
-            },
-            components: [
-              {
-                type: 'body',
-                parameters: [
-                  { type: 'text', text: payload.nome },
-                  { type: 'text', text: payload.processo },
-                  { type: 'text', text: payload.link },
-                ],
-              },
-            ],
+            name: templateName,
+            language: { code: 'pt_BR' },
+            components: [{ type: 'body', parameters }],
           },
         }),
       });
@@ -83,10 +110,9 @@ export class WhatsAppService {
         throw new Error(errorData.error?.message || `Erro HTTP ${response.status}`);
       }
 
-      console.log(`[WhatsAppService] Notificação enviada para ${cleanPhone}`);
+      console.log(`[WhatsAppService] Template '${templateName}' enviado para ${cleanPhone}`);
     } catch (error) {
-      console.error('[WhatsAppService] Falha crítica no envio da notificação:', error);
-      // Mantemos a falha em log para não interromper a UX do usuário final
+      console.error(`[WhatsAppService] Falha no envio do template '${templateName}':`, error);
     }
   }
 }

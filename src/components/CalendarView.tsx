@@ -1,14 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { useCalendarEvents } from '../presentation/hooks/useCalendar';
+import { useCalendarEvents, useCreateEvent } from '../presentation/hooks/useCalendar';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useModal } from '../context/ModalContext';
+import { calendarService } from '../services/calendarService';
 import { 
   ChevronLeft, 
   ChevronRight, 
   Calendar as CalendarIcon, 
   Clock, 
   MapPin, 
-  Video
+  Video,
+  Plus,
+  ExternalLink
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -16,6 +19,7 @@ export default function CalendarView() {
   const currentUser = useAuthStore(state => state.currentUser);
   const [currentDate, setCurrentDate] = useState(new Date());
   const { showModal, showToast } = useModal();
+  const createEvent = useCreateEvent();
 
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -56,18 +60,95 @@ export default function CalendarView() {
     });
   };
 
+  const handleAddEvent = () => {
+    let titulo = '';
+    let data = '';
+    let tipo = 'Audiencia';
+
+    showModal(
+      "Novo Compromisso",
+      <div className="space-y-4 p-2">
+        <div className="space-y-1">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Título do Evento</label>
+          <input 
+            type="text" 
+            placeholder="Ex: Audiência de Instrução"
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+            onChange={(e) => { titulo = e.target.value; }}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data e Hora</label>
+            <input 
+              type="datetime-local"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+              onChange={(e) => { data = e.target.value; }}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo</label>
+            <select 
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700"
+              onChange={(e) => { tipo = e.target.value; }}
+            >
+              <option value="Audiencia">Audiência</option>
+              <option value="Reuniao">Reunião</option>
+              <option value="Prazo">Prazo Processual</option>
+            </select>
+          </div>
+        </div>
+        <button 
+          onClick={async () => {
+            if (!titulo || !data) {
+              showToast("Preencha o título e a data", "error");
+              return;
+            }
+            try {
+              await createEvent.mutateAsync({
+                titulo,
+                data_inicio: new Date(data).toISOString(),
+                tipo,
+                camara_id: currentUser?.camara_id
+              });
+              showToast("Evento criado com sucesso!");
+            } catch (err) {
+              showToast("Erro ao criar evento", "error");
+            }
+          }}
+          className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+        >
+          Agendar Agora
+        </button>
+      </div>
+    );
+  };
+
   const showEventDetails = (event: any) => {
     showModal(
       "Detalhes do Evento",
       <div className="space-y-6 p-2">
-        <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-xl ${event.tipo === 'Audiencia' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
-            <CalendarIcon size={24} />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-xl ${event.tipo === 'Audiencia' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+              <CalendarIcon size={24} />
+            </div>
+            <div>
+              <h4 className="text-xl font-bold text-slate-900">{event.titulo}</h4>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{event.tipo}</span>
+            </div>
           </div>
-          <div>
-            <h4 className="text-xl font-bold text-slate-900">{event.titulo}</h4>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{event.tipo}</span>
-          </div>
+
+          <a 
+            href={calendarService.generateGoogleLink(event.titulo, event.data_inicio, event.descricao || 'Compromisso InovaSys')} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="p-3 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2 text-xs font-bold uppercase tracking-wider group"
+            title="Adicionar ao Google Calendar"
+          >
+            <ExternalLink size={16} className="text-blue-600 group-hover:scale-110 transition-transform" />
+            Google Link
+          </a>
         </div>
 
         <div className="bg-slate-50 p-6 rounded-2xl space-y-4">
@@ -112,10 +193,19 @@ export default function CalendarView() {
             {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-white border border-slate-200 p-1.5 rounded-xl shadow-sm">
-          <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900 transition-all"><ChevronLeft size={20} /></button>
-          <div className="h-4 w-px bg-slate-100 mx-1"></div>
-          <button onClick={handleNextMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900 transition-all"><ChevronRight size={20} /></button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleAddEvent}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
+          >
+            <Plus size={16} />
+            Novo Evento
+          </button>
+          <div className="flex items-center gap-2 bg-white border border-slate-200 p-1.5 rounded-xl shadow-sm">
+            <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900 transition-all"><ChevronLeft size={20} /></button>
+            <div className="h-4 w-px bg-slate-100 mx-1"></div>
+            <button onClick={handleNextMonth} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900 transition-all"><ChevronRight size={20} /></button>
+          </div>
         </div>
       </div>
 

@@ -48,33 +48,42 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle,_#f8fafc_0%,_#e2e8f0_100%)] p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-8 md:p-12 space-y-8">
+    <div className="relative min-h-screen flex items-center justify-center bg-md-surface overflow-hidden p-4">
+      {/* Elementos Atmosféricos MD3 */}
+      <div className="md-blur-shape w-[500px] h-[500px] bg-md-primary -top-24 -left-24 opacity-10" />
+      <div className="md-blur-shape w-[400px] h-[400px] bg-md-secondary bottom-0 right-0 opacity-10" />
+      <div className="md-blur-shape w-[300px] h-[300px] bg-md-tertiary top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5" />
+
+      <div className="w-full max-w-md bg-white rounded-[32px] shadow-md-3 border border-md-outline/10 p-8 md:p-10 space-y-8 z-10 transition-all duration-500">
         <div className="flex flex-col items-center space-y-4 text-center">
           <img 
             src={logoImg} 
             alt="InovaSys" 
-            className="w-48 h-auto mb-2 object-contain" 
+            className="w-40 h-auto mb-2 object-contain" 
           />
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-md-on-surface tracking-tight">
               {hasInvite ? "Aceitar Convite" : isSignUp ? "Criar Conta" : "Acessar Painel"}
             </h1>
-            <p className="text-slate-500 text-sm">
+            <p className="text-md-on-surface-variant text-sm font-medium">
               {hasInvite ? "Complete seu cadastro para ingressar na câmara" : "Gestão Arbitral de Alta Performance"}
             </p>
           </div>
         </div>
         
-        {error && <div className="bg-red-50 text-red-700 p-3 rounded-xl text-xs border border-red-100">{error}</div>}
+        {error && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-2xl text-xs border border-red-100 animate-pulse">
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleAuth} className="space-y-4">
+        <form onSubmit={handleAuth} className="space-y-5">
           {isSignUp && (
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase">Seu Nome Completo</label>
+              <label className="text-xs font-bold text-md-primary ml-2 mb-1 block uppercase tracking-wider">Seu Nome Completo</label>
               <input 
                 type="text" 
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" 
+                className="w-full px-5 py-4 bg-md-surface-variant/30 border border-md-outline/20 rounded-2xl outline-none focus:ring-2 focus:ring-md-primary focus:border-transparent transition-all" 
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 required={isSignUp}
@@ -84,10 +93,10 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
           )}
           
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase">E-mail</label>
+            <label className="text-xs font-bold text-md-primary ml-2 mb-1 block uppercase tracking-wider">E-mail</label>
             <input 
               type="email" 
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" 
+              className="w-full px-5 py-4 bg-md-surface-variant/30 border border-md-outline/20 rounded-2xl outline-none focus:ring-2 focus:ring-md-primary focus:border-transparent transition-all" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required 
@@ -97,10 +106,10 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase">Senha</label>
+            <label className="text-xs font-bold text-md-primary ml-2 mb-1 block uppercase tracking-wider">Senha</label>
             <input 
               type="password" 
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" 
+              className="w-full px-5 py-4 bg-md-surface-variant/30 border border-md-outline/20 rounded-2xl outline-none focus:ring-2 focus:ring-md-primary focus:border-transparent transition-all" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required 
@@ -111,7 +120,7 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
 
           <button 
             type="submit" 
-            className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-blue-700 shadow-lg disabled:opacity-50"
+            className="w-full py-4 bg-md-primary text-md-on-primary rounded-2xl font-bold uppercase tracking-widest text-sm hover:brightness-110 shadow-md-2 active:scale-95 transition-all disabled:opacity-50"
             disabled={loading}
           >
             {loading ? 'Processando...' : isSignUp ? 'Cadastrar e Entrar' : 'Entrar'}
@@ -119,49 +128,39 @@ export default function Auth({ onPublicView, onPricingView }: { onPublicView: ()
         </form>
 
         <div className="text-center">
-          {hasInvite && (
-            <button 
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-xs font-bold text-blue-600 uppercase tracking-wider"
-            >
-              {isSignUp ? "Já tenho conta? Fazer Login" : "Não tem conta? Cadastre-se"}
-            </button>
-          )}
-          {!hasInvite && isSignUp && (
-             <button 
-              onClick={() => setIsSignUp(false)}
-              className="text-xs font-bold text-blue-600 uppercase tracking-wider"
-            >
-              Voltar ao Login
-            </button>
-          )}
+          <button 
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-xs font-bold text-md-primary uppercase tracking-wider hover:underline"
+          >
+            {isSignUp ? "Já tem conta? Fazer Login" : "Não tem conta? Cadastre-se"}
+          </button>
         </div>
 
         <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-100"></span></div>
-          <div className="relative flex justify-center text-[10px] uppercase"><span className="bg-white px-2 text-slate-400">Ou continue com</span></div>
+          <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-md-outline/10"></span></div>
+          <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest"><span className="bg-white px-4 text-md-on-surface-variant">Ou continue com</span></div>
         </div>
 
         <button 
-          className="w-full py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 flex items-center justify-center gap-3 shadow-sm" 
+          className="w-full py-4 bg-white border border-md-outline/20 text-md-on-surface rounded-2xl font-bold hover:bg-md-surface-variant/20 transition-all flex items-center justify-center gap-3 shadow-sm active:scale-95" 
           onClick={async () => {
             setLoading(true);
             try { await authService.signInWithGoogle(); } catch (err: any) { setError(err.message); setLoading(false); }
           }}
           disabled={loading}
         >
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google" />
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google" />
           Google Login
         </button>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 pt-2">
           <button 
             onClick={onPricingView}
-            className="w-full py-3 border border-slate-900 text-slate-900 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+            className="w-full py-4 border-2 border-md-primary text-md-primary rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-md-primary hover:text-md-on-primary transition-all shadow-sm active:scale-95"
           >
             Conhecer Planos
           </button>
-          <button onClick={onPublicView} className="w-full text-xs text-slate-400 font-bold uppercase tracking-widest hover:text-slate-600">
+          <button onClick={onPublicView} className="w-full text-xs text-md-on-surface-variant font-bold uppercase tracking-widest hover:text-md-primary transition-colors">
             Consulta Pública
           </button>
         </div>

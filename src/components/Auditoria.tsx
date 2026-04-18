@@ -17,28 +17,38 @@ export default function Auditoria() {
   const isLoading = activeTab === 'acoes' ? isLoadingLogs : isLoadingViews;
 
   const filteredLogs = useMemo(() => {
-    const term = searchTerm.toLowerCase();
+    const term = (searchTerm || '').toLowerCase();
     if (activeTab === 'acoes') {
-      return (logs as any[]).filter(log => 
-        log.acao.toLowerCase().includes(term) ||
-        log.perfil?.nome?.toLowerCase().includes(term) ||
+      return (logs || []).filter((log: any) => 
+        (log.acao || '').toLowerCase().includes(term) ||
+        (log.perfil?.nome || '').toLowerCase().includes(term) ||
         JSON.stringify(log.dados_novos || log.dados_antigos || {}).toLowerCase().includes(term)
       );
     } else {
-      return (viewLogs as any[]).filter(log => 
-        log.documento_nome.toLowerCase().includes(term) ||
-        log.perfil?.nome?.toLowerCase().includes(term) ||
-        log.ip_address.toLowerCase().includes(term)
+      return (viewLogs || []).filter((log: any) => 
+        (log.documento_nome || '').toLowerCase().includes(term) ||
+        (log.perfil?.nome || '').toLowerCase().includes(term) ||
+        (log.ip_address || '').toLowerCase().includes(term)
       );
     }
   }, [logs, viewLogs, searchTerm, activeTab]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, any[]> = {};
-    filteredLogs.forEach(log => {
-      const date = new Date(log.created_at || log.data_hora).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(log);
+    (filteredLogs || []).forEach(log => {
+      const rawDate = log.created_at || log.data_hora;
+      if (!rawDate) return;
+      
+      try {
+        const dateObj = new Date(rawDate);
+        if (isNaN(dateObj.getTime())) return;
+        
+        const date = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(log);
+      } catch (e) {
+        // Silently skip invalid dates
+      }
     });
     return groups;
   }, [filteredLogs]);
@@ -105,10 +115,10 @@ export default function Auditoria() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-[10px] font-black text-md-on-surface uppercase tracking-tighter">
-                        {new Date(log.created_at).toLocaleTimeString('pt-BR')}
+                        {log.created_at ? new Date(log.created_at).toLocaleTimeString('pt-BR') : '--:--'}
                       </p>
                       <p className="text-[9px] font-bold text-md-on-surface-variant/40 uppercase tracking-widest mt-0.5">
-                        {new Date(log.created_at).toLocaleDateString('pt-BR')}
+                        {log.created_at ? new Date(log.created_at).toLocaleDateString('pt-BR') : '--/--/----'}
                       </p>
                     </div>
                   </div>

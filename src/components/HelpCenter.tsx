@@ -79,7 +79,7 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60]"
+            className="fixed inset-0 bg-md-on-surface/40 backdrop-blur-sm z-[60]"
           />
 
           {/* Panel */}
@@ -88,46 +88,46 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-full max-w-lg bg-white shadow-2xl z-[70] flex flex-col"
+            className="fixed right-0 top-0 h-full w-full max-w-lg bg-md-surface shadow-md-3 z-[70] flex flex-col rounded-l-[48px] overflow-hidden border-l border-md-outline/10"
           >
             {/* Header */}
-            <div className="p-6 bg-gradient-to-r from-slate-900 to-indigo-950 text-white">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/10 rounded-lg backdrop-blur-md">
-                    <Sparkles className="text-amber-400" size={24} />
+            <div className="p-8 bg-md-primary text-md-on-primary">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-md-primary-container rounded-2xl shadow-sm">
+                    <Sparkles className="text-md-on-primary-container" size={24} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold tracking-tight">Central de Ajuda IA</h2>
-                    <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">Suporte Inteligente InovaSys</p>
+                    <h2 className="text-2xl font-bold tracking-tight">Central de Ajuda IA</h2>
+                    <p className="text-xs text-md-on-primary/70 font-bold uppercase tracking-widest">Suporte Inteligente InovaSys</p>
                   </div>
                 </div>
                 <button 
                   onClick={onClose}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  className="p-2 hover:bg-md-on-primary/10 rounded-full transition-colors"
                 >
-                  <X size={20} />
+                  <X size={24} />
                 </button>
               </div>
 
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-md-on-primary/60" size={18} />
                 <input 
                   type="text" 
                   placeholder="Pesquisar em documentos..." 
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-500"
+                  className="w-full bg-md-on-primary/10 border border-md-on-primary/20 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-md-on-primary/30 transition-all placeholder:text-md-on-primary/40"
                 />
               </div>
             </div>
 
             {/* Content Tabs */}
-            <div className="flex border-b border-slate-100">
-              <button className="flex-1 py-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 flex items-center justify-center gap-2">
-                <MessageSquare size={16} />
+            <div className="flex bg-md-surface-variant/20 px-4">
+              <button className="flex-1 py-4 text-sm font-black text-md-primary border-b-4 border-md-primary flex items-center justify-center gap-2 transition-all">
+                <MessageSquare size={18} />
                 Chat IA
               </button>
-              <button className="flex-1 py-3 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center gap-2">
-                <BookOpen size={16} />
+              <button className="flex-1 py-4 text-sm font-bold text-md-on-surface-variant/60 hover:text-md-primary transition-colors flex items-center justify-center gap-2">
+                <BookOpen size={18} />
                 Base Documental
               </button>
             </div>
@@ -135,7 +135,7 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
             {/* Chat Area */}
             <div 
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50"
+              className="flex-1 overflow-y-auto p-8 space-y-6 bg-md-surface"
             >
               {messages.map((msg) => (
                 <motion.div
@@ -144,21 +144,21 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
                   key={msg.id}
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm ${
-                      msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-600'
+                  <div className={`flex gap-4 max-w-[90%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
+                      msg.role === 'user' ? 'bg-md-primary text-md-on-primary' : 'bg-md-secondary-container text-md-on-secondary-container'
                     }`}>
-                      {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
+                      {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
                     </div>
-                    <div>
-                      <div className={`p-3 rounded-2xl text-sm shadow-sm ${
+                    <div className={`space-y-1 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                      <div className={`p-4 rounded-[24px] text-sm shadow-sm leading-relaxed ${
                         msg.role === 'user' 
-                          ? 'bg-indigo-600 text-white rounded-tr-none' 
-                          : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
+                          ? 'bg-md-primary text-md-on-primary rounded-tr-none' 
+                          : 'bg-md-surface-variant text-md-on-surface-variant rounded-tl-none'
                       }`}>
                         {msg.content}
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1 px-1">
+                      <p className="text-[10px] text-md-on-surface-variant/50 font-bold uppercase px-2 tracking-widest">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -166,22 +166,22 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
                 </motion.div>
               ))}
               {isTyping && (
-                <div className="flex justify-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm">
-                    <Bot size={16} />
+                <div className="flex justify-start gap-4">
+                  <div className="w-10 h-10 rounded-2xl bg-md-secondary-container text-md-on-secondary-container flex items-center justify-center shadow-sm">
+                    <Bot size={18} />
                   </div>
-                  <div className="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm flex gap-1">
-                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
-                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
-                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
+                  <div className="bg-md-surface-variant p-5 rounded-[24px] rounded-tl-none shadow-sm flex gap-1.5 items-center">
+                    <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="w-2 h-2 bg-md-primary/40 rounded-full" />
+                    <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-2 h-2 bg-md-primary/40 rounded-full" />
+                    <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-2 h-2 bg-md-primary/40 rounded-full" />
                   </div>
                 </div>
               )}
             </div>
 
             {/* Suggestions */}
-            <div className="px-6 py-3 bg-white border-t border-slate-100 overflow-x-auto">
-              <div className="flex gap-2 whitespace-nowrap">
+            <div className="px-8 py-4 bg-md-surface-variant/10 border-t border-md-outline/10 overflow-x-auto no-scrollbar">
+              <div className="flex gap-3 whitespace-nowrap">
                 {[
                   'Como iniciar um processo?',
                   'Tabela de custas',
@@ -191,7 +191,7 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
                   <button 
                     key={s}
                     onClick={() => { setInput(s); }}
-                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full text-xs font-medium transition-colors border border-slate-200"
+                    className="px-4 py-2 bg-md-surface border border-md-outline/20 hover:bg-md-primary-container hover:text-md-on-primary-container text-md-on-surface-variant rounded-full text-xs font-bold transition-all shadow-sm"
                   >
                     {s}
                   </button>
@@ -200,26 +200,26 @@ const HelpCenter: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
             </div>
 
             {/* Input Area */}
-            <div className="p-6 bg-white border-t border-slate-100">
-              <div className="flex gap-3">
+            <div className="p-8 bg-md-surface border-t border-md-outline/10">
+              <div className="flex gap-4">
                 <input 
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Escreva sua dúvida aqui..."
-                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all"
+                  className="flex-1 bg-md-surface-variant/30 border border-md-outline/20 rounded-[24px] px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-md-primary/20 focus:bg-white transition-all shadow-inner"
                 />
                 <button 
                   onClick={handleSend}
                   disabled={!input.trim()}
-                  className="p-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95"
+                  className="p-4 bg-md-primary hover:brightness-110 disabled:bg-md-outline/30 text-md-on-primary rounded-[24px] shadow-md-2 transition-all active:scale-95 flex items-center justify-center shrink-0"
                 >
-                  <Send size={20} />
+                  <Send size={24} />
                 </button>
               </div>
-              <p className="text-[10px] text-center text-slate-400 mt-4 flex items-center justify-center gap-1">
-                <HelpCircle size={10} />
+              <p className="text-[10px] text-center text-md-on-surface-variant/50 font-bold uppercase tracking-widest mt-6 flex items-center justify-center gap-2">
+                <HelpCircle size={14} className="text-md-primary" />
                 IA treinada com normas da Câmara InovaSys
               </p>
             </div>
