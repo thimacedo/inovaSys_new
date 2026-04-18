@@ -108,7 +108,11 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
           onSentencaIA={() => showModal('IA Jurídica', <SentenceGenerator processo={processo} onGenerate={(html) => documentService.downloadPDF(html, `SENTENCA_${processo.numero_processo}`)} onClose={() => {}} />)}
           onGerarTermo={async () => {
              setIsGeneratingDoc(true);
-             await documentService.generateFromTemplate(2, { ...processo, data_hoje: new Date().toLocaleDateString('pt-BR') }, `Termo_${processo.numero_processo}`);
+             const templateData: Record<string, string> = {};
+             Object.entries(processo).forEach(([key, val]) => {
+               if (val !== null && val !== undefined) templateData[key] = String(val);
+             });
+             await documentService.generateFromTemplate(2, { ...templateData, data_hoje: new Date().toLocaleDateString('pt-BR') }, `Termo_${processo.numero_processo}`);
              setIsGeneratingDoc(false);
           }}
           isGeneratingDoc={isGeneratingDoc}
@@ -120,10 +124,10 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
           {/* 🛡️ Controles Adm */}
           <ProcessAdminControls 
             isAdmin={isAdmin} 
-            arbitroId={processo.arbitro_id} 
+            arbitroId={processo.arbitro_id || null} 
             arbitros={arbitros} 
             isAssigning={isAssigning} 
-            onAssign={(id) => processService.assignArbitrator(processo.id, id).then(refetch)} 
+            onAssign={(id) => processService.assignArbitrator(processo.id, id).then(() => refetch())} 
           />
 
           {/* 📑 Navegação por Abas MD3 */}
@@ -133,7 +137,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
             <AnimatePresence mode="wait">
               {activeTab === 'resumo' && (
                 <motion.div key="resumo" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                  <ProcessSummaryCards processo={processo} canEdit={canEditProcess} onEditField={handleEditField} />
+                  <ProcessSummaryCards processo={processo} canEdit={!!canEditProcess} onEditField={handleEditField} />
                 </motion.div>
               )}
 

@@ -16,7 +16,7 @@ export default function FinanceiroBI() {
 
   const processedData = useMemo(() => {
     // 1. Processamento por Mês (Últimos 6 meses)
-    const months = [];
+    const months: { label: string; month: number; year: number; total: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);

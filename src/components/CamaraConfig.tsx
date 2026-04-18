@@ -25,7 +25,20 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
   const [testingWebhook, setTestingWebhook] = useState(false);
 
   useEffect(() => {
-    if (camaraData) setFormData({ ...camaraData });
+    if (camaraData) setFormData({
+      nome: camaraData.nome || '',
+      cnpj: camaraData.cnpj || '',
+      logradouro: camaraData.logradouro || '',
+      bairro: camaraData.bairro || '',
+      cidade: camaraData.cidade || '',
+      estado: camaraData.estado || '',
+      cep: camaraData.cep || '',
+      fone: camaraData.fone || '',
+      presidente_nome: camaraData.presidente_nome || '',
+      webhook_url: camaraData.webhook_url || '',
+      webhook_token: camaraData.webhook_token || '',
+      logo: camaraData.logo || ''
+    });
   }, [camaraData]);
 
   if (!camaraId) return null;
