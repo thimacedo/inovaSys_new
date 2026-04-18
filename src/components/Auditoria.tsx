@@ -36,7 +36,8 @@ export default function Auditoria() {
   const grouped = useMemo(() => {
     const groups: Record<string, any[]> = {};
     (filteredLogs || []).forEach(log => {
-      const rawDate = log.created_at || log.data_hora;
+      const typedLog = log as any;
+      const rawDate = typedLog.created_at || typedLog.data_hora;
       if (!rawDate) return;
       
       try {

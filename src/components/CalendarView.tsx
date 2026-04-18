@@ -63,7 +63,7 @@ export default function CalendarView() {
   const handleAddEvent = () => {
     let titulo = '';
     let data = '';
-    let tipo = 'Audiencia';
+    let tipo: "Audiencia" | "Reuniao" | "Sessao" | "Outro" = 'Audiencia';
 
     showModal(
       "Novo Compromisso",
@@ -90,7 +90,7 @@ export default function CalendarView() {
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo</label>
             <select 
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700"
-              onChange={(e) => { tipo = e.target.value; }}
+              onChange={(e) => { tipo = e.target.value as any; }}
             >
               <option value="Audiencia">Audiência</option>
               <option value="Reuniao">Reunião</option>
