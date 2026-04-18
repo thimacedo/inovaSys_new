@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Scale, ArrowRight, Menu, X } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../../utils/cn';
 
 const NAV_LINKS = [
   { label: 'Solução', href: '#solucao' },

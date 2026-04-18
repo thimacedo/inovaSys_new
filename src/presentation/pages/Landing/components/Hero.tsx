@@ -1,5 +1,5 @@
 import { ArrowRight, Sparkles, Shield, Zap, Bot, Users } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { cn } from '../../../../utils/cn';
 
 export function Hero({ onAction }: { onAction?: () => void }) {
   return (

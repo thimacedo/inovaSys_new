@@ -36,8 +36,12 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
 
   // 🔄 Efeito de Persistência e Refinação de UX
   useEffect(() => {
+    // 🧭 Log de Depuração solicitado
+    console.log('🧭 Persistindo:', {view: currentView, id: selectedProcessId});
+
     // Salvar estados no localStorage
     localStorage.setItem('inovasys_current_view', currentView);
+    
     if (selectedProcessId) {
       localStorage.setItem('inovasys_selected_process_id', selectedProcessId);
     } else {
@@ -49,10 +53,9 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
       setCurrentView('dash');
     }
 
-    // 🧹 Limpeza: Se não estiver em detalhes, limpar o ID do processo (se existir)
-    if (currentView !== 'process_details' && selectedProcessId) {
-      setSelectedProcessId(null);
-    }
+    // 🧹 Limpeza Automática REMOVIDA para permitir persistência cross-tab
+    // O selectedProcessId deve permanecer mesmo que a view não seja 'process_details'
+    // A limpeza agora ocorre apenas via onBack manual no renderView
   }, [currentView, selectedProcessId]);
 
   useEffect(() => {
@@ -124,6 +127,7 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
         if (canCreateProcess) return <NewProcess onProcessCreated={() => setCurrentView('dash')} camaraId={localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id} />;
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'process_details':
+        // 🧹 Limpeza Manual: selectedProcessId é limpo apenas aqui no onBack
         return selectedProcessId ? <ProcessDetails processId={selectedProcessId!} onBack={() => { setSelectedProcessId(null); setCurrentView('dash'); }} /> : <div>Selecione um processo</div>;
       case 'equipe': return canManageTeam ? <Equipe camaraId={localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id} /> : <DashboardHome />;
       case 'camara': return canManageTeam ? <CamaraConfig camaraId={localStorage.getItem('impersonated_camara_id') || userProfile?.camara_id} /> : <DashboardHome />;
