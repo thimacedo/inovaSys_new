@@ -6,6 +6,7 @@ interface Template {
   id: string;
   nome: string;
   tipo_documento: number;
+  conteudo_html: string;
 }
 
 interface TemplateSidebarProps {

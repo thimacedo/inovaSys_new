@@ -64,7 +64,7 @@ export const iuguService = {
         items: [{
           description: request.description,
           quantity: 1,
-          price_cents: request.amount_cents
+          price_cents: Math.round(request.amount_cents)
         }],
         payment_methods: ["pix", "bank_slip", "credit_card"],
         splits: request.split_rules.map(rule => ({
@@ -85,7 +85,7 @@ export const iuguService = {
         processo_id: request.processo_id,
         organization_id: request.organization_id,
         descricao: request.description,
-        valor: request.amount_cents / 100,
+        valor: Math.round(request.amount_cents) / 100,
         status: 'Pendente',
         gateway_id: mockInvoice.id,
         metadata: { checkout_url: mockInvoice.url, type: 'iugu_split' }

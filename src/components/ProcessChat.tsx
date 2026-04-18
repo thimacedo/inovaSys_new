@@ -15,7 +15,11 @@ export const ProcessChat: React.FC<{ processoId: string }> = ({ processoId }) =>
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      // 📐 Auto-scroll Suave (Padrão MD3)
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [messages]);
 

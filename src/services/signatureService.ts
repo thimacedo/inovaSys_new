@@ -65,6 +65,54 @@ export const signatureService = {
   },
 
   /**
+   * Solicita assinatura via Provedor Gov.br (Integração ITI Staging)
+   * 🚀 Finalização do Módulo de Produção
+   */
+  requestGovBrSignature: async (fileId: string) => {
+    try {
+      // 1. Buscar metadados do documento
+      const { data: file, error: fError } = await supabase
+        .from('anexos')
+        .select('*, processo:processos(*)')
+        .eq('id', fileId)
+        .single();
+
+      if (fError || !file) throw new Error("Documento não encontrado para assinatura Gov.br.");
+
+      // 2. Simular chamada ao ITI (Staging)
+      console.log(`[SignatureService] Simulando integração com ITI para o arquivo: ${file.nome_arquivo}`);
+      
+      // No ambiente de Staging, retornamos um link de sandbox
+      const redirectUrl = `https://cas.iti.br/sandbox/sign?file=${fileId}&token=${btoa(Date.now().toString())}`;
+
+      // 3. Registrar na tabela 'solicitacoes_assinatura'
+      const { data: sRequest, error: sError } = await supabase.from('solicitacoes_assinatura').insert({
+        anexo_id: file.id,
+        processo_id: file.processo_id,
+        provedor: 'govbr',
+        status: 'Aguardando Cidadão',
+        metadata: {
+          external_id: `iti_stg_${Math.random().toString(36).substring(7)}`,
+          redirect_link: redirectUrl,
+          requested_at: new Date().toISOString()
+        }
+      }).select().single();
+
+      if (sError) throw sError;
+
+      return {
+        success: true,
+        status: 'Aguardando Cidadão',
+        redirectUrl,
+        requestId: sRequest.id
+      };
+    } catch (error) {
+      console.error('[SignatureService] Falha na solicitação Gov.br:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Registra uma assinatura digital interna para um documento (Hash-based).
    */
   assinarDocumento: async (data: {

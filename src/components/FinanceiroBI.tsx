@@ -35,10 +35,12 @@ export default function FinanceiroBI() {
     }
 
     (rawData as any[]).forEach(reg => {
-      if (reg.status === 'Pago') {
-        const d = new Date(reg.created_at || '');
-        const idx = months.findIndex(m => m.month === d.getMonth() && m.year === d.getFullYear());
-        if (idx !== -1) months[idx].total += Number(reg.valor);
+      if (reg.status === 'Pago' && reg.created_at) {
+        const d = new Date(reg.created_at);
+        if (!isNaN(d.getTime())) {
+          const idx = months.findIndex(m => m.month === d.getMonth() && m.year === d.getFullYear());
+          if (idx !== -1) months[idx].total += Number(reg.valor);
+        }
       }
     });
 

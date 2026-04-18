@@ -14,7 +14,15 @@ export const documentService = {
     let html = template.conteudo_html;
     for (const [key, value] of Object.entries(placeholders)) {
       const regex = new RegExp(`{${key}}`, 'g');
-      html = html.replace(regex, value || '');
+      
+      // 📝 Tratamento para Editor Amigável (Preservar quebras e caracteres especiais)
+      // Se o valor não contém tags HTML, tratamos como texto puro convertendo quebras
+      const safeValue = (value || '');
+      const formattedValue = !/<[a-z][\s\S]*>/i.test(safeValue) 
+        ? safeValue.replace(/\n/g, '<br />') 
+        : safeValue;
+
+      html = html.replace(regex, formattedValue);
     }
 
     return `

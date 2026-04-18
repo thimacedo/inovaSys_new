@@ -1,6 +1,7 @@
 import React from 'react';
 import { Building2, Fingerprint, User, Phone, MapPin } from 'lucide-react';
 import { MD3Card } from '../../presentation/ui/md3/MD3Card';
+import { Masks } from '../../utils/masks';
 
 interface InstitutionInfoFormProps {
   data: any;
@@ -25,7 +26,7 @@ export const InstitutionInfoForm: React.FC<InstitutionInfoFormProps> = ({ data, 
             <input 
               type="text" 
               className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-12 shadow-sm" 
-              value={data.nome} 
+              value={data.nome || ''} 
               onChange={e => onChange('nome', e.target.value)} 
               required 
             />
@@ -39,8 +40,8 @@ export const InstitutionInfoForm: React.FC<InstitutionInfoFormProps> = ({ data, 
             <input 
               type="text" 
               className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-12 shadow-sm" 
-              value={data.cnpj} 
-              onChange={e => onChange('cnpj', e.target.value)} 
+              value={data.cnpj || ''} 
+              onChange={e => onChange('cnpj', Masks.doc(e.target.value))} 
               required 
             />
           </div>
@@ -53,7 +54,7 @@ export const InstitutionInfoForm: React.FC<InstitutionInfoFormProps> = ({ data, 
             <input 
               type="text" 
               className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-12 shadow-sm" 
-              value={data.presidente_nome} 
+              value={data.presidente_nome || ''} 
               onChange={e => onChange('presidente_nome', e.target.value)} 
               required 
             />
@@ -67,8 +68,8 @@ export const InstitutionInfoForm: React.FC<InstitutionInfoFormProps> = ({ data, 
             <input 
               type="text" 
               className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-12 shadow-sm" 
-              value={data.fone} 
-              onChange={e => onChange('fone', e.target.value)} 
+              value={data.fone || ''} 
+              onChange={e => onChange('fone', Masks.phone(e.target.value))} 
               required 
             />
           </div>
@@ -81,7 +82,7 @@ export const InstitutionInfoForm: React.FC<InstitutionInfoFormProps> = ({ data, 
             <input 
               type="text" 
               className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-12 shadow-sm" 
-              value={data.logradouro} 
+              value={data.logradouro || ''} 
               onChange={e => onChange('logradouro', e.target.value)} 
               required 
             />
@@ -89,10 +90,10 @@ export const InstitutionInfoForm: React.FC<InstitutionInfoFormProps> = ({ data, 
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:col-span-2">
-          <input type="text" className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 shadow-sm" value={data.bairro} onChange={e => onChange('bairro', e.target.value)} placeholder="Bairro" required />
-          <input type="text" className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 shadow-sm" value={data.cidade} onChange={e => onChange('cidade', e.target.value)} placeholder="Cidade" required />
-          <input type="text" maxLength={2} className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 shadow-sm !uppercase" value={data.estado} onChange={e => onChange('estado', e.target.value)} placeholder="UF" required />
-          <input type="text" className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 shadow-sm" value={data.cep} onChange={e => onChange('cep', e.target.value)} placeholder="CEP" required />
+          <input type="text" className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 shadow-sm" value={data.bairro || ''} onChange={e => onChange('bairro', e.target.value)} placeholder="Bairro" required />
+          <input type="text" className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 shadow-sm" value={data.cidade || ''} onChange={e => onChange('cidade', e.target.value)} placeholder="Cidade" required />
+          <input type="text" maxLength={2} className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 shadow-sm !uppercase" value={data.estado || ''} onChange={e => onChange('estado', e.target.value)} placeholder="UF" required />
+          <input type="text" className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 shadow-sm" value={data.cep || ''} onChange={e => onChange('cep', Masks.cep(e.target.value))} placeholder="CEP" required />
         </div>
       </div>
     </MD3Card>

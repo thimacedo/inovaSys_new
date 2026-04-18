@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search, Plus, Filter, Building2, ExternalLink, Clock, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Plus, Filter, Building2, ExternalLink, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 import { MD3Badge } from '../../presentation/ui/md3/MD3Badge';
 
 interface InstitutionTableProps {
@@ -21,6 +21,17 @@ export const InstitutionTable: React.FC<InstitutionTableProps> = ({
   onBonus,
   onAccess
 }) => {
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+
+  const handleToggle = async (conta: any) => {
+    try {
+      setSyncingId(conta.id);
+      await onToggle(conta);
+    } finally {
+      setSyncingId(null);
+    }
+  };
+
   return (
     <div className="bg-md-surface rounded-[40px] border border-md-outline/5 shadow-sm overflow-hidden animate-in zoom-in-95 duration-500">
       <div className="p-8 border-b border-md-outline/5 flex flex-col lg:flex-row justify-between items-center gap-6 bg-md-surface-variant/10">
@@ -84,7 +95,17 @@ export const InstitutionTable: React.FC<InstitutionTableProps> = ({
                 </td>
                 <td className="px-8 py-6 text-right">
                   <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                    <button onClick={() => onToggle(conta)} className={`p-2.5 rounded-xl transition-all border border-md-outline/10 ${conta.ativa ? 'text-md-on-surface-variant/40 hover:text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'}`}>{conta.ativa ? <Clock size={18} /> : <CheckCircle2 size={18} />}</button>
+                    <button 
+                      onClick={() => handleToggle(conta)} 
+                      disabled={syncingId === conta.id}
+                      className={`p-2.5 rounded-xl transition-all border border-md-outline/10 ${
+                        syncingId === conta.id ? 'opacity-50 cursor-wait' :
+                        conta.ativa ? 'text-md-on-surface-variant/40 hover:text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'
+                      }`}
+                    >
+                      {syncingId === conta.id ? <Loader2 size={18} className="animate-spin" /> : 
+                       conta.ativa ? <Clock size={18} /> : <CheckCircle2 size={18} />}
+                    </button>
                     <button onClick={() => onBonus(conta)} className="p-2.5 text-md-on-surface-variant/40 hover:text-md-primary hover:bg-md-primary/10 border border-md-outline/10 rounded-xl transition-all"><Plus size={18} /></button>
                     <button onClick={() => onAccess(conta)} className="p-2.5 text-md-on-surface-variant/40 hover:text-md-tertiary hover:bg-md-tertiary/10 border border-md-outline/10 rounded-xl transition-all"><ExternalLink size={18} /></button>
                   </div>

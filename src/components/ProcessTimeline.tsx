@@ -8,6 +8,11 @@ import { TimelineItem } from './timeline/TimelineItem';
 export default function ProcessTimeline({ processoId }: { processoId: string }) {
   const { data: history = [], isLoading } = useProcessHistory(processoId);
 
+  // 🛡️ Filtro de Unicidade (Evita Duplicatas por Reconexão)
+  const uniqueHistory = history.filter((item, index, self) =>
+    index === self.findIndex((t) => t.id === item.id)
+  );
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-6">
@@ -17,7 +22,7 @@ export default function ProcessTimeline({ processoId }: { processoId: string }) 
     );
   }
 
-  if (history.length === 0) {
+  if (uniqueHistory.length === 0) {
     return (
       <div className="text-center py-24 border-2 border-dashed border-md-outline/10 rounded-[48px] bg-md-surface-variant/5">
         <Clock className="mx-auto text-md-on-surface-variant opacity-20 mb-4" size={48} />
@@ -32,7 +37,7 @@ export default function ProcessTimeline({ processoId }: { processoId: string }) 
       <div className="absolute left-[21px] top-4 bottom-0 w-0.5 bg-gradient-to-b from-md-primary/20 via-md-outline/10 to-transparent" />
       
       <div className="space-y-4">
-        {history.map((item, index) => (
+        {uniqueHistory.map((item, index) => (
           <TimelineItem 
             key={item.id} 
             item={item} 

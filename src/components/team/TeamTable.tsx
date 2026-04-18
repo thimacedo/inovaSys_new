@@ -50,7 +50,14 @@ export const TeamTable: React.FC<TeamTableProps> = ({ membros, loading, onEdit, 
                   </div>
                 </td>
                 <td className="px-8 py-5 text-center">
-                  <MD3Badge label={m.tipo_usuario || 'arbitro'} variant={m.tipo_usuario === 'admin' ? 'tertiary' : 'secondary'} />
+                  <MD3Badge 
+                    label={m.tipo_usuario || 'arbitro'} 
+                    variant={
+                      m.tipo_usuario === 'admin' ? 'tertiary' : 
+                      m.tipo_usuario === 'gestor' ? 'secondary' : 
+                      'primary'
+                    } 
+                  />
                 </td>
                 <td className="px-8 py-5 text-right">
                   <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
