@@ -52,8 +52,8 @@
 ---
 
 ### 🎯 Próximos Passos Prioritários
-1. **Integração:** Espelhamento real dos andamentos judiciais sincronizados via MNI.
-2. **Notificação:** Iniciar implementação do Módulo de Notificações via WhatsApp Business API.
-3. **Assinatura:** Validar fluxo de assinatura Gov.br no ambiente de produção.
+1. **Notificação:** Iniciar implementação do Módulo de Notificações via WhatsApp Business API (PRÓXIMO).
+2. **Assinatura:** Validar fluxo de assinatura Gov.br no ambiente de produção.
+3. **Tribunais:** Expandir suporte para WSDL de outros tribunais estaduais.
 
-> *Última Atualização: 18/04/2026 - Build Estabilizado e Persistência Validada.*
+> *Última Atualização: 18/04/2026 - Espelhamento Judicial Concluído.*
