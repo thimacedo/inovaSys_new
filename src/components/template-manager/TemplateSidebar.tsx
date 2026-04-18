@@ -1,6 +1,5 @@
 import React from 'react';
-import { FileText, ChevronRight } from 'lucide-react';
-import { motion } from 'motion/react';
+import { FileText } from 'lucide-react';
 
 interface Template {
   id: string;
@@ -36,16 +35,15 @@ export const TemplateSidebar: React.FC<TemplateSidebarProps> = ({ templates, sel
             <button
               key={t.id}
               onClick={() => onSelect(t)}
-              className={`w-full text-left p-2.5 rounded-2xl transition-all duration-300 flex items-center justify-between group active:scale-95 ${
+              className={`w-full text-left px-2.5 py-2 rounded-2xl transition-all duration-300 flex items-center justify-between group active:scale-95 ${
                 selectedId === t.id 
                   ? 'bg-md-primary text-md-on-primary shadow-lg shadow-md-primary/20' 
                   : 'bg-md-surface border border-md-outline/10 text-md-on-surface-variant hover:border-md-primary/40 hover:bg-md-primary/5'
               }`}
             >
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-bold line-clamp-1">{t.nome}</span>
+                <span className="text-[11px] font-bold line-clamp-1">{t.nome}</span>
               </div>
-              <ChevronRight size={14} className={selectedId === t.id ? 'text-white' : 'text-md-outline opacity-0 group-hover:opacity-100 transition-all'} />
             </button>
           ))
         )}

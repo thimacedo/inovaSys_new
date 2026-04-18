@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessRowSkeleton } from '../presentation/ui/components/Skeleton';
-import { financialCalculatorService } from '../services/financialCalculatorService';
 import { usePermissions } from '../hooks/usePermissions';
 
 // 🧩 Sub-módulos Modularizados (Material You MD3)
@@ -257,7 +256,7 @@ export default function FinancialHub() {
                   <td colSpan={6} className="px-8 py-24 text-center">
                     <div className="flex flex-col items-center gap-3 opacity-30">
                       <FileText size={48} />
-                      <p className="text-sm font-medium italic">Nenhum registro financeiro encontrado com os filtros aplicados.</p>
+                      <p className="text-sm font-medium italic">Nenhum registro financeiro encontrado.</p>
                     </div>
                   </td>
                 </tr>
@@ -288,18 +287,6 @@ export default function FinancialHub() {
                         <span className={`text-sm font-black ${reg.status === 'Pago' ? 'text-emerald-600' : 'text-md-on-surface'}`}>
                           R$ {Number(reg.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
-                        {reg.status === 'Pendente' && reg.data_vencimento && new Date(reg.data_vencimento) < new Date() && (
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full uppercase flex items-center gap-1 border border-rose-100">
-                              <AlertCircle size={8} />
-                              Atrasado
-                            </span>
-                            <span className="text-[10px] font-bold text-md-primary flex items-center gap-0.5">
-                              <TrendingUp size={10} />
-                              R$ {financialCalculatorService.calcularJurosSimples(Number(reg.valor), new Date(reg.data_vencimento)).valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </td>
                     <td className="px-8 py-5">

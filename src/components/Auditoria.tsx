@@ -16,6 +16,8 @@ export default function Auditoria() {
 
   const isLoading = activeTab === 'acoes' ? isLoadingLogs : isLoadingViews;
 
+  const getLogDate = (log: any) => log?.created_at || log?.data_hora;
+
   const filteredLogs = useMemo(() => {
     const term = (searchTerm || '').toLowerCase();
     if (activeTab === 'acoes') {
@@ -36,8 +38,7 @@ export default function Auditoria() {
   const grouped = useMemo(() => {
     const groups: Record<string, any[]> = {};
     (filteredLogs || []).forEach(log => {
-      const typedLog = log as any;
-      const rawDate = typedLog.created_at || typedLog.data_hora;
+      const rawDate = getLogDate(log);
       if (!rawDate) return;
       
       try {
@@ -116,10 +117,10 @@ export default function Auditoria() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-[10px] font-black text-md-on-surface uppercase tracking-tighter">
-                        {log.created_at ? new Date(log.created_at).toLocaleTimeString('pt-BR') : '--:--'}
+                        {getLogDate(log) ? new Date(getLogDate(log)).toLocaleTimeString('pt-BR') : '--:--'}
                       </p>
                       <p className="text-[9px] font-bold text-md-on-surface-variant/40 uppercase tracking-widest mt-0.5">
-                        {log.created_at ? new Date(log.created_at).toLocaleDateString('pt-BR') : '--/--/----'}
+                        {getLogDate(log) ? new Date(getLogDate(log)).toLocaleDateString('pt-BR') : '--/--/----'}
                       </p>
                     </div>
                   </div>

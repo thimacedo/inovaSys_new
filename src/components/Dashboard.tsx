@@ -114,23 +114,23 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
 
   const renderView = () => {
     switch (currentView) {
-      case 'dash': return <DashboardHome camaraId={activeOrgId} />;
-      case 'process_list': return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} camaraId={activeOrgId} />;
+      case 'dash': return <DashboardHome />;
+      case 'process_list': return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'novo':
         if (canCreateProcess) return <NewProcess onProcessCreated={() => setCurrentView('dash')} camaraId={activeOrgId} />;
-        return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} camaraId={activeOrgId} />;
+        return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'process_details':
         return selectedProcessId ? <ProcessDetails processId={selectedProcessId!} onBack={() => { setSelectedProcessId(null); setCurrentView('dash'); }} /> : <div>Selecione um processo</div>;
-      case 'equipe': return canManageTeam ? <Equipe camaraId={activeOrgId} /> : <DashboardHome camaraId={activeOrgId} />;
-      case 'camara': return canManageTeam ? <CamaraConfig camaraId={activeOrgId} /> : <DashboardHome camaraId={activeOrgId} />;
-      case 'vendas': return isGlobalAdmin ? <Ecossistema /> : <DashboardHome camaraId={activeOrgId} />;
-      case 'auditoria': return canSeeAudit ? <Auditoria /> : <DashboardHome camaraId={activeOrgId} />;
-      case 'efficiency_dashboard': return canSeeAudit ? <EfficiencyDashboard /> : <DashboardHome camaraId={activeOrgId} />;
-      case 'templates': return isGlobalAdmin ? <TemplateManager /> : <DashboardHome camaraId={activeOrgId} />;
-      case 'email_templates': return isAtLeastAdmin ? <EmailTemplatesPage /> : <DashboardHome camaraId={activeOrgId} />;
-      case 'financial_hub': return isAtLeastAdmin ? <FinancialHub camaraId={activeOrgId} /> : <DashboardHome camaraId={activeOrgId} />;
+      case 'equipe': return canManageTeam ? <Equipe camaraId={activeOrgId} /> : <DashboardHome />;
+      case 'camara': return canManageTeam ? <CamaraConfig camaraId={activeOrgId} /> : <DashboardHome />;
+      case 'vendas': return isGlobalAdmin ? <Ecossistema /> : <DashboardHome />;
+      case 'auditoria': return canSeeAudit ? <Auditoria /> : <DashboardHome />;
+      case 'efficiency_dashboard': return canSeeAudit ? <EfficiencyDashboard /> : <DashboardHome />;
+      case 'templates': return isGlobalAdmin ? <TemplateManager /> : <DashboardHome />;
+      case 'email_templates': return isAtLeastAdmin ? <EmailTemplatesPage /> : <DashboardHome />;
+      case 'financial_hub': return isAtLeastAdmin ? <FinancialHub /> : <DashboardHome />;
       case 'calendar': return <CalendarView />;
-      default: return <DashboardHome camaraId={activeOrgId} />;
+      default: return <DashboardHome />;
     }
   };
 

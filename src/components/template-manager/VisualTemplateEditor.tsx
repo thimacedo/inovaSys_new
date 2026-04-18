@@ -25,37 +25,30 @@ export const VisualTemplateEditor: React.FC<VisualTemplateEditorProps> = ({
   setViewMode
 }) => {
   
-  // 🛡️ Função robusta para limpar HTML e reidratar o conteúdo amigável
-  const stripHtml = (html: string) => {
+  // 🛡️ Função robusta para limpar HTML e manter apenas a estrutura essencial
+  const sanitizeContent = (html: string) => {
     if (!html) return '';
     
     // Cria um DOM temporário para manipulação segura
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     
-    // Remove elementos indesejados que podem causar "sujeira" no modo amigável
-    const elementsToRemove = doc.querySelectorAll('script, style, iframe, object, embed');
+    // Remove elementos perigosos
+    const elementsToRemove = doc.querySelectorAll('script, style, iframe, object, embed, link');
     elementsToRemove.forEach(el => el.remove());
 
-    // Converte blocos comuns em quebras de linha para manter a estrutura mínima
-    const blockElements = ['p', 'div', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'tr'];
-    blockElements.forEach(tag => {
-      const elements = doc.getElementsByTagName(tag);
-      for (let i = elements.length - 1; i >= 0; i--) {
-        const el = elements[i];
-        if (tag === 'br') {
-          el.parentNode?.replaceChild(doc.createTextNode('\n'), el);
-        } else {
-          // Adiciona quebra de linha após blocos
-          const newline = doc.createTextNode('\n');
-          el.parentNode?.insertBefore(newline, el.nextSibling);
+    // Remove handlers de eventos inline (ex: onclick)
+    const allElements = doc.querySelectorAll('*');
+    allElements.forEach(el => {
+      const attrs = el.attributes;
+      for (let i = attrs.length - 1; i >= 0; i--) {
+        if (attrs[i].name.startsWith('on')) {
+          el.removeAttribute(attrs[i].name);
         }
       }
     });
 
-    const result = doc.body.innerText || doc.body.textContent || "";
-    // Limpeza de espaços excessivos mantendo quebras intencionais
-    return result.replace(/\n\s*\n/g, '\n\n').trim();
+    return doc.body.innerHTML;
   };
 
   const getHtmlFromText = (text: string) => {
@@ -71,18 +64,23 @@ export const VisualTemplateEditor: React.FC<VisualTemplateEditorProps> = ({
     if (mode === viewMode) return;
     
     if (mode === 'friendly') {
-      // 🔄 Reidratação: De Código para Amigável
-      const cleanText = stripHtml(content);
-      setContent(cleanText);
+      // 🔄 Reidratação: De Código para Amigável (Mantém formatação limpa)
+      const cleanHtml = sanitizeContent(content);
+      setContent(cleanHtml);
     } else {
       // 🔄 Reidratação: De Amigável para Código
-      // Só envolve em HTML se detectarmos que é texto puro (sem tags)
       const hasTags = /<[a-z][\s\S]*>/i.test(content);
       if (!hasTags) {
         setContent(getHtmlFromText(content));
       }
     }
     setViewMode(mode);
+  };
+
+  const handleSave = () => {
+    const cleanContent = sanitizeContent(content);
+    setContent(cleanContent);
+    onSave();
   };
   
   return (
@@ -121,7 +119,7 @@ export const VisualTemplateEditor: React.FC<VisualTemplateEditorProps> = ({
           </button>
           
           <button 
-            onClick={onSave}
+            onClick={handleSave}
             disabled={isSaving}
             className="btn-md-primary !px-8 shadow-lg shadow-md-primary/10 disabled:opacity-50"
           >
@@ -154,12 +152,12 @@ export const VisualTemplateEditor: React.FC<VisualTemplateEditorProps> = ({
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   className="flex-1 flex flex-col"
                 >
-                   {/* Editor de Texto Amigável (Sem HTML Visível) */}
-                   <textarea
-                     value={content}
-                     onChange={(e) => setContent(e.target.value)}
-                     className="w-full h-full p-12 font-serif text-lg leading-loose border-none outline-none resize-none text-slate-800 placeholder:text-slate-200 selection:bg-md-primary-container selection:text-md-on-primary-container"
-                     placeholder="Escreva o conteúdo do modelo aqui..."
+                   {/* Editor de Texto Amigável (Visualização Formatada) */}
+                   <div
+                     contentEditable
+                     onBlur={(e) => setContent(e.currentTarget.innerHTML)}
+                     dangerouslySetInnerHTML={{ __html: content }}
+                     className="flex-1 p-12 font-serif text-lg leading-loose border-none outline-none overflow-y-auto text-slate-800 selection:bg-md-primary-container selection:text-md-on-primary-container"
                    />
                    <div className="absolute bottom-6 right-8 text-[10px] font-black text-slate-300 uppercase tracking-widest pointer-events-none">
                      Modo de Escrita Jurídica
