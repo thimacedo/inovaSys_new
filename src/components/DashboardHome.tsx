@@ -109,7 +109,7 @@ function DiagnosticTerminal() {
         
         {loading && (
           <div className="flex gap-2 items-center text-slate-500 mt-2">
-            <span className="animate-pulse">></span>
+            <span className="animate-pulse">{'>'}</span>
             <div className="w-1.5 h-3 bg-slate-500 animate-pulse"></div>
           </div>
         )}
