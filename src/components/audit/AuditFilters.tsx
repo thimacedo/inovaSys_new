@@ -16,7 +16,7 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({ searchTerm, setSearc
         placeholder={placeholder}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="input-md !pl-14 !rounded-[32px] shadow-sm !h-16"
+        className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-14 !rounded-[32px] shadow-sm !h-16"
       />
     </div>
   );

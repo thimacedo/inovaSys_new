@@ -41,7 +41,7 @@ export const FinanceiroStats: React.FC<FinanceiroStatsProps> = ({
         {isAtLeastAdmin && (
           <button 
             onClick={onNewClick}
-            className="btn-md-primary w-full !py-6 !rounded-[28px] !shadow-none border-2 border-dashed border-md-primary/20 bg-transparent text-md-primary hover:bg-md-primary/5 hover:border-md-primary/40 transition-all"
+            className="rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-primary text-md-on-primary hover:shadow-md hover:brightness-110 w-full !py-6 !rounded-[28px] !shadow-none border-2 border-dashed border-md-primary/20 bg-transparent text-md-primary hover:bg-md-primary/5 hover:border-md-primary/40 transition-all"
           >
             <Plus size={20} />
             Novo Lançamento

@@ -31,7 +31,7 @@ export const BIHeader: React.FC<BIHeaderProps> = ({ onRefresh, loading }) => {
       <button 
         onClick={onRefresh}
         disabled={loading}
-        className="btn-md-tonal !px-8 shadow-sm active:scale-95 disabled:opacity-50"
+        className="rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-secondary-container text-md-on-secondary-container hover:shadow-sm !px-8 shadow-sm active:scale-95 disabled:opacity-50"
       >
         <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
         Atualizar Dados

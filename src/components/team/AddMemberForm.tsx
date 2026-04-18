@@ -80,7 +80,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ onAdded, camaraId:
               type="text" required
               value={formData.nome}
               onChange={(e) => setFormData({...formData, nome: e.target.value})}
-              className="input-md !pl-12 shadow-sm"
+              className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-12 shadow-sm"
               placeholder="Ex: Dr. Ricardo Silva"
             />
           </div>
@@ -94,7 +94,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ onAdded, camaraId:
               type="email" required
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="input-md !pl-12 shadow-sm"
+              className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-12 shadow-sm"
               placeholder="ricardo@camara.com"
             />
           </div>
@@ -107,7 +107,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ onAdded, camaraId:
             <select 
               value={formData.tipo}
               onChange={(e) => setFormData({...formData, tipo: e.target.value})}
-              className="input-md !pl-12 shadow-sm appearance-none"
+              className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-12 shadow-sm appearance-none"
             >
               <option value="assistente">Assistente Administrativo</option>
               <option value="arbitro">Árbitro de Mediação</option>
@@ -121,7 +121,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ onAdded, camaraId:
         <button 
           disabled={loading}
           type="submit"
-          className="btn-md-primary !px-12 !py-4 shadow-xl"
+          className="rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-primary text-md-on-primary hover:shadow-md hover:brightness-110 !px-12 !py-4 shadow-xl"
         >
           {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
           Confirmar Convite

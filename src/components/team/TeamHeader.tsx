@@ -25,7 +25,7 @@ export const TeamHeader: React.FC<TeamHeaderProps> = ({ onAddClick }) => {
       
       <button 
         onClick={onAddClick}
-        className="btn-md-primary shadow-lg shadow-md-primary/20 !px-8 !py-4"
+        className="rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-primary text-md-on-primary hover:shadow-md hover:brightness-110 shadow-lg shadow-md-primary/20 !px-8 !py-4"
       >
         <UserPlus size={20} />
         Convidar Membro

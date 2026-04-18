@@ -57,7 +57,7 @@ export const FinanceiroForm: React.FC<FinanceiroFormProps> = ({ onSubmit, onClos
             />
           </div>
           <div className="md:col-span-3 flex justify-end">
-            <button type="submit" className="btn-md-primary !bg-md-primary-container !text-md-on-primary-container !px-12 !py-4 shadow-xl">
+            <button type="submit" className="rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-primary text-md-on-primary hover:shadow-md hover:brightness-110 !bg-md-primary-container !text-md-on-primary-container !px-12 !py-4 shadow-xl">
               <Save size={18} />
               Finalizar Lançamento
             </button>

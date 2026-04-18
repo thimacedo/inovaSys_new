@@ -25,20 +25,22 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
   const [testingWebhook, setTestingWebhook] = useState(false);
 
   useEffect(() => {
-    if (camaraData) setFormData({
-      nome: camaraData.nome || '',
-      cnpj: camaraData.cnpj || '',
-      logradouro: camaraData.logradouro || '',
-      bairro: camaraData.bairro || '',
-      cidade: camaraData.cidade || '',
-      estado: camaraData.estado || '',
-      cep: camaraData.cep || '',
-      fone: camaraData.fone || '',
-      presidente_nome: camaraData.presidente_nome || '',
-      webhook_url: camaraData.webhook_url || '',
-      webhook_token: camaraData.webhook_token || '',
-      logo: camaraData.logo || ''
-    });
+    if (camaraData) {
+      setFormData({
+        nome: camaraData.nome || '',
+        cnpj: camaraData.cnpj || '',
+        logradouro: camaraData.logradouro || '',
+        bairro: camaraData.bairro || '',
+        cidade: camaraData.cidade || '',
+        estado: camaraData.estado || '',
+        cep: camaraData.cep || '',
+        fone: camaraData.fone || '',
+        presidente_nome: camaraData.presidente_nome || '',
+        webhook_url: camaraData.webhook_url || '',
+        webhook_token: camaraData.webhook_token || '',
+        logo: camaraData.logo || ''
+      });
+    }
   }, [camaraData]);
 
   if (!camaraId) return null;
@@ -107,7 +109,7 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
           <button 
             type="submit" 
             disabled={updateSettingsMutation.isPending}
-            className="btn-md-primary !px-16 !py-5 shadow-2xl shadow-md-primary/20"
+            className="rounded-full px-16 py-5 font-bold text-xs uppercase tracking-widest transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-primary text-md-on-primary hover:shadow-2xl hover:brightness-110 shadow-md-primary/20 shadow-lg"
           >
             {updateSettingsMutation.isPending ? 'Sincronizando...' : 'Salvar Alterações'}
             <Save size={20} className="ml-2" />

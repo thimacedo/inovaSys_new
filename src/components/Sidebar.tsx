@@ -187,7 +187,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         
         <button 
           onClick={onSignOut}
-          className="btn-md-tonal w-full py-3 text-[10px] font-bold uppercase tracking-[0.15em] text-md-on-surface-variant/70 hover:bg-rose-100 hover:text-rose-700 transition-all"
+          className="rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-secondary-container text-md-on-secondary-container hover:shadow-sm w-full py-3 text-[10px] font-bold uppercase tracking-[0.15em] text-md-on-surface-variant/70 hover:bg-rose-100 hover:text-rose-700 transition-all"
         >
           <LogOut size={16} />
           Encerrar Acesso

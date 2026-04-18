@@ -20,7 +20,12 @@ export default function FinanceiroBI() {
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
-      months.push({ label: d.toLocaleString('pt-BR', { month: 'short' }), month: d.getMonth(), year: d.getFullYear(), total: 0 });
+      months.push({ 
+        label: d.toLocaleString('pt-BR', { month: 'short' }), 
+        month: d.getMonth(), 
+        year: d.getFullYear(), 
+        total: 0 
+      });
     }
 
     rawData.forEach(reg => {

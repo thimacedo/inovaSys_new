@@ -58,7 +58,7 @@ export const ProcessListHeader: React.FC<ProcessListHeaderProps> = ({
 
         {onNewProcess && (
           <button
-            className="btn-md-primary shrink-0"
+            className="rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-primary text-md-on-primary hover:shadow-md hover:brightness-110 shrink-0"
             onClick={onNewProcess}
           >
             <Plus size={18} />

@@ -29,7 +29,7 @@ export const InstitutionTable: React.FC<InstitutionTableProps> = ({
           <input 
             type="text"
             placeholder="Buscar por instituição ou CNPJ..."
-            className="input-md !pl-12 shadow-sm"
+            className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !pl-12 shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -38,7 +38,7 @@ export const InstitutionTable: React.FC<InstitutionTableProps> = ({
           <button className="p-3.5 text-md-on-surface-variant hover:bg-md-surface rounded-2xl transition-all border border-md-outline/10"><Filter size={20} /></button>
           <button 
             onClick={onNew}
-            className="btn-md-primary !px-8 !py-4 shadow-lg shadow-md-primary/10"
+            className="rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-primary text-md-on-primary hover:shadow-md hover:brightness-110 !px-8 !py-4 shadow-lg shadow-md-primary/10"
           >
             <Plus size={20} />
             Nova Afiliação

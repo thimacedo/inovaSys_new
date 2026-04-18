@@ -51,7 +51,11 @@ Entregar a plataforma InovaSys para Gestão Arbitral 100% funcional, segura, tot
 ### 🔗 Fase 6: Integrações e Ecossistema (PRÓXIMA)
 - [ ] Conexão via API com tribunais (Homologação Judicial).
 - [ ] Gateway de pagamento com split de honorários.
-- [ ] Integração com assinatura Gov.br.
+- [ ] **Integração com Assinatura Gov.br (ITI):**
+    - [ ] Implementar fluxo de autorização OAuth2 (Escopo: `sign`).
+    - [ ] Desenvolver serviço de geração de Hash SHA-256 para PDFs.
+    - [ ] Criar endpoint de callback para injeção de assinatura PKCS#7.
+    - [ ] Validar conformidade para contas nível Prata e Ouro.
 
 ### 📱 Fase 7: Experiência Mobile & Realtime
 - [ ] Aplicativo nativo para acompanhamento de processos.
@@ -68,12 +72,13 @@ A plataforma InovaSys está **Pronta para Produção** e com **Design System Pre
 - [x] Modularização Lote 2 (Gestão): Quebra de `Equipe`, `CamaraConfig` e `Ecossistema`.
 - [x] Modularização Lote 3 (Análise): Quebra de `Auditoria` e `FinanceiroBI` em sub-módulos de alta fidelidade.
 
-### 🎯 Conformidade Material You (MD3)
-*   **Interface:** Superfícies tonais (#FFFBFE), Indicators Pills e Tipografia Roboto consolidados.
-*   **Componentização:** 100% dos módulos core refatorados para SRP (Single Responsibility Principle).
-*   **Acessibilidade & UX:** Micro-interações reativas e navegação semântica em todo o ecossistema.
+### 🎯 Status Final da Refatoração (18/04/2026)
+*   **Interface:** 100% MD3 (Material You).
+*   **Qualidade:** Suíte de testes unitários e E2E validadas com sucesso.
+*   **Infraestrutura:** Conectividade Supabase e variáveis de ambiente em produção estabilizadas.
+*   **Resultado:** Plataforma modularizada, segura e pronta para escala institucional.
 
-*   **Acessibilidade & UX:** Implementação de micro-interações reativas (`active:scale-95`) e conformidade WCAG AA.
+> *Última Atualização: 18/04/2026 - Ciclo de Estabilização e Design System Concluído.*
 
 ## 🤝 Guia de Assunção de Comando (Final)
 - **Gemini (PM):** Finalizou a esteira de CI/CD e as políticas de segurança.

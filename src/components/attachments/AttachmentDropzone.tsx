@@ -36,7 +36,7 @@ export const AttachmentDropzone: React.FC<AttachmentDropzoneProps> = ({
       <input type="file" ref={fileInputRef} onChange={onFileSelect} className="hidden" id="file-upload-md" />
       <label 
         htmlFor="file-upload-md" 
-        className={`btn-md-primary cursor-pointer inline-flex ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
+        className={`rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2 bg-md-primary text-md-on-primary hover:shadow-md hover:brightness-110 cursor-pointer inline-flex ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
       >
         {isPending ? <Loader2 className="animate-spin" size={18} /> : <UploadCloud size={18} />}
         Selecionar Arquivo

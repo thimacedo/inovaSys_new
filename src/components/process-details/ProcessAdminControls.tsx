@@ -36,7 +36,7 @@ export const ProcessAdminControls: React.FC<ProcessAdminControlsProps> = ({
       </div>
       <div className="flex-1 w-full max-w-md">
         <select 
-          className="input-md !rounded-xl !h-12 !bg-md-surface border-none shadow-sm focus:ring-4 focus:ring-md-primary/10"
+          className="h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50 !rounded-xl !h-12 !bg-md-surface border-none shadow-sm focus:ring-4 focus:ring-md-primary/10"
           value={arbitroId || ''}
           onChange={(e) => onAssign(e.target.value)}
           disabled={isAssigning}
