@@ -67,33 +67,34 @@ body {
 }
 
 /* MD3 Signature Components Classes */
+@layer components {
+  /* Pill-shaped buttons (MD3 Standard) */
+  .btn-md {
+    @apply rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2;
+  }
 
-/* Pill-shaped buttons (MD3 Standard) */
-.btn-md {
-  @apply rounded-full px-6 py-2.5 font-medium transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] active:scale-95 flex items-center justify-center gap-2;
-}
+  .btn-md-primary {
+    @apply btn-md bg-md-primary text-md-on-primary hover:shadow-md hover:brightness-110;
+  }
 
-.btn-md-primary {
-  @apply btn-md bg-md-primary text-md-on-primary hover:shadow-md hover:brightness-110;
-}
+  .btn-md-tonal {
+    @apply btn-md bg-md-secondary-container text-md-on-secondary-container hover:shadow-sm;
+  }
 
-.btn-md-tonal {
-  @apply btn-md bg-md-secondary-container text-md-on-secondary-container hover:shadow-sm;
-}
+  /* MD3 Filled Card */
+  .card-md {
+    @apply bg-md-surface-variant/30 rounded-[24px] p-6 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] hover:shadow-md hover:bg-md-surface-variant/50;
+  }
 
-/* MD3 Filled Card */
-.card-md {
-  @apply bg-md-surface-variant/30 rounded-[24px] p-6 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] hover:shadow-md hover:bg-md-surface-variant/50;
-}
+  /* MD3 Elevated Card */
+  .card-md-elevated {
+    @apply bg-md-surface rounded-[24px] p-6 shadow-md-1 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] hover:shadow-md-2 hover:scale-[1.01];
+  }
 
-/* MD3 Elevated Card */
-.card-md-elevated {
-  @apply bg-md-surface rounded-[24px] p-6 shadow-md-1 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] hover:shadow-md-2 hover:scale-[1.01];
-}
-
-/* Material 3 Filled Text Field Style */
-.input-md {
-  @apply h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50;
+  /* Material 3 Filled Text Field Style */
+  .input-md {
+    @apply h-14 w-full bg-md-surface-variant rounded-t-xl border-b-2 border-md-outline px-4 text-md-on-surface transition-colors duration-200 focus:border-md-primary focus:outline-none placeholder:text-md-on-surface-variant/50;
+  }
 }
 
 /* Organic Blur Backgrounds (Signature) */
