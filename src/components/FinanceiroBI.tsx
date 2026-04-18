@@ -9,14 +9,20 @@ import { BIMetricsGrid } from './financeiro-bi/BIMetricsGrid';
 import { BIChartsSection } from './financeiro-bi/BIChartsSection';
 import { BIRecentCashflow } from './financeiro-bi/BIRecentCashflow';
 
+interface MonthData {
+  label: string;
+  month: number;
+  year: number;
+  total: number;
+}
+
 export default function FinanceiroBI() {
   const currentUser = useAuthStore(state => state.currentUser);
   const camaraId = currentUser?.organization_id || currentUser?.camara_id;
   const { data: rawData = [], isLoading, refetch } = useFinanceiroByOrg(camaraId);
 
   const processedData = useMemo(() => {
-    // 1. Processamento por Mês (Últimos 6 meses)
-    const months: { label: string; month: number; year: number; total: number }[] = [];
+    const months: MonthData[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
@@ -28,7 +34,7 @@ export default function FinanceiroBI() {
       });
     }
 
-    rawData.forEach(reg => {
+    (rawData as any[]).forEach(reg => {
       if (reg.status === 'Pago') {
         const d = new Date(reg.created_at || '');
         const idx = months.findIndex(m => m.month === d.getMonth() && m.year === d.getFullYear());
@@ -36,15 +42,14 @@ export default function FinanceiroBI() {
       }
     });
 
-    // 2. Distribuição por Tipo
     const dist = { Custa: 0, Hon_Arbitral: 0, Hon_Sucumbencia: 0 };
-    rawData.forEach(reg => {
+    (rawData as any[]).forEach(reg => {
       const tipo = reg.tipo as keyof typeof dist;
       if (dist[tipo] !== undefined) dist[tipo] += Number(reg.valor);
     });
 
-    const totalReceita = rawData.filter(d => d.status === 'Pago').reduce((acc, curr) => acc + Number(curr.valor), 0);
-    const totalPendente = rawData.filter(d => d.status === 'Pendente').reduce((acc, curr) => acc + Number(curr.valor), 0);
+    const totalReceita = (rawData as any[]).filter(d => d.status === 'Pago').reduce((acc, curr) => acc + Number(curr.valor), 0);
+    const totalPendente = (rawData as any[]).filter(d => d.status === 'Pendente').reduce((acc, curr) => acc + Number(curr.valor), 0);
 
     return {
       bar: { labels: months.map(m => m.label), datasets: [{ label: 'Receita', data: months.map(m => m.total), backgroundColor: '#6750A4', borderRadius: 12 }] },
@@ -55,7 +60,7 @@ export default function FinanceiroBI() {
         { label: 'Ticket Médio', value: totalReceita / (rawData.length || 1), icon: TrendingUp, color: 'purple' },
         { label: 'Inadimplência', value: (totalPendente / (totalReceita + totalPendente || 1)) * 100, isPercent: true, icon: ArrowDownRight, color: 'red' },
       ],
-      transactions: rawData.slice(0, 8)
+      transactions: (rawData as any[]).slice(0, 8)
     };
   }, [rawData]);
 
@@ -63,15 +68,10 @@ export default function FinanceiroBI() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700 pb-20">
-      
       <BIHeader onRefresh={refetch} loading={isLoading} />
-
       <BIMetricsGrid stats={processedData.stats} />
-
       <BIChartsSection barData={processedData.bar} doughnutData={processedData.doughnut} />
-
       <BIRecentCashflow transactions={processedData.transactions} />
-
     </div>
   );
 }

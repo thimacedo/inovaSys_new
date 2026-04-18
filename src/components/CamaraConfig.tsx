@@ -13,12 +13,18 @@ import { IntegrationsForm } from './settings/IntegrationsForm';
 
 import { Save } from 'lucide-react';
 
+interface ConfigFormData {
+  nome: string; cnpj: string; logradouro: string; bairro: string; cidade: string; 
+  estado: string; cep: string; fone: string; presidente_nome: string;
+  webhook_url: string; webhook_token: string; logo: string;
+}
+
 export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
   const { data: camaraData, isLoading } = useCamaraSettings(camaraId);
   const updateSettingsMutation = useUpdateCamaraSettings();
   const { showToast } = useModal();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ConfigFormData>({
     nome: '', cnpj: '', logradouro: '', bairro: '', cidade: '', estado: '', cep: '', fone: '', presidente_nome: '',
     webhook_url: '', webhook_token: '', logo: ''
   });
@@ -26,19 +32,20 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
 
   useEffect(() => {
     if (camaraData) {
+      const typedData = camaraData as any;
       setFormData({
-        nome: camaraData.nome || '',
-        cnpj: camaraData.cnpj || '',
-        logradouro: camaraData.logradouro || '',
-        bairro: camaraData.bairro || '',
-        cidade: camaraData.cidade || '',
-        estado: camaraData.estado || '',
-        cep: camaraData.cep || '',
-        fone: camaraData.fone || '',
-        presidente_nome: camaraData.presidente_nome || '',
-        webhook_url: camaraData.webhook_url || '',
-        webhook_token: camaraData.webhook_token || '',
-        logo: camaraData.logo || ''
+        nome: typedData.nome || '',
+        cnpj: typedData.cnpj || '',
+        logradouro: typedData.logradouro || '',
+        bairro: typedData.bairro || '',
+        cidade: typedData.cidade || '',
+        estado: typedData.estado || '',
+        cep: typedData.cep || '',
+        fone: typedData.fone || '',
+        presidente_nome: typedData.presidente_nome || '',
+        webhook_url: typedData.webhook_url || '',
+        webhook_token: typedData.webhook_token || '',
+        logo: typedData.logo || ''
       });
     }
   }, [camaraData]);
@@ -85,18 +92,10 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 max-w-6xl mx-auto pb-20">
-      
       <ConfigHeader />
-
       <form onSubmit={handleSubmit} className="space-y-8">
-        
-        {/* 🏢 Informações Core */}
         <InstitutionInfoForm data={formData} onChange={handleFieldChange} />
-
-        {/* 🎨 Branding & Identidade */}
         <BrandingForm logo={formData.logo} onLogoChange={handleLogoChange} />
-
-        {/* 🔗 Conectividade */}
         <IntegrationsForm 
           webhookUrl={formData.webhook_url} 
           webhookToken={formData.webhook_token} 
@@ -104,7 +103,6 @@ export default function CamaraConfig({ camaraId }: { camaraId?: string }) {
           onTest={handleTestWebhook} 
           testing={testingWebhook} 
         />
-
         <div className="flex justify-end pt-8">
           <button 
             type="submit" 

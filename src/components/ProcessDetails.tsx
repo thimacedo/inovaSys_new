@@ -32,7 +32,6 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const addHistoryMutation = useAddHistoryEntry();
 
   const [arbitros, setArbitros] = useState<any[]>([]);
-  const [isAssigning, setIsAssigning] = useState(false);
   const [activeTab, setActiveTab] = useState('resumo');
   const [novoAndamento, setNovoAndamento] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +39,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
   const { showToast, showPrompt, showModal } = useModal();
 
   const isAdmin = ['gestor', 'admin', 'god'].includes(currentUser?.tipo_usuario?.toLowerCase() || '');
-  const canEditProcess = isAdmin || (processo && processo.arbitro_id === currentUser?.id);
+  const canEditProcess = isAdmin || (processo && (processo as any).arbitro_id === currentUser?.id);
 
   useEffect(() => {
     if (isAdmin) {
@@ -87,6 +86,8 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
     }, inputType);
   };
 
+  const currentProcesso = processo as any;
+
   return (
     <div className="flex gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-16">
       <div className="flex-1 space-y-8">
@@ -95,15 +96,15 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
           processo={processo}
           isAdmin={isAdmin}
           onBack={onBack}
-          onGerarHonorarios={() => financeiroService.gerarHonorariosArbitrais(processo.id, processo.valor_causa || 0, processo.organization_id || '')}
-          onSentencaIA={() => showModal('IA Jurídica', <SentenceGenerator processo={processo} onGenerate={(html) => documentService.downloadPDF(html, `SENTENCA_${processo.numero_processo}`)} onClose={() => {}} />)}
+          onGerarHonorarios={() => financeiroService.gerarHonorariosArbitrais(processo.id, currentProcesso.valor_causa || 0, currentProcesso.organization_id || '')}
+          onSentencaIA={() => showModal('IA Jurídica', <SentenceGenerator processo={processo} onGenerate={(html) => documentService.downloadPDF(html, `SENTENCA_${currentProcesso.numero_processo}`)} onClose={() => {}} />)}
           onGerarTermo={async () => {
              setIsGeneratingDoc(true);
              const templateData: Record<string, string> = {};
-             Object.entries(processo).forEach(([key, val]) => {
+             Object.entries(currentProcesso).forEach(([key, val]) => {
                if (val !== null && val !== undefined) templateData[key] = String(val);
              });
-             await documentService.generateFromTemplate(2, { ...templateData, data_hoje: new Date().toLocaleDateString('pt-BR') }, `Termo_${processo.numero_processo}`);
+             await documentService.generateFromTemplate(2, { ...templateData, data_hoje: new Date().toLocaleDateString('pt-BR') }, `Termo_${currentProcesso.numero_processo}`);
              setIsGeneratingDoc(false);
           }}
           isGeneratingDoc={isGeneratingDoc}
@@ -112,9 +113,9 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
         <div className="bg-md-surface rounded-[48px] border border-md-outline/5 shadow-md overflow-hidden relative min-h-[600px]">
           <ProcessAdminControls 
             isAdmin={isAdmin} 
-            arbitroId={processo.arbitro_id || null} 
+            arbitroId={currentProcesso.arbitro_id || null} 
             arbitros={arbitros} 
-            isAssigning={isAssigning} 
+            isAssigning={false} 
             onAssign={(id) => processService.assignArbitrator(processo.id, id).then(() => refetch())} 
           />
 
@@ -137,7 +138,7 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
                       Narrativa
                     </h3>
                     <p className="text-lg text-md-on-surface leading-[1.8] font-medium whitespace-pre-wrap">
-                      {processo.resumo_fatos || 'Pendente.'}
+                      {currentProcesso.resumo_fatos || 'Pendente.'}
                     </p>
                   </div>
                 </motion.div>
@@ -164,11 +165,11 @@ export default function ProcessDetails({ processId, onBack }: { processId: strin
                 </div>
               )}
 
-              {activeTab === 'documentos' && <DocumentCenter processo={processo} arbitroNome={(processo as any).arbitro?.nome} camaraConfig={{}} />}
+              {activeTab === 'documentos' && <DocumentCenter processo={processo} arbitroNome={currentProcesso.arbitro?.nome} camaraConfig={{}} />}
               {activeTab === 'mensagens' && <ProcessChat processoId={processId} />}
               {activeTab === 'anexos' && <ProcessAttachments processoId={processId} />}
               {activeTab === 'auditoria' && <ProcessAudit processoId={processId} />}
-              {activeTab === 'financeiro' && <FinanceiroTab processoId={processId} organizationId={processo.organization_id || ''} />}
+              {activeTab === 'financeiro' && <FinanceiroTab processoId={processId} organizationId={currentProcesso.organization_id || ''} />}
 
             </AnimatePresence>
           </div>
