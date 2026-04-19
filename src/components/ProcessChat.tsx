@@ -43,15 +43,15 @@ export const ProcessChat: React.FC<{ processoId: string }> = ({ processoId }) =>
       });
 
       // Notificação via Webhook (Workflow Omni-channel)
-      webhookService.notify('nova_mensagem', {
-        processo_id: processoId,
-        contato_nome: currentUser.nome || 'Parte',
-        mensagem: msgText
-      });
-
-      // Notificação Interna Preditiva
       processService.getById(processoId).then(processo => {
         if (processo) {
+          webhookService.notify('nova_mensagem', {
+            processo_id: processoId,
+            numero_processo: processo.numero_processo || 'N/A',
+            contato_nome: currentUser.nome || 'Parte',
+            mensagem: msgText
+          });
+
           const recipientId = currentUser.id === processo.arbitro_id 
             ? processo.user_id 
             : processo.arbitro_id;
