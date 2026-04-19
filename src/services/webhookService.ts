@@ -1,6 +1,6 @@
 export interface WebhookPayload {
   processo_id: string;
-  numero_processo: string;
+  numero_processo?: string;
   contato_nome: string;
   mensagem: string;
   metadata?: any;
