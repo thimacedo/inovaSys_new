@@ -1,70 +1,64 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * 🧪 INOVASYS SMOKE TESTS (v3.1 - Alta Resiliência)
- * Foco: Estabilidade total em transições MD3 com AnimatePresence e Correção de Crash.
+ * 🧪 INOVASYS SMOKE TESTS (v3.2 - State-Based Architecture)
+ * Foco: Resiliência total para sistema sem rotas de URL.
  */
 
 test.describe('Navegação Pública InovaSys', () => {
   
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    // Garantir que a Navbar carregou antes de qualquer ação
+    // Aguardar estabilização da Landing Page
     await expect(page.locator('nav')).toBeVisible();
+    // Garantir que não houve crash inicial
+    await expect(page.getByText('Falha Crítica no Sistema')).not.toBeVisible();
   });
 
-  test('deve carregar a Landing Page e validar título único', async ({ page }) => {
-    // Buscar o H1 da Landing Page (Hero) especificamente
+  test('deve carregar a Landing Page e validar elementos chave', async ({ page }) => {
     const heroTitle = page.locator('main h1').first();
     await expect(heroTitle).toContainText(/Gestão de processos/i);
-    
-    // Validar marca na Navbar
     await expect(page.locator('nav').getByText('InovaSys')).toBeVisible();
   });
 
-  test('deve navegar para a Central de Ajuda (/docs)', async ({ page }) => {
-    // 1. Iniciar navegação
+  test('deve navegar para a Central de Ajuda (Docs View)', async ({ page }) => {
+    // 1. Clicar no botão da Navbar
     await page.getByRole('button', { name: 'Documentação' }).click();
     
-    // 2. Aguardar a rota ser resolvida (Essencial para evitar race conditions com a tela anterior)
-    // Usamos um padrão que aceita tanto local quanto produção
-    await page.waitForURL(url => url.pathname.includes('/docs') || url.hash.includes('/docs'));
-
-    // 3. Aguardar o container de docs aparecer de forma resiliente
+    // 2. Aguardar a transição de componente (o header de Docs deve aparecer)
     const docsHeader = page.getByText('Central de Ajuda');
     await expect(docsHeader).toBeVisible({ timeout: 10000 });
+
+    // 3. Validar que o conteúdo antigo da Landing saiu do DOM (ou ficou invisível)
+    await expect(page.locator('main h1').filter({ hasText: 'Gestão de processos' })).not.toBeVisible();
     
-    // 4. Validar o título H1 interno do módulo de Docs
-    // Usamos filter para garantir que estamos pegando o H1 que contém o texto esperado
+    // 4. Validar o título do documento inicial nos Docs
     const docTitle = page.locator('main h1').filter({ hasText: 'Guia de Início' });
     await expect(docTitle).toBeVisible();
   });
 
   test('deve abrir o fluxo de autenticação', async ({ page }) => {
-    // Clicar no entrar da Navbar
     await page.getByRole('button', { name: 'Entrar' }).first().click();
     
-    // Validar se o formulário de login apareceu
+    // Validar se o formulário de login apareceu via visibilidade de componente
     await expect(page.getByText('Acessar Painel')).toBeVisible();
   });
 
   test('deve trocar entre documentos na Central de Ajuda', async ({ page }) => {
-    // 1. Entrar nos docs e aguardar estabilização
+    // 1. Entrar na view de Docs
     await page.getByRole('button', { name: 'Documentação' }).click();
-    await page.waitForURL(url => url.pathname.includes('/docs') || url.hash.includes('/docs'));
     
-    // 2. Aguardar a Sidebar aparecer (Resiliente a animações)
+    // 2. Aguardar a Sidebar aparecer
     const sidebar = page.locator('aside');
     await expect(sidebar).toBeVisible({ timeout: 10000 });
     
     // 3. Clicar em 'Diretrizes de IA' na sidebar
     await sidebar.getByRole('button', { name: /Diretrizes de IA/i }).click();
     
-    // 4. Validar título do novo documento usando toHaveText (mais rigoroso que containtText)
-    const mainTitle = page.locator('main h1');
-    await expect(mainTitle).toHaveText(/Diretrizes de IA/i);
+    // 4. Validar a troca de conteúdo (Título do h1 muda)
+    await expect(page.locator('main h1').filter({ hasText: 'Diretrizes de IA' })).toBeVisible();
     
-    // 5. Validar conteúdo interno
+    // 5. Validar conteúdo específico do doc
     await expect(page.getByText(/Proibições Absolutas/i)).toBeVisible();
   });
 });
