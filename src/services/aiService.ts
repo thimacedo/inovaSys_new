@@ -12,9 +12,16 @@ const GROK_KEY = import.meta.env.VITE_GROK_API_KEY || '';
 // Inicialização segura do SDK Google
 const genAI = GEMINI_KEY ? new GoogleGenerativeAI(GEMINI_KEY) : null;
 
-const SYSTEM_INSTRUCTION = `Você é um Assistente Administrativo da InovaSys. 
-Sua função é formatação textual e correção gramatical mecânica seguindo a Lei 9.307/96.
-O Árbitro deve ser referido como Juiz de Fato e de Direito (Art. 18).`;
+const SYSTEM_INSTRUCTION = `Você é um Assistente Administrativo da InovaSys dedicado EXCLUSIVAMENTE à digitação, formatação e revisão ortográfica.
+
+REGRAS DE OURO (PROIBIÇÕES ABSOLUTAS):
+1. NÃO decida, sugira ou influencie o mérito de qualquer processo.
+2. NÃO analise provas, documentos ou anexos para buscar contradições.
+3. NÃO sugira providências processuais ou estratégias jurídicas.
+4. Sua função é puramente MECÂNICA de suporte à organização documental.
+
+O Árbitro deve ser referido como Juiz de Fato e de Direito (Art. 18 da Lei 9.307/96).
+Ao formatar textos, siga as normas da ABNT e mantenha a linguagem formal culta.`;
 
 /**
  * Helper interno para chamadas ao Gemini com log de auditoria.
@@ -22,7 +29,7 @@ O Árbitro deve ser referido como Juiz de Fato e de Direito (Art. 18).`;
 async function tryGemini(prompt: string, modelName: string = "gemini-1.5-flash"): Promise<string> {
   if (!genAI) throw new Error('VITE_GEMINI_API_KEY não configurada');
   
-  console.log(`[AI] Tentando Provedor Gemini (${modelName})...`);
+  console.log(`[AI] Transcrição/Formatação via Gemini (${modelName})...`);
   const model = genAI.getGenerativeModel({ model: modelName });
   const result = await model.generateContent(prompt);
   const text = result.response.text();
@@ -37,7 +44,7 @@ async function tryGemini(prompt: string, modelName: string = "gemini-1.5-flash")
 async function tryGrok(prompt: string, modelName: string = "grok-beta"): Promise<string> {
   if (!GROK_KEY) throw new Error('VITE_GROK_API_KEY não configurada');
 
-  console.log(`[AI] Tentando Provedor Grok (${modelName})...`);
+  console.log(`[AI] Transcrição/Formatação via Grok (${modelName})...`);
   const response = await fetch('https://api.x.ai/v1/chat/completions', {
     method: 'POST',
     headers: { 
@@ -67,10 +74,10 @@ async function tryGrok(prompt: string, modelName: string = "grok-beta"): Promise
 
 export const aiService = {
   /**
-   * Melhora a clareza e gramática de um texto com Fallback em Cascata.
+   * Formata e corrige rascunhos humanos com Fallback em Cascata.
    */
-  suggestClausula: async (contexto: string, promptUsuario: string): Promise<string> => {
-    const promptFull = `${SYSTEM_INSTRUCTION}\n\nContexto: ${contexto}\nFormate o seguinte texto:\n${promptUsuario}`;
+  formatDraft: async (contexto: string, textoBruto: string): Promise<string> => {
+    const promptFull = `${SYSTEM_INSTRUCTION}\n\nATIVIDADE: Formatação Administrativa\nTEMA: ${contexto}\nTEXTO FORNECIDO PELO USUÁRIO:\n${textoBruto}\n\nINSTRUÇÃO: Corrija gramática, ortografia e aplique formatação formal. Não altere os fatos narrados.`;
 
     // --- CASCATA DE RESILIÊNCIA ---
     
@@ -90,42 +97,46 @@ export const aiService = {
 
     // Passo 3: Fallback Final (Offline)
     console.error('[AI] Todos os provedores de nuvem falharam. Ativando [Modo Offline].');
-    return `${promptUsuario}\n\n[Modo Offline: IA indisponível no momento]`;
+    return `${textoBruto}\n\n[Modo Offline: IA indisponível para revisão no momento]`;
   },
 
   /**
    * Refina rascunhos corrigindo apenas ortografia e gramática.
    */
   improveDraft: async (text: string) => {
-    return aiService.suggestClausula("Revisão Gramatical", text);
+    return aiService.formatDraft("Revisão Gramatical Geral", text);
   },
 
   /**
-   * Gera minutas de sentenças arbitrais com cascata de qualidade.
+   * Formata minutas de sentenças fornecidas pelo Juiz Arbitral.
    */
-  generateSentence: async (processoContext: string, fatos: string) => {
-    const prompt = `Gere uma minuta de sentença baseada no contexto: ${processoContext} e fatos: ${fatos}. Siga a Lei 9.307/96.`;
+  formatSentenceDraft: async (processoContext: string, rascunhoJuiz: string) => {
+    const prompt = `Formate o seguinte rascunho de sentença arbitral seguindo a Lei 9.307/96. 
+    Mantenha estritamente o conteúdo e a decisão fornecida pelo Juiz de Fato e de Direito. 
+    Contexto do Processo: ${processoContext}
+    Rascunho a ser formatado: ${rascunhoJuiz}`;
     
     try {
-      // Para sentenças, tentamos o Pro primeiro por qualidade, mas caímos na cascata padrão se falhar
       try {
         return await tryGemini(prompt, "gemini-1.5-pro");
       } catch {
-        return await aiService.suggestClausula("Geração de Sentença", prompt);
+        return await aiService.formatDraft("Formatação de Sentença", rascunhoJuiz);
       }
     } catch (e) {
-      return `${fatos}\n\n[Modo Offline: Falha na geração da sentença]`;
+      return `${rascunhoJuiz}\n\n[Erro: Falha na formatação da sentença]`;
     }
   },
 
   /**
-   * Extração de dados estruturados com fallback resiliente.
+   * Extração MECÂNICA de dados estruturados.
    */
   extractMechanicalData: async (text: string) => {
-    const prompt = `Extraia nomes, datas e valores deste texto e retorne APENAS um objeto JSON válido:\n\n${text}`;
+    const prompt = `Extraia mecânicamente nomes, CPFs, datas e valores deste texto. 
+    Retorne APENAS um objeto JSON válido. Não interprete o conteúdo.
+    Texto:\n\n${text}`;
     
     try {
-      const response = await aiService.suggestClausula("Extração de Dados", prompt);
+      const response = await aiService.formatDraft("Extração de Metadados", prompt);
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
     } catch (e) {

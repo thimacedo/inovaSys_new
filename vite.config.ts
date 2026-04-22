@@ -42,19 +42,29 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },
+    build: {
+      target: 'esnext',
+      minify: 'terser',
+      cssMinify: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-supabase': ['@supabase/supabase-js'],
+            'vendor-ui': ['lucide-react', 'framer-motion', 'clsx', 'tailwind-merge'],
+            'vendor-query': ['@tanstack/react-query'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 1000,
+    },
+    optimizeDeps: {
+      include: ['@tanstack/react-query', '@supabase/supabase-js'],
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
-    },
-    server: {
-      hmr: true,
-      watch: {
-        usePolling: true,
-      },
-    },
-    optimizeDeps: {
-      exclude: ['@tanstack/react-query'],
     },
   };
 });

@@ -15,6 +15,7 @@ import PublicConsultation from './components/PublicConsultation';
 import Pricing from './components/Pricing';
 import Onboarding from './components/Onboarding';
 import { LandingPage } from './presentation/pages/Landing/LandingPage';
+import { DocsLayout } from './presentation/pages/Docs/DocsLayout';
 
 function AppContent() {
   // Inicializa a sincronização Sessão (Zustand) e Eventos (WebSockets)
@@ -23,7 +24,7 @@ function AppContent() {
 
   const { currentUser, setCurrentUser, logout, isAuthenticated } = useAuthStore();
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'landing' | 'auth' | 'public' | 'app' | 'pricing' | 'onboarding'>('landing');
+  const [view, setView] = useState<'landing' | 'auth' | 'public' | 'app' | 'pricing' | 'onboarding' | 'docs'>('landing');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
@@ -125,7 +126,7 @@ function AppContent() {
           transition={{ duration: 0.3 }}
           className="w-full"
         >
-          <LandingPage onLogin={() => setView('auth')} />
+          <LandingPage onLogin={() => setView('auth')} onDocsView={() => setView('docs')} />
         </motion.div>
       )}
 
@@ -152,6 +153,19 @@ function AppContent() {
           className="w-full"
         >
           <Pricing onBack={() => setView('auth')} />
+        </motion.div>
+      )}
+
+      {view === 'docs' && (
+        <motion.div
+          key="docs"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+          transition={{ duration: 0.3 }}
+          className="w-full"
+        >
+          <DocsLayout onBack={() => setView('landing')} />
         </motion.div>
       )}
 

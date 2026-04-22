@@ -23,7 +23,7 @@ export function Footer() {
             <h4 className="font-bold text-md-surface text-lg mb-6">Plataforma</h4>
             <ul className="space-y-4">
               {['Gestão de Processos', 'IA Assistente', 'Chat Realtime', 'Consultas Públicas'].map(l => (
-                <li key={l}><a href="#" className="text-sm font-medium hover:text-md-primary transition-colors">{l}</a></li>
+                <li key={l}><span className="text-sm font-medium text-md-on-surface-variant/60">{l}</span></li>
               ))}
             </ul>
           </div>
@@ -31,7 +31,7 @@ export function Footer() {
             <h4 className="font-bold text-md-surface text-lg mb-6">Recursos</h4>
             <ul className="space-y-4">
               {['Central de Ajuda', 'Documentação', 'Atualizações', 'Segurança'].map(l => (
-                <li key={l}><a href="#" className="text-sm font-medium hover:text-md-primary transition-colors">{l}</a></li>
+                <li key={l}><span className="text-sm font-medium text-md-on-surface-variant/60">{l}</span></li>
               ))}
             </ul>
           </div>
@@ -39,7 +39,7 @@ export function Footer() {
             <h4 className="font-bold text-md-surface text-lg mb-6">Empresa</h4>
             <ul className="space-y-4">
               {['Sobre Nós', 'Contato', 'Privacidade', 'Termos de Uso'].map(l => (
-                <li key={l}><a href="#" className="text-sm font-medium hover:text-md-primary transition-colors">{l}</a></li>
+                <li key={l}><span className="text-sm font-medium text-md-on-surface-variant/60">{l}</span></li>
               ))}
             </ul>
           </div>

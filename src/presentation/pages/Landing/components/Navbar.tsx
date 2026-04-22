@@ -4,13 +4,11 @@ import { cn } from '../../../../utils/cn';
 
 const NAV_LINKS = [
   { label: 'Solução', href: '#solucao' },
-  { label: 'Processos', href: '#processos' },
   { label: 'IA Assistente', href: '#ia' },
   { label: 'Funcionalidades', href: '#funcionalidades' },
-  { label: 'Futuro', href: '#futuro' },
 ];
 
-export function Navbar({ onLogin }: { onLogin?: () => void }) {
+export function Navbar({ onLogin, onDocsView }: { onLogin?: () => void, onDocsView?: () => void }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -30,12 +28,12 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
       )}
     >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-md-primary flex items-center justify-center shadow-md-2 group-hover:scale-110 transition-transform">
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-xl bg-md-primary flex items-center justify-center shadow-md-2">
             <Scale className="w-6 h-6 text-md-on-primary" />
           </div>
           <span className="text-2xl font-bold text-md-on-surface tracking-tight">InovaSys</span>
-        </a>
+        </div>
 
         <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map(l => (
@@ -47,6 +45,12 @@ export function Navbar({ onLogin }: { onLogin?: () => void }) {
               {l.label}
             </a>
           ))}
+          <button 
+            onClick={onDocsView}
+            className="text-sm font-medium text-md-on-surface-variant hover:text-md-primary transition-colors"
+          >
+            Documentação
+          </button>
         </div>
 
         <div className="hidden md:flex items-center gap-4">

@@ -10,10 +10,10 @@ import { Future } from './components/Future';
 import { FAQ } from './components/FAQ';
 import { Footer } from './components/Footer';
 
-export function LandingPage({ onLogin }: { onLogin: () => void }) {
+export function LandingPage({ onLogin, onDocsView }: { onLogin: () => void, onDocsView: () => void }) {
   return (
     <div className="min-h-screen bg-md-surface selection:bg-md-primary/20 selection:text-md-primary">
-      <Navbar onLogin={onLogin} />
+      <Navbar onLogin={onLogin} onDocsView={onDocsView} />
       
       <main>
         <Hero onAction={onLogin} />

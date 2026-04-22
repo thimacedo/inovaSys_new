@@ -47,14 +47,6 @@ export const documentService = {
     const element = document.createElement('div');
     element.innerHTML = html;
     await html2pdf().set(opt).from(element).save();
-  },
-
-  /**
-   * Método legado (mantido para compatibilidade) que faz tudo em um passo.
-   */
-  generateFromTemplate: async (tipoDocumento: number, placeholders: Record<string, string>, filename: string): Promise<void> => {
-    const html = await documentService.compileHTML(tipoDocumento, placeholders);
-    await documentService.downloadPDF(html, filename);
   }
 };
 
