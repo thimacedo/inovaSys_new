@@ -4,7 +4,7 @@ import { useAuthStore } from '../../state/useAuthStore';
 import { useEmailTemplates, useEmailTemplateMutations } from '../../../hooks/useEmailTemplates';
 import { EmailTemplateList } from './EmailTemplateList';
 import { EmailTemplateForm } from './EmailTemplateForm';
-import { EmailTemplate } from '../../../types/EmailTemplate';
+import { EmailTemplate } from '../../../core/domain/entities/EmailTemplate';
 import { Plus, Mail } from 'lucide-react';
 import { Button } from '../../ui/components/Button';
 

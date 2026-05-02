@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { aiService } from '../services/aiService';
-import { Bot, FileText, CheckCircle, Loader2, Sparkles } from 'lucide-react';
+import { Bot, FileText, Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface IAAssistantPanelProps {

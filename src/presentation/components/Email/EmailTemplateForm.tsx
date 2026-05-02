@@ -1,6 +1,6 @@
 // src/presentation/components/Email/EmailTemplateForm.tsx
 import React, { useState, useEffect } from 'react';
-import { EmailTemplate } from '../../../types/EmailTemplate';
+import { EmailTemplate } from '../../../core/domain/entities/EmailTemplate';
 import { useEmailTemplateMutations } from '../../../hooks/useEmailTemplates';
 import { useAuthStore } from '../../state/useAuthStore';
 

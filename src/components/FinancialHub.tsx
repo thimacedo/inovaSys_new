@@ -1,21 +1,16 @@
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAuthStore } from '../presentation/state/useAuthStore';
 import { useFinanceiroByOrg, useUpdateFinanceiro } from '../presentation/hooks/useFinanceiro';
 import { 
   DollarSign, 
   TrendingUp, 
-  ArrowDownRight, 
-  Calendar, 
   Search, 
-  Download, 
   CheckCircle, 
   Clock, 
-  FileText, 
-  AlertCircle,
-  LayoutDashboard,
-  BarChart3,
-  ChevronDown,
-  ChevronUp
+  Plus,
+  QrCode,
+  Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessRowSkeleton } from '../presentation/ui/components/Skeleton';
@@ -23,205 +18,125 @@ import { usePermissions } from '../hooks/usePermissions';
 
 // 🧩 Sub-módulos Modularizados (Material You MD3)
 import { BIMetricsGrid } from './financeiro-bi/BIMetricsGrid';
-import { BIChartsSection } from './financeiro-bi/BIChartsSection';
 
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
-
-interface MonthData {
-  label: string;
-  month: number;
-  year: number;
-  total: number;
-}
-
+/**
+ * 💰 FINANCIAL HUB INOVASYS - v4.0
+ * Focado 100% em transações PIX e controle de assentos.
+ */
 export default function FinancialHub() {
   const [filterStatus, setFilterStatus] = useState<'Todos' | 'Pendente' | 'Pago'>('Todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showCharts, setShowCharts] = useState(true);
+  const [showCharts, setShowCharts] = useState(false);
+  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
   
   const currentUser = useAuthStore(state => state.currentUser);
-  const { isAtLeastAdmin } = usePermissions();
+  const { isGod, isPresident } = usePermissions();
   
-  const organizationId = currentUser?.organization_id || (currentUser as any)?.organizacao_id || currentUser?.camara_id;
+  const organizationId = currentUser?.organization_id || currentUser?.camara_id || '';
   const { data: registros = [], isLoading, refetch } = useFinanceiroByOrg(organizationId);
   const updateMutation = useUpdateFinanceiro();
 
+  // 📝 Simulação de Payload PIX (Copia e Cola)
+  const pixPayload = "00020126580014br.gov.bcb.pix013645398276-8572-4d37-8822-263f19112883520400005303986540510.005802BR5915InovaSys Camara6009SAO PAULO62070503***6304E2B8";
+
+  const handleCopyPix = () => {
+    navigator.clipboard.writeText(pixPayload);
+    toast.success('Código PIX copiado com sucesso!');
+  };
+
   const handleMarcarPago = async (id: string) => {
+    if (!isGod) return; // Apenas God confirma pagamentos no SaaS
+
     const promise = updateMutation.mutateAsync({ 
       id, 
       data: { 
         status: 'Pago', 
-        data_pagamento: new Date().toISOString() 
+        pago_at: new Date().toISOString() 
       } 
     });
 
     toast.promise(promise, {
-      loading: 'Confirmando pagamento...',
-      success: 'Pagamento processado com sucesso!',
-      error: 'Erro ao processar pagamento.'
+      loading: 'Confirmando recebimento...',
+      success: 'Pagamento validado!',
+      error: 'Erro ao validar.'
     });
   };
 
   const processedData = useMemo(() => {
-    // BI Processing
-    const months: MonthData[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      months.push({ 
-        label: d.toLocaleString('pt-BR', { month: 'short' }), 
-        month: d.getMonth(), 
-        year: d.getFullYear(), 
-        total: 0 
-      });
-    }
-
-    registros.forEach(reg => {
-      if (reg.status === 'Pago' && reg.created_at) {
-        const d = new Date(reg.created_at);
-        if (!isNaN(d.getTime())) {
-          const idx = months.findIndex(m => m.month === d.getMonth() && m.year === d.getFullYear());
-          if (idx !== -1) months[idx].total += Number(reg.valor);
-        }
-      }
-    });
-
-    const dist = { Custa: 0, Hon_Arbitral: 0, Hon_Sucumbencia: 0 };
-    registros.forEach(reg => {
-      const tipo = reg.tipo as keyof typeof dist;
-      if (dist[tipo] !== undefined) dist[tipo] += Number(reg.valor);
-    });
-
     const totalReceita = registros.filter(d => d.status === 'Pago').reduce((acc, curr) => acc + Number(curr.valor), 0);
     const totalPendente = registros.filter(d => d.status === 'Pendente').reduce((acc, curr) => acc + Number(curr.valor), 0);
 
-    // Filter logic for Table
     const filtered = registros.filter(r => {
       const matchStatus = filterStatus === 'Todos' || r.status === filterStatus;
-      const matchSearch = r.descricao.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         r.processos?.numero_processo?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchSearch = r.descricao.toLowerCase().includes(searchTerm.toLowerCase());
       return matchStatus && matchSearch;
     });
 
-    return {
-      bar: { 
-        labels: months.map(m => m.label), 
-        datasets: [{ 
-          label: 'Receita', 
-          data: months.map(m => m.total), 
-          backgroundColor: '#6750A4', 
-          borderRadius: 12 
-        }] 
-      },
-      doughnut: { 
-        labels: ['Custas', 'Hon. Arbitrais', 'Sucumbência'], 
-        datasets: [{ 
-          data: [dist.Custa, dist.Hon_Arbitral, dist.Hon_Sucumbencia], 
-          backgroundColor: ['#006A60', '#6750A4', '#92400E'], 
-          borderWidth: 0 
-        }] 
-      },
-      stats: [
-        { label: 'Receita Líquida', value: totalReceita, icon: DollarSign, color: 'emerald' },
-        { label: 'Fluxo Pendente', value: totalPendente, icon: Calendar, color: 'blue' },
-        { label: 'Ticket Médio', value: totalReceita / (registros.length || 1), icon: TrendingUp, color: 'purple' },
-        { label: 'Inadimplência', value: (totalPendente / (totalReceita + totalPendente || 1)) * 100, isPercent: true, icon: ArrowDownRight, color: 'red' },
-      ],
-      filtered
-    };
+    const stats = [
+      { label: 'Total Pago (PIX)', value: totalReceita, icon: DollarSign, color: 'emerald' },
+      { label: 'Aguardando PIX', value: totalPendente, icon: Clock, color: 'blue' },
+      { label: 'Assentos Ativos', value: 5, isRaw: true, icon: TrendingUp, color: 'purple' }, // Exemplo estático
+    ];
+
+    return { filtered, stats };
   }, [registros, filterStatus, searchTerm]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700 pb-20">
-      {/* 🚀 Header MD3 Unificado */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-md-surface-variant/20 p-8 rounded-[32px] border border-md-outline/5 shadow-sm">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+      {/* 🚀 Header MD3 Financeiro */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-md-surface-variant/10 p-8 rounded-[32px] border border-md-outline/5 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="p-4 bg-md-primary text-md-on-primary rounded-2xl shadow-md">
-            <LayoutDashboard size={28} />
+          <div className="p-4 bg-emerald-600 text-white rounded-2xl shadow-md">
+            <QrCode size={28} />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-md-on-surface tracking-tight">Financial Hub</h2>
-            <p className="text-md-on-surface-variant/70 text-sm font-medium">Inteligência e Gestão Financeira Integrada</p>
+            <h2 className="text-2xl font-black text-md-on-surface tracking-tight uppercase italic">Financial Hub <span className="text-emerald-500">PIX</span></h2>
+            <p className="text-md-on-surface-variant/70 text-sm font-medium">Controle de Assinatura e Assentos Extras</p>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
+          {isPresident && (
+            <button 
+              onClick={() => setIsPixModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-md-primary text-md-on-primary rounded-2xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all active:scale-95"
+            >
+              <Plus size={16} />
+              Comprar Assentos
+            </button>
+          )}
           <button 
             onClick={() => refetch()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-md-surface text-md-on-surface border border-md-outline/10 rounded-full text-xs font-bold hover:bg-md-surface-variant/10 transition-all active:scale-95 shadow-sm"
+            className="p-3 bg-md-surface border border-md-outline/10 rounded-full hover:bg-md-surface-variant/10 transition-all"
           >
-            {isLoading ? <Clock className="animate-spin" size={16} /> : <TrendingUp size={16} />}
-            Atualizar Dados
-          </button>
-          <button className="p-3 bg-md-primary-container text-md-on-primary-container rounded-full hover:shadow-md transition-all">
-            <Download size={20} />
+            <Clock size={20} />
           </button>
         </div>
       </div>
 
-      {/* 📊 Grid de Métricas (BI) */}
       <BIMetricsGrid stats={processedData.stats} />
 
-      {/* 📈 Seção de Gráficos (BI) com Toggle */}
-      <div className="bg-md-surface rounded-[32px] border border-md-outline/5 overflow-hidden shadow-sm transition-all">
-        <button 
-          onClick={() => setShowCharts(!showCharts)}
-          className="w-full px-8 py-4 flex items-center justify-between hover:bg-md-surface-variant/5 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <BarChart3 size={18} className="text-md-primary" />
-            <span className="text-sm font-bold text-md-on-surface uppercase tracking-wider">Visualização Analítica</span>
-          </div>
-          {showCharts ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-        </button>
-        
-        {showCharts && (
-          <div className="px-8 pb-8 animate-in slide-in-from-top-2 duration-300">
-            <BIChartsSection barData={processedData.bar} doughnutData={processedData.doughnut} />
-          </div>
-        )}
-      </div>
-
-      {/* 🔍 Barra de Filtros Integrada */}
+      {/* 🔍 Filtros */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-md-on-surface-variant/40" size={20} />
           <input 
             type="text"
-            placeholder="Buscar por descrição ou número do processo..."
+            placeholder="Pesquisar faturas ou serviços..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-14 pr-6 py-4 bg-md-surface border border-md-outline/10 rounded-[24px] focus:ring-2 focus:ring-md-primary/20 outline-none transition-all shadow-sm text-sm font-medium"
+            className="w-full pl-14 pr-6 py-4 bg-md-surface border border-md-outline/10 rounded-[24px] focus:ring-2 focus:ring-md-primary/20 outline-none shadow-sm text-sm"
           />
         </div>
         <div className="flex gap-2">
           {['Todos', 'Pendente', 'Pago'].map((s) => (
             <button
               key={s}
-              onClick={() => setFilterStatus(s as any)}
-              className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all border ${
+              onClick={() => setFilterStatus(s as 'Todos' | 'Pendente' | 'Pago')}
+              className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                 filterStatus === s 
-                ? 'bg-md-primary text-md-on-primary border-md-primary shadow-md' 
-                : 'bg-md-surface text-md-on-surface-variant border-md-outline/10 hover:bg-md-surface-variant/10'
+                ? 'bg-md-primary text-md-on-primary' 
+                : 'bg-md-surface text-md-on-surface-variant border border-md-outline/10'
               }`}
             >
               {s}
@@ -230,100 +145,128 @@ export default function FinancialHub() {
         </div>
       </div>
 
-      {/* 📋 Tabela de Lançamentos Unificada */}
-      <div className="bg-md-surface rounded-[32px] border border-md-outline/5 overflow-hidden shadow-md transition-all">
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-md-surface-variant/10 border-b border-md-outline/5">
-                <th className="px-8 py-5 text-[11px] font-black text-md-on-surface-variant/50 uppercase tracking-[0.15em]">Processo</th>
-                <th className="px-8 py-5 text-[11px] font-black text-md-on-surface-variant/50 uppercase tracking-[0.15em]">Descrição</th>
-                <th className="px-8 py-5 text-[11px] font-black text-md-on-surface-variant/50 uppercase tracking-[0.15em]">Vencimento</th>
-                <th className="px-8 py-5 text-[11px] font-black text-md-on-surface-variant/50 uppercase tracking-[0.15em] text-right">Valor</th>
-                <th className="px-8 py-5 text-[11px] font-black text-md-on-surface-variant/50 uppercase tracking-[0.15em] text-center">Status</th>
-                <th className="px-8 py-5 text-[11px] font-black text-md-on-surface-variant/50 uppercase tracking-[0.15em] text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-md-outline/5">
-              {isLoading ? (
-                [...Array(5)].map((_, i) => (
-                  <tr key={i}>
-                    <td colSpan={6}><ProcessRowSkeleton /></td>
-                  </tr>
-                ))
-              ) : processedData.filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-8 py-24 text-center">
-                    <div className="flex flex-col items-center gap-3 opacity-30">
-                      <FileText size={48} />
-                      <p className="text-sm font-medium italic">Nenhum registro financeiro encontrado.</p>
+      {/* 📋 Tabela de Transações PIX */}
+      <div className="bg-md-surface rounded-[32px] border border-md-outline/5 overflow-hidden shadow-md">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-md-surface-variant/5 border-b border-md-outline/5">
+              <th className="px-8 py-5 text-[10px] font-black text-md-on-surface-variant/50 uppercase tracking-widest">Descrição</th>
+              <th className="px-8 py-5 text-[10px] font-black text-md-on-surface-variant/50 uppercase tracking-widest">Vencimento</th>
+              <th className="px-8 py-5 text-[10px] font-black text-md-on-surface-variant/50 uppercase tracking-widest text-right">Valor</th>
+              <th className="px-8 py-5 text-[10px] font-black text-md-on-surface-variant/50 uppercase tracking-widest text-center">Status</th>
+              <th className="px-8 py-5 text-[10px] font-black text-md-on-surface-variant/50 uppercase tracking-widest text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-md-outline/5">
+            {isLoading ? (
+              <tr key="loading"><td colSpan={5}><ProcessRowSkeleton /></td></tr>
+            ) : processedData.filtered.length === 0 ? (
+              <tr><td colSpan={5} className="px-8 py-20 text-center italic text-slate-400">Nenhuma transação encontrada.</td></tr>
+            ) : (
+              processedData.filtered.map((reg) => (
+                <tr key={reg.id} className="group hover:bg-md-primary/[0.02] transition-colors">
+                  <td className="px-8 py-5">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-md-on-surface">{reg.descricao}</span>
+                      <span className="text-[9px] text-md-on-surface-variant/50 font-black uppercase">Metodo: PIX</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-5">
+                    <span className="text-sm font-medium text-md-on-surface-variant">
+                      {reg.data_vencimento ? new Date(reg.data_vencimento).toLocaleDateString('pt-BR') : '---'}
+                    </span>
+                  </td>
+                  <td className="px-8 py-5 text-right font-black text-md-on-surface">
+                    R$ {Number(reg.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="flex justify-center">
+                      <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${
+                        reg.status === 'Pago' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700 animate-pulse'
+                      }`}>
+                        {reg.status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-5 text-right">
+                    <div className="flex justify-end gap-2">
+                      {reg.status === 'Pendente' && (
+                        <>
+                          {isGod ? (
+                             <button onClick={() => handleMarcarPago(reg.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl border border-emerald-100">
+                               <CheckCircle size={18} />
+                             </button>
+                          ) : (
+                             <button onClick={() => setIsPixModalOpen(true)} className="p-2 text-md-primary hover:bg-md-primary/5 rounded-xl border border-md-outline/10">
+                               <QrCode size={18} />
+                             </button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
-              ) : (
-                processedData.filtered.map((reg) => (
-                  <tr key={reg.id} className="group hover:bg-md-primary/[0.02] transition-colors">
-                    <td className="px-8 py-5">
-                      <span className="text-xs font-bold text-md-primary bg-md-primary/5 px-3 py-1 rounded-full border border-md-primary/10">
-                        {reg.processos?.numero_processo || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-8 py-5">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-md-on-surface">{reg.descricao}</span>
-                        <span className="text-[10px] text-md-on-surface-variant/60 font-black uppercase tracking-wider mt-0.5">{reg.tipo}</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-2 text-md-on-surface-variant">
-                        <Calendar size={14} className="opacity-40" />
-                        <span className="text-sm font-medium">
-                          {reg.data_vencimento ? new Date(reg.data_vencimento).toLocaleDateString('pt-BR') : '---'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      <div className="flex flex-col items-end">
-                        <span className={`text-sm font-black ${reg.status === 'Pago' ? 'text-emerald-600' : 'text-md-on-surface'}`}>
-                          R$ {Number(reg.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                      <div className="flex justify-center">
-                        <div className={`flex items-center gap-2 py-1.5 px-4 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                          reg.status === 'Pago' 
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
-                          : 'bg-amber-50 text-amber-700 border border-amber-100'
-                        }`}>
-                          {reg.status === 'Pago' ? <CheckCircle size={12} /> : <Clock size={12} />}
-                          {reg.status}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        {reg.status === 'Pendente' && isAtLeastAdmin && (
-                          <button 
-                            onClick={() => handleMarcarPago(reg.id)}
-                            className="p-2.5 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all border border-emerald-100 shadow-sm"
-                            title="Confirmar Pagamento"
-                          >
-                            <CheckCircle size={18} />
-                          </button>
-                        )}
-                        <button className="p-2.5 text-md-on-surface-variant/40 hover:text-md-primary hover:bg-md-primary/5 rounded-xl transition-all border border-md-outline/10 shadow-sm">
-                          <FileText size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
+
+      {/* 📱 MODAL PIX (Material You) */}
+      <AnimatePresence>
+        {isPixModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsPixModalOpen(false)}
+              className="absolute inset-0 bg-md-surface/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-md-surface-container-high w-full max-w-md rounded-[40px] p-8 shadow-md-3 border border-md-outline/10"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-emerald-100 text-emerald-700 rounded-[24px] flex items-center justify-center mb-6">
+                  <QrCode size={40} />
+                </div>
+                <h3 className="text-xl font-black text-md-on-surface uppercase italic">Pagamento via <span className="text-emerald-600">PIX</span></h3>
+                <p className="text-sm text-md-on-surface-variant/70 mt-2 mb-8">Efetue o pagamento para liberação imediata de novos assentos na sua Câmara.</p>
+
+                <div className="w-full bg-md-surface p-6 rounded-[32px] border border-md-outline/10 mb-6">
+                   <div className="aspect-square bg-white p-4 rounded-2xl mb-4 flex items-center justify-center border border-slate-100">
+                      {/* Placeholder para QR Code Real */}
+                      <div className="w-full h-full bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center opacity-40">
+                         <QrCode size={64} className="text-slate-300" />
+                         <span className="text-[10px] font-bold uppercase mt-2">QR Code Estático</span>
+                      </div>
+                   </div>
+                   <div className="text-xs font-mono text-md-on-surface-variant break-all bg-md-surface-container p-4 rounded-xl text-left border border-md-outline/5 select-all">
+                      {pixPayload}
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  <button 
+                    onClick={handleCopyPix}
+                    className="flex items-center justify-center gap-2 bg-emerald-600 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-md"
+                  >
+                    <Copy size={16} /> Copiar
+                  </button>
+                  <button 
+                    onClick={() => setIsPixModalOpen(false)}
+                    className="bg-md-surface text-md-on-surface-variant py-4 rounded-2xl text-xs font-black uppercase tracking-widest border border-md-outline/10"
+                  >
+                    Fechar
+                  </button>
+                </div>
+                <p className="text-[9px] uppercase font-bold text-md-on-surface-variant/40 mt-6 tracking-[0.2em]">Sincronização via Webhook InovaSys</p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

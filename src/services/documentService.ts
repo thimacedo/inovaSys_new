@@ -47,6 +47,14 @@ export const documentService = {
     const element = document.createElement('div');
     element.innerHTML = html;
     await html2pdf().set(opt).from(element).save();
+  },
+
+  /**
+   * Gera e baixa um documento PDF a partir de um template e placeholders.
+   */
+  generateFromTemplate: async (tipoDocumento: number, placeholders: Record<string, string>, filename: string): Promise<void> => {
+    const html = await documentService.compileHTML(tipoDocumento, placeholders);
+    await documentService.downloadPDF(html, filename);
   }
 };
 

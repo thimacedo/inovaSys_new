@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { useModal } from '../context/ModalContext';
 import { usePermissions } from '../hooks/usePermissions';

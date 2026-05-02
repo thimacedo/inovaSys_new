@@ -27,7 +27,7 @@ export default function ProcessList({ onProcessSelect, onNewProcess }: { onProce
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   const [activeStatus, setActiveStatus] = useState<string>('Todos');
 
-  const camaraId = currentUser?.organization_id || currentUser?.camara_id;
+  const camaraId = currentUser?.organization_id || currentUser?.camara_id || undefined;
 
   const { data: queryResult, isLoading: loading, isError } = useProcessos(camaraId, {
     page: currentPage,

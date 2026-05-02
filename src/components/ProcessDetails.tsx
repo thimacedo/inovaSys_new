@@ -4,7 +4,6 @@ import { useModal } from '../context/ModalContext';
 import { useProcesso } from '../presentation/hooks/useProcessos';
 import { userService } from '../services/userService';
 import { documentService } from '../services/documentService';
-import { financeiroService } from '../services/financeiroService';
 import { processService, Processo } from '../services/processService';
 import { useAddHistoryEntry } from '../presentation/hooks/useHistory';
 
@@ -23,7 +22,7 @@ import { ProcessChat } from './ProcessChat';
 import { ProcessAudit } from './ProcessAudit';
 import { SentenceGenerator } from './SentenceGenerator';
 
-import { Send, MessageSquare } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
 export default function ProcessDetails({ processId, onBack }: { processId: string, onBack: () => void }) {

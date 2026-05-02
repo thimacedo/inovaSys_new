@@ -132,7 +132,7 @@ export default function CalendarView() {
                   titulo,
                   data_inicio: new Date(data).toISOString(),
                   tipo,
-                  camara_id: currentUser?.camara_id
+                  camara_id: currentUser?.camara_id || undefined
                 });
                 showToast("Evento criado com sucesso!");
               } catch (err) {

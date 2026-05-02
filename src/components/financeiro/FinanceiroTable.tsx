@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, Clock, Trash2 } from 'lucide-react';
+import { CheckCircle, Trash2 } from 'lucide-react';
 import { MD3Badge } from '../../presentation/ui/md3/MD3Badge';
 
 interface FinanceiroTableProps {

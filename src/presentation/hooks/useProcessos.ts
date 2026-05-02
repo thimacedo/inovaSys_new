@@ -68,7 +68,7 @@ export function useCreateProcess() {
         'Processo Protocolado',
         'sistema',
         'Protocolo inicial efetuado. Sistema de LegalOps ativado.',
-        newProcess.autor_id
+        newProcess.autor_id || undefined
       );
     },
     onError: (error: any) => {

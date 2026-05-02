@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DependencyRegistry } from '../infrastructure/di/DependencyRegistry';
-import { EmailTemplate } from '../types/EmailTemplate';
+import { EmailTemplate } from '../core/domain/entities/EmailTemplate';
 import { toast } from 'sonner';
 
 const emailRepo = DependencyRegistry.getEmailRepository();

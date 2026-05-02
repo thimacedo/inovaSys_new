@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { Usuario } from '../../core/domain/entities/Usuario';
 
 export interface AuthState {
-  currentUser: any | null;
+  currentUser: Usuario | null;
   isAuthenticated: boolean;
-  setCurrentUser: (user: any) => void;
+  setCurrentUser: (user: any) => void; // Mantido any temporariamente para aceitar dados do Supabase Auth antes da normalização interna
   updateOrganization: (orgId: string) => void;
   logout: () => void;
 }
@@ -16,7 +17,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       updateOrganization: (orgId) => {
         set((state) => ({
-          currentUser: state.currentUser ? { ...state.currentUser, organization_id: orgId, camara_id: orgId } : null
+          currentUser: state.currentUser ? { ...state.currentUser, organization_id: orgId, camara_id: orgId } as Usuario : null
         }));
       },
       setCurrentUser: (user) => {
@@ -25,21 +26,19 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        // Fallback de Retrocompatibilidade (ID Organização)
-        if (!user.organization_id && user.camara_id) {
-          user.organization_id = user.camara_id;
+        // Normalização e Fallback de Retrocompatibilidade
+        const normalizedUser = { ...user };
+
+        if (!normalizedUser.organization_id && normalizedUser.camara_id) {
+          normalizedUser.organization_id = normalizedUser.camara_id;
         }
 
-        // Fallback de Permissões (Evita a quebra do Sidebar se a API omitir a chave original)
-        if (!user.tipo_usuario && user.role) {
-          user.tipo_usuario = user.role;
-        } else if (!user.tipo_usuario && user.user_metadata?.role) {
-          user.tipo_usuario = user.user_metadata.role;
+        if (!normalizedUser.tipo_usuario) {
+          normalizedUser.tipo_usuario = normalizedUser.role || normalizedUser.user_metadata?.role || 'arbitro';
         }
 
         set((state) => ({
-          // State Merging: Previne perda de dados hidratados do LocalStorage quando ocorre um background fetch
-          currentUser: state.currentUser ? { ...state.currentUser, ...user } : user,
+          currentUser: state.currentUser ? { ...state.currentUser, ...normalizedUser } as Usuario : normalizedUser as Usuario,
           isAuthenticated: true,
         }));
       },

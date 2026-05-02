@@ -1,36 +1,37 @@
 import { supabase } from '../lib/supabase';
 import { auditService } from './auditService';
+import { Usuario } from '../core/domain/entities/Usuario';
 
 export const userService = {
   /**
    * Busca perfil do usuário pelo ID.
    */
-  getProfile: async (id: string) => {
+  getProfile: async (id: string): Promise<Usuario | null> => {
     const { data, error } = await supabase
       .from('perfis')
       .select('*')
       .eq('id', id)
       .maybeSingle();
     if (error) throw error;
-    return data;
+    return data as Usuario | null;
   },
 
   /**
    * Busca árbitros disponíveis na câmara.
    */
-  getArbitrosDisponiveis: async () => {
+  getArbitrosDisponiveis: async (): Promise<Usuario[]> => {
     const { data, error } = await supabase
       .from('perfis')
       .select('*')
       .eq('tipo_usuario', 'arbitro');
     if (error) throw error;
-    return data;
+    return (data || []) as Usuario[];
   },
 
   /**
    * Atualiza perfil do usuário.
    */
-  updateProfile: async (id: string, data: any) => {
+  updateProfile: async (id: string, data: Partial<Usuario>) => {
     const { error } = await supabase
       .from('perfis')
       .update(data)
@@ -62,7 +63,7 @@ export const userService = {
   /**
    * Atalho para updateProfile (Retrocompatibilidade).
    */
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: Partial<Usuario>) => {
     return userService.updateProfile(id, data);
   }
 };

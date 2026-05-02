@@ -1,15 +1,14 @@
 import { useState, lazy, Suspense, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
-import { ShieldCheck, HelpCircle, Info } from 'lucide-react';
+import { ShieldCheck, HelpCircle } from 'lucide-react';
 import Sidebar from './Sidebar';
 import HelpCenter from './HelpCenter';
 import { usePermissions } from '../hooks/usePermissions';
 import { useAuthStore } from '../presentation/state/useAuthStore';
-
-// 🧩 Sub-módulo Layout MD3
 import { Topbar } from './layout/Topbar';
 
+// 🧩 Lazy Loading para otimização de bundle
 const ProcessList = lazy(() => import('./ProcessList'));
 const NewProcess = lazy(() => import('./NewProcess'));
 const Equipe = lazy(() => import('./Equipe'));
@@ -24,62 +23,54 @@ const FinancialHub = lazy(() => import('./FinancialHub'));
 const CalendarView = lazy(() => import('./CalendarView'));
 const EmailTemplatesPage = lazy(() => import('../presentation/pages/Admin/EmailTemplatesPage'));
 
-export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: any, userProfile: any, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
+import { Usuario } from '../core/domain/entities/Usuario';
+import { Camara } from '../core/domain/entities/Camara';
+
+/**
+ * 🏢 DASHBOARD CENTRAL INOVASYS - v4.0
+ * Orquestrador de visualizações baseado em permissões granulares.
+ */
+export default function Dashboard({ session, userProfile, onSignOut, theme, onToggleTheme }: { session: { user: Usuario | null }, userProfile: Usuario | null, onSignOut: () => void, theme: 'light' | 'dark', onToggleTheme: () => void }) {
   const { currentUser } = useAuthStore();
-  const { canManageTeam, canCreateProcess, canSeeAudit, isGlobalAdmin, isAtLeastAdmin } = usePermissions();
+  const { 
+    canManageAll, 
+    canPerformSales, 
+    canManageCamara, 
+    canExecuteProcess, 
+    canSeeAudit,
+    isGod 
+  } = usePermissions();
   
-  // 🧭 Persistência de Navegação: Inicialização via localStorage
   const [currentView, setCurrentView] = useState(() => localStorage.getItem('inovasys_current_view') || 'dash');
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(() => localStorage.getItem('inovasys_selected_process_id'));
   
-  const [camaraConfig, setCamaraConfig] = useState<any>(null);
+  const [camaraConfig, setCamaraConfig] = useState<Camara | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
-  // 🏛️ Reatividade de Unidade: Prioriza a organização selecionada no Switcher
   const activeOrgId = useMemo(() => {
     return currentUser?.organization_id || userProfile?.camara_id;
   }, [currentUser?.organization_id, userProfile?.camara_id]);
 
-  // 🔄 Efeito de Persistência e Refinação de UX
   useEffect(() => {
-    // 🧭 Log de Depuração solicitado
-    console.log('🧭 Persistindo:', {view: currentView, id: selectedProcessId, org: activeOrgId});
-
-    // Salvar estados no localStorage
     localStorage.setItem('inovasys_current_view', currentView);
-    
     if (selectedProcessId) {
       localStorage.setItem('inovasys_selected_process_id', selectedProcessId);
     } else {
       localStorage.removeItem('inovasys_selected_process_id');
     }
-
-    // 🛡️ Refinação de UX: Redirecionar se estiver em detalhes sem ID
     if (currentView === 'process_details' && !selectedProcessId) {
       setCurrentView('dash');
     }
-  }, [currentView, selectedProcessId, activeOrgId]);
+  }, [currentView, selectedProcessId]);
 
   useEffect(() => {
     if (window.innerWidth < 1024) setIsSidebarOpen(false);
-    
     const handleResize = () => {
-      if (window.innerWidth >= 1024) setIsSidebarOpen(prev => prev === false ? false : true);
+      if (window.innerWidth >= 1024) setIsSidebarOpen(true);
     };
-    
     window.addEventListener('resize', handleResize);
-    
-    const interval = setInterval(() => {
-      if (window.innerWidth >= 1024 && document.visibilityState === 'visible') {
-        setIsSidebarOpen(prev => prev === false ? false : true);
-      }
-    }, 15000);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearInterval(interval);
-    };
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -87,13 +78,11 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
       if (activeOrgId) {
         const { data } = await supabase.from('camaras').select('*').eq('id', activeOrgId).maybeSingle();
         if (data) { 
-          setCamaraConfig(data); 
+          setCamaraConfig(data as Camara); 
           localStorage.setItem('camara_config', JSON.stringify(data));
-          return; 
         }
       }
     };
-
     loadConfig();
   }, [activeOrgId]);
 
@@ -102,14 +91,13 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
     setCurrentView('process_details');
   };
 
-  // Verifica se o usuário está vendo uma unidade específica sendo um administrador global (impersonation)
   const isImpersonating = useMemo(() => {
     return !!currentUser?.organization_id && currentUser.organization_id !== userProfile?.camara_id;
   }, [currentUser?.organization_id, userProfile?.camara_id]);
 
   const handleExitImpersonation = () => {
     const { updateOrganization } = useAuthStore.getState();
-    updateOrganization(userProfile?.camara_id);
+    updateOrganization(userProfile?.camara_id || '');
   };
 
   const renderView = () => {
@@ -117,31 +105,38 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
       case 'dash': return <DashboardHome />;
       case 'process_list': return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'novo':
-        if (canCreateProcess) return <NewProcess onProcessCreated={() => setCurrentView('dash')} camaraId={activeOrgId} />;
+        if (canExecuteProcess) return <NewProcess onProcessCreated={() => setCurrentView('dash')} camaraId={activeOrgId} />;
         return <ProcessList onProcessSelect={handleProcessSelect} onNewProcess={() => setCurrentView('novo')} />;
       case 'process_details':
         return selectedProcessId ? <ProcessDetails processId={selectedProcessId!} onBack={() => { setSelectedProcessId(null); setCurrentView('dash'); }} /> : <div>Selecione um processo</div>;
-      case 'equipe': return canManageTeam ? <Equipe camaraId={activeOrgId} /> : <DashboardHome />;
-      case 'camara': return canManageTeam ? <CamaraConfig camaraId={activeOrgId} /> : <DashboardHome />;
-      case 'vendas': return isGlobalAdmin ? <Ecossistema /> : <DashboardHome />;
+      case 'equipe': return canManageCamara ? <Equipe camaraId={activeOrgId || undefined} /> : <DashboardHome />;
+      case 'camara': return canManageCamara ? <CamaraConfig camaraId={activeOrgId || undefined} /> : <DashboardHome />;
+      
+      // Módulo Comercial (Vendas / God)
+      case 'crm': 
+        return canPerformSales ? <Ecossistema /> : <DashboardHome />;
+      case 'registrar_camara': 
+        return canPerformSales ? <div>Interface de Cadastro de Câmara (Vendas)</div> : <DashboardHome />;
+      
       case 'auditoria': return canSeeAudit ? <Auditoria /> : <DashboardHome />;
       case 'efficiency_dashboard': return canSeeAudit ? <EfficiencyDashboard /> : <DashboardHome />;
-      case 'templates': return isGlobalAdmin ? <TemplateManager /> : <DashboardHome />;
-      case 'email_templates': return isAtLeastAdmin ? <EmailTemplatesPage /> : <DashboardHome />;
-      case 'financial_hub': return isAtLeastAdmin ? <FinancialHub /> : <DashboardHome />;
+      case 'templates': return canManageAll ? <TemplateManager /> : <DashboardHome />;
+      case 'email_templates': return canManageCamara ? <EmailTemplatesPage /> : <DashboardHome />;
+      case 'financial_hub': return canManageCamara ? <FinancialHub /> : <DashboardHome />;
       case 'calendar': return <CalendarView />;
       default: return <DashboardHome />;
     }
   };
 
   return (
-    <div id="layout-shell" className={`flex flex-col min-h-screen bg-md-surface overflow-x-hidden relative selection:bg-md-primary-container selection:text-md-on-primary-container z-0 transition-all duration-500 ${isImpersonating ? 'border-[6px] border-md-tertiary' : ''}`}>
+    <div id="layout-shell" className={`flex flex-col min-h-screen bg-md-surface overflow-x-hidden relative z-0 transition-all duration-500 ${isImpersonating ? 'border-[6px] border-md-tertiary' : ''}`}>
       
-      {/* ✨ MD3 Organic Blur Shapes (Atmosfera Visual) */}
-      <div className="md-blur-shape bg-md-primary/10 w-[600px] h-[600px] -top-48 -right-48" />
-      <div className="md-blur-shape bg-md-tertiary/10 w-[500px] h-[500px] top-96 -left-32" />
+      {/* Background Shapes */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="md-blur-shape bg-md-primary/5 w-[600px] h-[600px] -top-48 -right-48" />
+        <div className="md-blur-shape bg-md-tertiary/5 w-[500px] h-[500px] top-96 -left-32" />
+      </div>
 
-      {/* 🧩 Header Modular */}
       <Topbar 
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
@@ -164,79 +159,56 @@ export default function Dashboard({ session, userProfile, onSignOut, theme, onTo
           onSignOut={onSignOut} 
         />
 
-        <main id="main-content" className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 relative min-h-screen transition-all duration-400 ease-[cubic-bezier(0.2,0,0,1)]">
+        <main id="main-content" className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 relative min-h-[calc(100vh-72px)]">
           <AnimatePresence mode="wait">
             {isImpersonating && (
               <motion.div 
-                initial={{ opacity: 0, y: -20, scale: 0.95 }} 
-                animate={{ opacity: 1, y: 0, scale: 1 }} 
-                exit={{ opacity: 0, y: -20, scale: 0.95 }} 
-                className="mb-8 p-6 bg-md-tertiary-container text-md-on-tertiary-container rounded-[32px] flex justify-between items-center shadow-md-2 border border-md-tertiary/20 relative overflow-hidden"
+                initial={{ opacity: 0, y: -20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -20 }} 
+                className="mb-8 p-6 bg-md-tertiary-container text-md-on-tertiary-container rounded-[32px] flex justify-between items-center shadow-md border border-md-tertiary/20"
               >
-                {/* Visual Accent */}
-                <div className="absolute top-0 left-0 w-2 h-full bg-md-tertiary" />
-                
                 <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 bg-md-tertiary rounded-[20px] flex items-center justify-center text-md-on-tertiary shadow-md rotate-3">
-                    <ShieldCheck size={28} />
-                  </div>
+                  <ShieldCheck size={28} />
                   <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-[10px] uppercase tracking-[0.2em] font-black opacity-70">Unidade em Impersonation</p>
-                      <span className="px-2 py-0.5 bg-md-tertiary text-md-on-tertiary text-[8px] font-bold rounded-full uppercase tracking-tighter">Ativo</span>
-                    </div>
-                    <p className="text-xl font-bold mt-0.5 tracking-tight text-md-on-tertiary-container">Gerenciando: <span className="text-md-tertiary italic">{camaraConfig?.nome}</span></p>
+                    <p className="text-[10px] uppercase font-black opacity-70">Câmara em Supervisão</p>
+                    <p className="text-xl font-bold tracking-tight">Gerenciando: {camaraConfig?.nome}</p>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="hidden md:flex flex-col items-end mr-4 text-right opacity-60">
-                    <div className="flex items-center gap-1.5">
-                      <Info size={12} />
-                      <p className="text-[10px] font-medium tracking-wide uppercase">Visão de Administrador</p>
-                    </div>
-                    <p className="text-[9px]">Alterações afetam esta unidade</p>
-                  </div>
-                  <button 
-                    onClick={handleExitImpersonation} 
-                    className="px-8 py-3.5 bg-md-tertiary text-md-on-tertiary hover:bg-md-tertiary/90 border border-white/10 rounded-2xl text-xs font-black transition-all shadow-md active:scale-95 hover:shadow-lg flex items-center gap-2 group"
-                  >
-                    VOLTAR PARA GLOBAL
-                  </button>
-                </div>
+                <button 
+                  onClick={handleExitImpersonation} 
+                  className="px-8 py-3 bg-md-tertiary text-md-on-tertiary rounded-2xl text-xs font-black"
+                >
+                  SAIR DA SUPERVISÃO
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
 
           <Suspense fallback={
-            <div className="flex flex-col items-center justify-center h-[60vh] gap-6">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-md-surface-variant/40 border-t-md-primary rounded-full animate-spin"></div>
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-md-on-surface-variant/60 animate-pulse">Orquestrando Interface...</p>
+            <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+              <div className="w-12 h-12 border-4 border-md-primary/10 border-t-md-primary rounded-full animate-spin"></div>
+              <p className="text-xs font-bold text-md-on-surface-variant/40 uppercase tracking-widest">Sincronizando Módulo...</p>
             </div>
           }>
             <motion.div 
               key={currentView} 
-              initial={{ opacity: 0, y: 20, scale: 0.98 }} 
-              animate={{ opacity: 1, y: 0, scale: 1 }} 
-              transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+              initial={{ opacity: 0, y: 15 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
             >
               {renderView()}
             </motion.div>
           </Suspense>
 
-          {/* 🔘 Floating Action Button (FAB) MD3 */}
-          <div className="fixed bottom-8 right-8 flex flex-col items-end gap-3 z-50">
+          <div className="fixed bottom-8 right-8 z-50">
             <motion.button 
-              whileHover={{ scale: 1.05, y: -2 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsHelpOpen(true)}
-              className="bg-md-tertiary text-md-on-tertiary p-4 rounded-[20px] shadow-md-3 flex items-center gap-3 group relative overflow-hidden transition-all"
-              aria-label="Central de Ajuda"
+              className="bg-md-tertiary text-md-on-tertiary p-4 rounded-2xl shadow-lg"
             >
-              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors" />
-              <HelpCircle size={24} className="relative z-10" />
+              <HelpCircle size={24} />
             </motion.button>
           </div>
         </main>

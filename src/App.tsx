@@ -17,6 +17,8 @@ import Onboarding from './components/Onboarding';
 import { LandingPage } from './presentation/pages/Landing/LandingPage';
 import { DocsLayout } from './presentation/pages/Docs/DocsLayout';
 
+import { Usuario } from './core/domain/entities/Usuario';
+
 function AppContent() {
   // Inicializa a sincronização Sessão (Zustand) e Eventos (WebSockets)
   useAuthSync();
@@ -24,8 +26,11 @@ function AppContent() {
 
   const { currentUser, setCurrentUser, logout, isAuthenticated } = useAuthStore();
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'landing' | 'auth' | 'public' | 'app' | 'pricing' | 'onboarding' | 'docs'>('landing');
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [view, setView] = useState<'landing' | 'auth' | 'public' | 'app' | 'pricing' | 'onboarding' | 'docs' | 'crm' | 'registrar_camara'>('landing');
+
+  // ... (dentro do AppContent, após as definições de view)
+  const [currentModule, setCurrentModule] = useState('dash');
+  const [userProfile, setUserProfile] = useState<Usuario | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
   });
@@ -61,11 +66,13 @@ function AppContent() {
           }
 
           const profile = await userService.getProfile(currentUser.id);
-          if (mounted) {
+          if (mounted && profile) {
             setUserProfile(profile);
             setCurrentUser(profile);
             
-            if (!profile || !profile.nome || !profile.cpf) {
+            const isSaasAdmin = ['god', 'vendas'].includes(profile.tipo_usuario);
+
+            if (!isSaasAdmin && (!profile.nome || !profile.cpf)) {
               setView('onboarding');
             } else if (profile.tipo_usuario === 'operador') {
               setView('pricing');
@@ -73,7 +80,8 @@ function AppContent() {
               setView('app');
             }
           }
-        } catch (error: any) {
+        } catch (error) {
+          console.error('Error loading profile:', error);
           if (mounted) setView('onboarding');
         } finally {
           if (mounted) setLoading(false);

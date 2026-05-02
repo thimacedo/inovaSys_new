@@ -52,7 +52,7 @@ export const notificationService = {
       .from('perfis')
       .select('id')
       .eq('organization_id', orgId)
-      .in('tipo_usuario', ['admin', 'gestor']);
+      .in('tipo_usuario', ['presidente']);
 
     if (aError) throw aError;
 

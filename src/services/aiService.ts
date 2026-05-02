@@ -143,6 +143,21 @@ export const aiService = {
       console.error('[AI] Erro crítico na extração mecânica:', e);
       return null;
     }
+  },
+
+  /**
+   * Sugere ou formata uma cláusula/ajuda baseada no contexto.
+   */
+  suggestClausula: async (contexto: string, prompt: string) => {
+    return aiService.formatDraft(contexto, prompt);
+  },
+
+  /**
+   * Gera o HTML completo de uma sentença baseada no processo e diretrizes.
+   */
+  generateSentence: async (processo: any, diretrizes: string) => {
+    const processoContext = `Requerente: ${processo.requerente_nome}, Requerido: ${processo.requerido_nome}, Valor: ${processo.valor_causa}`;
+    return aiService.formatSentenceDraft(processoContext, diretrizes);
   }
 };
 

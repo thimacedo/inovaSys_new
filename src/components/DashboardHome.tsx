@@ -6,7 +6,7 @@ import { useFinanceiroByOrg } from '../presentation/hooks/useFinanceiro';
 import { useModal } from '../context/ModalContext';
 import { supabase } from '../lib/supabase';
 import { aiService } from '../services/aiService';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -16,12 +16,9 @@ import {
   ShieldCheck,
   Database,
   Bot,
-  Terminal,
   Activity,
   Cpu,
   CheckCircle2,
-  XCircle,
-  Shield,
   MessageSquare
 } from 'lucide-react';
 
@@ -183,7 +180,7 @@ export default function DashboardHome() {
   const { showModal } = useModal();
   
   // Identificação da Câmara/Organização
-  const camaraId = currentUser?.organization_id || currentUser?.camara_id;
+  const camaraId = currentUser?.organization_id || currentUser?.camara_id || undefined;
 
   // Hooks reativos (TanStack Query)
   const { data: processosData, isLoading: loadingProcs } = useProcessos(camaraId);

@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '../presentation/ui/components/Button';
 import { financeiroService } from '../services/financeiroService';
 import { aiService } from '../services/aiService';
+import { notificationService } from '../services/notificationService';
 import { Bot } from 'lucide-react';
 
 interface NewProcessProps {
@@ -74,8 +75,10 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
         return;
       }
 
-      const orgId = currentUser?.organization_id || (currentUser as any)?.organizacao_id;
-      if (!orgId) {
+      const orgId = currentUser?.organization_id || currentUser?.camara_id || camaraId;
+      const isGod = currentUser?.tipo_usuario === 'god';
+      
+      if (!orgId && !isGod) {
         toast.error("Vínculo organizacional não encontrado.");
         return;
       }
@@ -83,18 +86,36 @@ const NewProcess: React.FC<NewProcessProps> = ({ onProcessCreated, camaraId }) =
       const valorCausaNum = parseMoney(formData.valor_causa);
       const payload = {
         ...formData,
+        requerente_documento: formData.requerente_doc,
+        requerido_documento: formData.requerido_doc,
+        requerente_endereco: formData.requerente_end,
+        requerido_endereco: formData.requerido_end,
         valor_causa: valorCausaNum,
         user_id: session.user.id,
         camara_id: camaraId || undefined,
-        organization_id: orgId,
+        organization_id: orgId || undefined,
         status: 'Protocolado'
       };
 
-      const result = await createMutation.mutateAsync(payload);
+      const result = await createMutation.mutateAsync(payload as any);
       
+      // Notifica o Presidente da Câmara imediatamente
+      if (orgId) {
+        try {
+          await notificationService.notifyAdmins(orgId, {
+            titulo: 'Novo Processo Protocolado',
+            mensagem: `O processo ${result.numero_processo} foi protocolado. Atribua um árbitro para iniciar o andamento.`,
+            tipo: 'alerta',
+            processoId: result.id
+          });
+        } catch (nError) {
+          console.error('Erro ao notificar presidente:', nError);
+        }
+      }
+
       // Gera faturamento inicial automático
       try {
-        await financeiroService.gerarCustasIniciais(result.id, result.valor_causa || 0, orgId);
+        await financeiroService.gerarCustasIniciais(result.id, result.valor_causa || 0, orgId || '');
       } catch (fError) {
         console.error('Erro ao gerar custas:', fError);
       }

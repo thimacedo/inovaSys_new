@@ -39,7 +39,7 @@ interface MonthData {
 
 export default function FinanceiroBI() {
   const currentUser = useAuthStore(state => state.currentUser);
-  const camaraId = currentUser?.organization_id || currentUser?.camara_id;
+  const camaraId = currentUser?.organization_id || currentUser?.camara_id || undefined;
   const { data: rawData = [], isLoading, refetch } = useFinanceiroByOrg(camaraId);
 
   const processedData = useMemo(() => {

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Code, Eye, RefreshCw, Save, AlertCircle, Info } from 'lucide-react';
+import { Code, Eye, RefreshCw, Save, Info } from 'lucide-react';
 import { MD3Card } from '../../presentation/ui/md3/MD3Card';
 
 interface VisualTemplateEditorProps {

@@ -1,6 +1,6 @@
 // src/presentation/components/Email/EmailTemplateList.tsx
 import React from 'react';
-import { EmailTemplate } from '../../../types/EmailTemplate';
+import { EmailTemplate } from '../../../core/domain/entities/EmailTemplate';
 import { Edit, Trash2 } from 'lucide-react';
 
 interface Props {

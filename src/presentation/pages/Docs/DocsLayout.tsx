@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react'; // 🔷 Corrigido: Importado AnimatePresence
-import { Book, ChevronLeft, Search, FileText, Shield, Info, Menu, X, HelpCircle, Code } from 'lucide-react';
+import { Book, ChevronLeft, Search, Shield, Info, Menu, X, HelpCircle, Code } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { docsService } from '../../../services/docsService';
 

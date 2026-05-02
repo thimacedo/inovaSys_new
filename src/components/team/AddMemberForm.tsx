@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { Info, Mail, Users, Shield, Fingerprint, MapPin, Loader2, Save } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Info, Mail, Users, Shield, Loader2, Save } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useModal } from '../../context/ModalContext';
 import { isValidCPF } from '../../utils/validators';
-import { applyMask } from '../../utils/masks';
 
 interface AddMemberFormProps {
   onAdded: (pwd?: string) => void;

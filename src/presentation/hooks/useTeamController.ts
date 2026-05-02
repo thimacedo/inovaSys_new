@@ -4,6 +4,8 @@ import { useModal } from '../../context/ModalContext';
 import { isValidCPF } from '../../utils/validators';
 import { supabase } from '../../lib/supabase';
 import { DependencyRegistry } from '../../infrastructure/di/DependencyRegistry';
+import { UserRole } from '../../core/domain/entities/Usuario';
+
 /**
  * useTeamController
  * Hook de apresentação para separar a lógica de negócio da UI do componente Equipe.
@@ -58,7 +60,7 @@ export function useTeamController(camaraId?: string, onAdded?: (password?: strin
         // 3. Persistência via Service Modularizado
         await userService.update(authData.user.id, {
           nome: nome.trim(),
-          tipo_usuario: tipoUsuario,
+          tipo_usuario: tipoUsuario as UserRole,
           camara_id: camaraId,
           cpf: tipoUsuario === 'arbitro' ? cpf.replace(/\D/g, "") : undefined,
           endereco: tipoUsuario === 'arbitro' ? endereco : undefined

@@ -58,7 +58,7 @@ test.describe('InovaSys - Full E2E Production Validation', () => {
     // vou fazer um rastreamento estrutural das rotas base do sistema para o relatório.
 
     const routes = ['/dashboard', '/legalops', '/whatsapp', '/settings'];
-    for (let route of routes) {
+    for (const route of routes) {
       const startRoute = Date.now();
       try {
         const response = await page.goto(`${PROD_URL}${route}`, { waitUntil: 'domcontentloaded' });

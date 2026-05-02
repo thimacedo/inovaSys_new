@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'motion/react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { MD3Card } from '../../presentation/ui/md3/MD3Card';
 

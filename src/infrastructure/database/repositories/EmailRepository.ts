@@ -1,5 +1,5 @@
 import { BaseSupabaseRepository } from '../BaseSupabaseRepository';
-import { EmailTemplate } from '../../../types/EmailTemplate';
+import { EmailTemplate } from '../../../core/domain/entities/EmailTemplate';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export class EmailRepository extends BaseSupabaseRepository<EmailTemplate> {

@@ -1,4 +1,4 @@
-import { Globe, CreditCard, Smartphone, Bell, ArrowRight, Scale, Gavel, FileCheck } from 'lucide-react';
+import { CreditCard, Bell, ArrowRight, Scale, Gavel, FileCheck } from 'lucide-react';
 
 const FUTURE_ITEMS = [
   { icon: Gavel, title: 'Tribunais', desc: 'Sincronização nativa PJe/MNI com tribunais de todo o Brasil', status: 'Já Disponível' },
