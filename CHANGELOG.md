@@ -2,6 +2,20 @@
 
 Histórico de atualizações e melhorias técnicas implementadas.
 
+## [2026-05-01] - Refatoração Implacável e Fix de Credenciais
+
+### Adicionado
+- **Entidades de Domínio**: Criação do diretório `src/core/domain/entities` contendo interfaces TypeScript estritas (`Usuario`, `Processo`, `Financeiro`, `Camara`, `EmailTemplate`).
+- **Segurança de Ambiente**: Nova chave anônima (publishable key) configurada e aplicada ao ambiente após recriação de projeto no Supabase. O diretório `.gemini/` foi movido para o `.gitignore` para prevenir exposição de secrets.
+
+### Alterado
+- **Eliminação de AI Slop**: Refatoração profunda removendo o tipo `any` de múltiplos componentes e serviços críticos (`useAuthStore`, `Dashboard`, `App`, `FinancialHub`, `userService`).
+- **Tipagem Estrita**: Os hooks e páginas agora importam estritamente interfaces do domínio e lidam adequadamente com os campos nulos e retornos opcionais, aumentando a estabilidade geral da compilação (`tsc`).
+
+### Corrigido
+- **Erro DNS_PROBE_FINISHED_NXDOMAIN**: Resolvido falha crítica de login (Google Auth e Email/Senha) atualizando a credencial `VITE_SUPABASE_ANON_KEY` para o novo ambiente Supabase.
+- **Build Typescript**: Solucionados mais de 30 erros de tipos do TS nas rotinas de processos, financeiro e interface que impediam o build seguro.
+
 ## [2026-04-08] - Normalização RBAC e Estabilização
 
 ### Adicionado
